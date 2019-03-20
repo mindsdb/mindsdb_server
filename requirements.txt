@@ -1,0 +1,3 @@
+mindsdb>=1.0.0
+flask
+flask-restplus
