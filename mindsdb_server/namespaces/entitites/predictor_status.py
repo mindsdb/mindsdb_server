@@ -1,7 +1,9 @@
-from flask_restplus import Namespace, Resource, fields
+from mindsdb_server.namespaces.configs.predictors import ns_conf
+
+from flask_restplus import fields
 import datetime
 
-PredictorStatus = {
+predictor_status = ns_conf.model('PredictorStatus', {
     # Primary key
     'name': fields.String(required=True, description='The predictor name, NOTE: That primary key is made of name:version'),
     'version': fields.String(required=True, description='The predictor version to publish under, this is so that we can train multiple predictors for the same problem but expose them via the same name'),
@@ -14,7 +16,7 @@ PredictorStatus = {
     'train_end_at': fields.DateTime(description='The time the predictor finished training'),
     'updated_at': fields.DateTime(required=True, description='The time the predictor was last updated at'),
     'created_at': fields.DateTime(required=True, description='The time the predictor was created at')
-}
+})
 
 
 ##EXAMPLES
