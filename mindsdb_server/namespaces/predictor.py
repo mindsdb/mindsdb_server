@@ -1,32 +1,26 @@
-from flask_restplus import Namespace, Resource, fields
+from flask_restplus import Resource, fields
 
-ns_conf = Namespace('predictors', description='Predictor is the main object exposed by the API')
+from mindsdb_server.namespaces.entitites.predictor_status import predictor_status, EXAMPLES as PREDICTORS_STATUS_LIST
+from mindsdb_server.namespaces.entitites.predictor_metadata import predictor_metadata, EXAMPLES as PREDICTOR_METADATA
 
-predictor = ns_conf.model('Predictor', {
-    'name': fields.String(required=True, description='The predictoe name'),
-})
+from mindsdb_server.namespaces.configs.predictors import ns_conf
 
-PREDICTORS = [
-    {'name': 'Test'},
-]
 
 @ns_conf.route('/')
 class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
-    @ns_conf.marshal_list_with(predictor)
+    @ns_conf.marshal_list_with(predictor_status)
     def get(self):
         '''List all predictors'''
-        return PREDICTORS
+        return PREDICTORS_STATUS_LIST
 
 @ns_conf.route('/<name>')
 @ns_conf.param('name', 'The predictor identifier')
-#@api.response(404, 'Cat not found')
+@ns_conf.response(404, 'predictor not found')
 class Predictor(Resource):
     @ns_conf.doc('get_predictor')
-    @ns_conf.marshal_with(predictor)
-    def get(self, id):
-        '''Fetch a cat given its identifier'''
-        for cat in PREDICTORS:
-            if cat['id'] == id:
-                return cat
-        ns_conf.abort(404)
+    @ns_conf.marshal_with(predictor_metadata)
+    def get(self, name):
+        '''Fetch a predictor given its identifier'''
+
+        return PREDICTOR_METADATA[0]
