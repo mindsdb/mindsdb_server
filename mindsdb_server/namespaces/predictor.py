@@ -14,6 +14,7 @@ class PredictorList(Resource):
         '''List all predictors'''
         return PREDICTORS_STATUS_LIST
 
+
 @ns_conf.route('/<name>')
 @ns_conf.param('name', 'The predictor identifier')
 @ns_conf.response(404, 'predictor not found')
