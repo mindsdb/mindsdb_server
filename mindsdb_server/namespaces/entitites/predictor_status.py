@@ -19,6 +19,8 @@ predictor_status = ns_conf.model('PredictorStatus', {
 })
 
 
+
+
 ##EXAMPLES
 
 
@@ -29,7 +31,7 @@ EXAMPLES = [
         'version': 1,
         'is_active': True,
         'data_source': 'real_estate.csv',
-        'predict': 'price',
+        'predict': ['price'],
         'accuracy': '.97',
         'status': 'training',
         'train_end_at': datetime.datetime.now(),
@@ -41,7 +43,7 @@ EXAMPLES = [
         'version': 2,
         'is_active': False,
         'data_source': 'real_estate_complex.csv',
-        'predict': 'price',
+        'predict': ['price'],
         'accuracy': '.64',
         'status': 'training',
         'train_end_at': datetime.datetime.now(),
@@ -53,7 +55,7 @@ EXAMPLES = [
         'version': 1,
         'is_active': True,
         'data_source': 'real_estate.csv',
-        'predict': 'number of rooms',
+        'predict': ['number_of_rooms'],
         'accuracy': '.97',
         'status': 'complete',
         'train_end_at': datetime.datetime.now(),
