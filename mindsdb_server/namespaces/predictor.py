@@ -16,7 +16,7 @@ class PredictorList(Resource):
         '''List all predictors'''
 
         predictors_list = []
-        for fname in [''test_lmd.pickle'']
+        for fname in ['test_lmd.pickle']
             with open(fname, 'rb') as fp:
                 pdata = pickle.load(fp)
 
