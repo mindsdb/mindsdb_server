@@ -36,3 +36,4 @@ updated_at
 created_at
 accuracy
 status
+from_data <--- make it work

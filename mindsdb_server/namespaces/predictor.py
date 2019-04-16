@@ -20,18 +20,17 @@ class PredictorList(Resource):
             with open(fname, 'rb') as fp:
                 pdata = pickle.load(fp)
 
-            predictors_list.append({
-                    'name': pdata['model_name'],
-                    'version': None,
-                    'is_active': None,
-                    'data_source': pdata['from_data'],
-                    'predict': pdata['predict_columns'],
-                    'accuracy': None,
-                    'status': None,
-                    'train_end_at': None,
-                    'updated_at': None,
-                    'created_at': None
-            })
+            print(pdata)
+            predictor = {}
+            for k in predictor_status:
+                if k == 'predict':
+                    predictor[k] = pdata['predict_columns']
+                elif k in pdata:
+                    predictor[k] = pdata[k]
+                else:
+                    predictor[k] = None
+                    print(f'Key {k} not found in the light model metadata !')
+
         return predictors_list
 
 
