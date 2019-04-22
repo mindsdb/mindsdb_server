@@ -2,11 +2,31 @@ from flask_restplus import Resource, fields
 
 from mindsdb_server.namespaces.entitites.predictor_status import predictor_status, EXAMPLES as PREDICTORS_STATUS_LIST
 from mindsdb_server.namespaces.entitites.predictor_metadata import predictor_metadata, EXAMPLES as PREDICTOR_METADATA
-
 from mindsdb_server.namespaces.configs.predictors import ns_conf
+
+import mindsdb
+
 import json
 import pickle
 import sys
+import copy
+from dateutil.parser import parse as parse_datetime
+
+
+def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
+    if type(model) != dict:
+        return
+    for k in model:
+        if reset_keyes:
+            keys = []
+        if type(model[k]) == dict:
+            keys.append(k)
+            debug_pkey_type(model[k], copy.deepcopy(keys), reset_keyes=False)
+        if type(model[k]) == type_to_check:
+            print(f'They key {keys}->{k} has type list')
+        if type(model[k]) == list:
+            for item in model[k]:
+                debug_pkey_type(item, copy.deepcopy(keys), reset_keyes=False)
 
 @ns_conf.route('/')
 class PredictorList(Resource):
@@ -15,24 +35,15 @@ class PredictorList(Resource):
     def get(self):
         '''List all predictors'''
 
-        predictors_list = []
-        for fname in ['test_lmd.pickle']:
-            with open(fname, 'rb') as fp:
-                pdata = pickle.load(fp)
+        mdb = mindsdb.Predictor(name='metapredictor')
+        models = mdb.get_models()
 
-            print(pdata)
-            predictor = {}
-            for k in predictor_status:
-                if k == 'predict':
-                    predictor[k] = pdata['predict_columns']
-                elif k in pdata:
-                    predictor[k] = pdata[k]
-                else:
-                    predictor[k] = None
-                    print(f'Key {k} not found in the light model metadata !')
+        for model in models:
+            for k in ['train_end_at', 'updated_at', 'created_at']:
+                if k in model:
+                    model[k] = parse_datetime(model[k])
 
-        return predictors_list
-
+        return models
 
 @ns_conf.route('/<name>')
 @ns_conf.param('name', 'The predictor identifier')
@@ -41,5 +52,16 @@ class Predictor(Resource):
     @ns_conf.doc('get_predictor')
     @ns_conf.marshal_with(predictor_metadata, skip_none=True)
     def get(self, name):
-        '''Fetch a predictor given its identifier'''
-        return PREDICTOR_METADATA[0]
+        mdb = mindsdb.Predictor(name='metapredictor')
+        model = mdb.get_model_data(name)
+
+        for k in ['train_end_at', 'updated_at', 'created_at']:
+            if k in model:
+                model[k] = parse_datetime(model[k])
+
+        #debug_pkey_type(model)
+        #print(model['data_analysis']['target_columns_metadata'])
+        #model['data_analysis']['target_columns_metadata'] = 0
+        #model['data_analysis']['input_columns_metadata'] = 0
+
+        return model

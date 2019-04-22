@@ -6,7 +6,9 @@ from flask_restplus import fields
 histogram_data = ns_conf.model('HistogramData', {
     'type': fields.String(required=True, description='The type of histogram', enum=['categorical', 'numeric']),
     'x': fields.List(fields.String, required=True, description='Ordered labels'),
-    'y': fields.List(fields.Float, required=True, description='Count for each label')
+    #'y': fields.List(fields.Float, required=True, description='Count for each label')
+    'y': fields.List(fields.Raw, required=True, description='Count for each label')
+
 })
 
 
