@@ -15,6 +15,7 @@ datasource_metadata = ns_conf.model('DatasourceMetadata', {
     # Primary key
     'name': fields.String(required=True, description='The datasource name'),
     # other attributes
+    'source_type': fields.String(required=True, description='file/url'),
     'source': fields.String(required=True, description='The datasource source (filename, url)'),
     'missed_files': fields.Boolean(required=True, description='indicates the presence of missed files'),
     'created_at': fields.DateTime(required=True, description='The time the datasource was created at'),
@@ -69,6 +70,7 @@ put_datasource_params = OrderedDict([
 EXAMPLES = [{
     'name': 'realty price',
     'source': 'data_sumple.csv',
+    'source_type': 'file',
     'missed_files': False,
     'created_at': datetime.datetime.now(),
     'updated_at': datetime.datetime.now(),

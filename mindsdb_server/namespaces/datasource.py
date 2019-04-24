@@ -83,12 +83,19 @@ class Datasource(Resource):
 
         DATASOURCES_LIST_EXAMPLE.append({
             'name': datasource_name,
+            'source_type': datasource_type,
             'source': datasource_source,
             'missed_files': False,
             'created_at': datetime.datetime.now(),
             'updated_at': datetime.datetime.now(),
             'row_count': 0,
-            'columns': []
+            'columns': [{
+                'name': 'name',
+                'type': 'string'
+            }, {
+                'name': 'rental_price',
+                'type': 'number'
+            }]
         })
 
         time.sleep(1.0)
