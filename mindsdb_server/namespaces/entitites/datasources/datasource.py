@@ -54,28 +54,53 @@ put_datasource_params = OrderedDict([
 
 EXAMPLES = [{
     'name': 'realty price',
-    'source': 'data_sumple.csv',
-    'source_type': 'file',
+    'source': 'https://raw.githubusercontent.com/mindsdb/mindsdb/master/docs/examples/basic/home_rentals.csv',
+    'source_type': 'url',
     'missed_files': False,
     'created_at': datetime.datetime.now(),
     'updated_at': datetime.datetime.now(),
-    'row_count': 3210,
+    'row_count': 5037,
     'columns': [{
-        'name': 'name',
+        'name': 'number_of_rooms',
+        'type': 'number'
+    }, {
+        'name': 'number_of_bathrooms',
+        'type': 'number'
+    }, {
+        'name': 'sqft',
+        'type': 'number'
+    }, {
+        'name': 'location',
         'type': 'string'
     }, {
-        'name': 'price',
+        'name': 'days_on_market',
         'type': 'number'
     }, {
-        'name': 'rooms count',
+        'name': 'initial_price',
         'type': 'number'
     }, {
-        'name': 'photo',
-        'type': 'file',
-        'file_type': 'image'
+        'name': 'neighborhood',
+        'type': 'string'
     }, {
-        'name': 'street',
-        'type': 'dict',
-        'dict': ['east', 'west']
+        'name': 'rental_price',
+        'type': 'number'
     }]
+    # 'columns': [{
+    #     'name': 'name',
+    #     'type': 'string'
+    # }, {
+    #     'name': 'price',
+    #     'type': 'number'
+    # }, {
+    #     'name': 'rooms count',
+    #     'type': 'number'
+    # }, {
+    #     'name': 'photo',
+    #     'type': 'file',
+    #     'file_type': 'image'
+    # }, {
+    #     'name': 'street',
+    #     'type': 'dict',
+    #     'dict': ['east', 'west']
+    # }]
 }]

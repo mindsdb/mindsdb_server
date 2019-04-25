@@ -81,7 +81,7 @@ class Predictor(Resource):
         to_predict = data.get('to_predict')
 
         if data.get('data_source_name'):
-            ds = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == name] or [None])[0]
+            ds = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == data.get('data_source_name')] or [None])[0]
             if ds and ds['source']:
                 if ds['source_type'] == 'url':
                     from_data = ds['source']
