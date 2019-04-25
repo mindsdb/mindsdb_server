@@ -108,10 +108,12 @@ class Predictor(Resource):
         p = Process(target=learn, args=(name, from_data, to_predict))
         p.start()
 
-        mdb = mindsdb.Predictor(name=name)
-        model = mdb.get_model_data(name)
-        for k in ['train_end_at', 'updated_at', 'created_at']:
-            if k in model:
-                model[k] = parse_datetime(model[k])
-        return model
+        return '', 200
+
+        # mdb = mindsdb.Predictor(name=name)
+        # model = mdb.get_model_data(name)
+        # for k in ['train_end_at', 'updated_at', 'created_at']:
+        #     if k in model:
+        #         model[k] = parse_datetime(model[k])
+        # return model
 
