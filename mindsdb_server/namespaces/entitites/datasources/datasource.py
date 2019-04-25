@@ -24,15 +24,6 @@ datasource_metadata = ns_conf.model('DatasourceMetadata', {
     'columns': fields.List(fields.Nested(datasource_column_metadata), required=True, description='columns description')
 })
 
-post_datasource_params = OrderedDict([
-    ('name', {
-        'description': 'The datasource name',
-        'type': 'string',
-        'in': 'path',
-        'required': True
-    })
-])
-
 put_datasource_params = OrderedDict([
     ('name', {
         'description': 'The datasource name',
@@ -40,7 +31,7 @@ put_datasource_params = OrderedDict([
         'in': 'path',
         'required': True
     }),
-    ('sourceType', {
+    ('source_type', {
         'description': 'type of datasource',
         'type': 'string',
         'enum': ['file','url'],
@@ -59,12 +50,6 @@ put_datasource_params = OrderedDict([
         'in': 'FormData',
         'required': False
     }),
-    ('hashes', {
-        'description': 'list of files hashes (if datasource has column with files)',
-        'type': 'list',
-        'in': 'FormData',
-        'required': False
-    })
 ])
 
 EXAMPLES = [{

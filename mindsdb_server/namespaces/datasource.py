@@ -4,11 +4,12 @@ import datetime
 from flask import request, send_file
 from flask_restplus import Resource, fields
 
+from mindsdb.libs.data_sources.file_ds import FileDS
+
 from mindsdb_server.namespaces.configs.datasources import ns_conf
 from mindsdb_server.namespaces.entitites.datasources.datasource import (
     datasource_metadata,
     put_datasource_params,
-    post_datasource_params,
     EXAMPLES as DATASOURCES_LIST_EXAMPLE
 )
 from mindsdb_server.namespaces.entitites.datasources.datasource_data import (
@@ -44,11 +45,6 @@ class Datasource(Resource):
         '''return datasource metadata'''
         return DATASOURCES_LIST_EXAMPLE[0]
 
-    @ns_conf.doc('post_datasource', params=post_datasource_params)
-    def post(self, name):
-        '''update datasource attributes'''
-        return '', 200
-
     @ns_conf.doc('delete_datasource')
     def delete(self, name):
         '''delete datasource'''
@@ -67,7 +63,7 @@ class Datasource(Resource):
         data = request.json or request.values
         
         datasource_name = data['name']
-        datasource_type = data['sourceType']
+        datasource_type = data['source_type']
         datasource_source = data['source']
 
         names = [x['name'] for x in DATASOURCES_LIST_EXAMPLE]
@@ -80,6 +76,12 @@ class Datasource(Resource):
                 os.mkdir(FILES_PATH)
             path = os.path.join(FILES_PATH, datasource_source)
             open(path, 'wb').write(datasource_file.read())
+            ds = FileDS(path)
+        else:
+            ds = FileDS(datasource_source)
+
+        columns = [dict(name=x) for x in list(ds.df.keys())]
+        row_count = len(ds.df)
 
         DATASOURCES_LIST_EXAMPLE.append({
             'name': datasource_name,
@@ -88,14 +90,8 @@ class Datasource(Resource):
             'missed_files': False,
             'created_at': datetime.datetime.now(),
             'updated_at': datetime.datetime.now(),
-            'row_count': 0,
-            'columns': [{
-                'name': 'name',
-                'type': 'string'
-            }, {
-                'name': 'rental_price',
-                'type': 'number'
-            }]
+            'row_count': row_count,
+            'columns': columns
         })
 
         time.sleep(1.0)
@@ -108,7 +104,22 @@ class DatasourceData(Resource):
     @ns_conf.marshal_with(datasource_rows_metadata)
     def get(self, name):
         '''return data rows'''
-        return GET_DATASOURCE_ROWS_EXAMPLES[0]
+        ds_record = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == name] or [None])[0]
+        if ds_record:
+            if ds_record['source_type'] == 'file':
+                path = os.path.join(FILES_PATH, ds_record['source'])
+                if not os.path.exists(path):
+                    return '', 404
+            else:
+                path = ds_record['source']
+            ds = FileDS(path)
+            keys = list(ds.df.keys())
+            response = {
+                'data': [dict(zip(keys,x)) for x in ds.df.values]
+            }
+            return response, 200
+        return '', 404
+        # return GET_DATASOURCE_ROWS_EXAMPLES[0]
 
 @ns_conf.route('/<name>/files/<column_name>:<index>')
 @ns_conf.param('name', 'Datasource name')
