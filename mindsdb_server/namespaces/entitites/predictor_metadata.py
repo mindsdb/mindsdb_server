@@ -3,6 +3,7 @@ from mindsdb_server.namespaces.entitites.data_preparation_metadata import data_p
 from mindsdb_server.namespaces.entitites.data_analysis_metadata import data_analysis_metadata#, EXAMPLE as DATA_ANALYSIS_METADATA_EXAMPLE
 from mindsdb_server.namespaces.entitites.target_column_metadata import target_column_metadata#, EXAMPLES as TARGET_COLUMN_METADATA_EXAMPLES
 from flask_restplus import fields
+from collections import OrderedDict
 
 predictor_metadata = ns_conf.model('PredictorMetadata', {
     # Primary key
@@ -13,6 +14,22 @@ predictor_metadata = ns_conf.model('PredictorMetadata', {
     'data_analysis': fields.Nested(data_analysis_metadata, required=False, description='The metadata used in the analysis stage, in which we extract statistical information from the input data'),
     'model_analysis': fields.List(fields.Nested(target_column_metadata), required=False, description='The model analysis stage, in which we extract statistical information from the input data for each target variable, thus, this is a list; one item per target column')
 })
+
+predictor_query_params = OrderedDict([
+    ('name', {
+        'description': 'The datasource name',
+        'type': 'string',
+        'in': 'path',
+        'required': True
+    }),
+    ('when', {
+        'description': 'The query conditions: key - column, value - value',
+        'type': 'object',
+        'in': 'body',
+        'required': True,
+        'example': "{'number_of_rooms': 2,'number_of_bathrooms':1, 'sqft': 1190}"
+    }),
+])
 
 
 # examples
