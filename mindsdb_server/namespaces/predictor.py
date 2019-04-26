@@ -186,4 +186,4 @@ class PredictorDownload(Resource):
     @ns_conf.doc('get_predictor_download')
     def get(self, name):
         '''Export predictor to file'''
-        return send_file(BytesIO('this is mocked data'), mimetype='text/plain', attachment_filename='predictor_export_mock.txt', as_attachment=True)
+        return send_file(BytesIO(b'this is mocked data'), mimetype='text/plain', attachment_filename='predictor_export_mock.txt', as_attachment=True)
