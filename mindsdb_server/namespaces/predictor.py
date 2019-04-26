@@ -149,7 +149,13 @@ class PredictorColumns(Resource):
             { 'name': 'location', 'type': 'string' },
             { 'name': 'rental_price', 'type': 'number' },
         ]
-        columns = DTASOURCE_PREDICTOR_MAP.get(name, DEFAULT_COLUMNS)
+        ds_name = DTASOURCE_PREDICTOR_MAP.get(name)
+        columns = DEFAULT_COLUMNS
+        if ds_name:
+            ds = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == ds_name] or [None])[0]
+            if ds:
+               columns = ds['columns']
+
         return columns, 200
 
 
