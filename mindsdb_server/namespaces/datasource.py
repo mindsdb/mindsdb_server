@@ -97,7 +97,7 @@ class Datasource(Resource):
         time.sleep(1.0)
         return DATASOURCES_LIST_EXAMPLE[-1]
 
-@ns_conf.route('/<name>/data')
+@ns_conf.route('/<name>/data/')
 @ns_conf.param('name', 'Datasource name')
 class DatasourceData(Resource):
     @ns_conf.doc('get_datasource_data', params=get_datasource_rows_params)
