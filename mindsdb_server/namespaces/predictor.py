@@ -4,7 +4,7 @@ from mindsdb_server.namespaces.entitites.predictor_status import predictor_statu
 from mindsdb_server.namespaces.entitites.predictor_metadata import predictor_metadata, EXAMPLES as PREDICTOR_METADATA
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.shared_ressources import get_shared
-
+from mindsdb_server.namespaces.datasource import get_datasource
 import mindsdb
 
 import json
@@ -13,6 +13,8 @@ import sys
 import copy
 from dateutil.parser import parse as parse_datetime
 
+
+app, api = get_shared()
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -61,15 +63,18 @@ class Predictor(Resource):
             if k in model:
                 model[k] = parse_datetime(model[k])
 
-        #debug_pkey_type(model)
-        #print(model['data_analysis']['target_columns_metadata'])
-        #model['data_analysis']['target_columns_metadata'] = 0
-        #model['data_analysis']['input_columns_metadata'] = 0
-
         return model
 
     def put(self, name):
         '''Train a predictor'''
-        _, api = get_shared()
-        print(name)
-        print(api.payload)
+        mdb = mindsdb.Predictor(name=name)
+
+        datasource = None
+        for ds in get_datasource:
+            if ds.name == api.payload.data_source:
+                datasource = ds
+
+        if 'http://' in datasource.source or 'https://' in datasource.source:
+            mdb.learn(from_data=datasource.source, to_predict=[api.payload.predicted_fields])
+        else:
+            mdb.learn(from_data= 'storage/datasource_files/' + datasource.source, to_predict=[api.payload.predicted_fields])
