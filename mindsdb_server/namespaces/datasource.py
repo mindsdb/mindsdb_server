@@ -61,7 +61,7 @@ class Datasource(Resource):
         '''return datasource metadata'''
         data_sources = get_datasource()
         for ds in data_sources:
-            if ds.name == name:
+            if ds['name'] == name:
                 return ds
         return None
 
@@ -73,7 +73,14 @@ class Datasource(Resource):
     @ns_conf.doc('delete_datasource')
     def delete(self, name):
         '''delete datasource'''
-        return '', 404
+        try:
+            data_sources = get_datasource()
+            for ds in data_sources:
+                if ds['name'] == name:
+                    return os.remove('storage/datasource_' + ds['name'] + '.json')
+        except:
+            pass
+        return '', 200
 
     @ns_conf.doc('put_datasource', params=put_datasource_params)
     @ns_conf.marshal_with(datasource_metadata)
