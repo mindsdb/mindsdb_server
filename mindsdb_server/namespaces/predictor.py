@@ -3,6 +3,7 @@ from flask_restplus import Resource, fields
 from mindsdb_server.namespaces.entitites.predictor_status import predictor_status, EXAMPLES as PREDICTORS_STATUS_LIST
 from mindsdb_server.namespaces.entitites.predictor_metadata import predictor_metadata, EXAMPLES as PREDICTOR_METADATA
 from mindsdb_server.namespaces.configs.predictors import ns_conf
+from mindsdb_server.shared_ressources import get_shared
 
 import mindsdb
 
@@ -45,6 +46,7 @@ class PredictorList(Resource):
 
         return models
 
+
 @ns_conf.route('/<name>')
 @ns_conf.param('name', 'The predictor identifier')
 @ns_conf.response(404, 'predictor not found')
@@ -65,3 +67,9 @@ class Predictor(Resource):
         #model['data_analysis']['input_columns_metadata'] = 0
 
         return model
+
+    def put(self, name):
+        '''Train a predictor'''
+        _, api = get_shared()
+        print(name)
+        print(api.payload)
