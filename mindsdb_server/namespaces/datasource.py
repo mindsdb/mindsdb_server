@@ -70,11 +70,6 @@ class Datasource(Resource):
                 return ds
         return None
 
-    @ns_conf.doc('post_datasource', params=post_datasource_params)
-    def post(self):
-        '''update datasource attributes'''
-        return '', 404
-
     @ns_conf.doc('delete_datasource')
     def delete(self, name):
         '''delete datasource'''
