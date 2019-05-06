@@ -15,6 +15,7 @@ datasource_metadata = ns_conf.model('DatasourceMetadata', {
     # Primary key
     'name': fields.String(required=True, description='The datasource name'),
     # other attributes
+    'source_type': fields.String(required=True, description='file/url'),
     'source': fields.String(required=True, description='The datasource source (filename, url)'),
     'missed_files': fields.Boolean(required=True, description='indicates the presence of missed files'),
     'created_at': fields.DateTime(required=True, description='The time the datasource was created at'),
@@ -23,15 +24,6 @@ datasource_metadata = ns_conf.model('DatasourceMetadata', {
     'columns': fields.List(fields.Nested(datasource_column_metadata), required=True, description='columns description')
 })
 
-post_datasource_params = OrderedDict([
-    ('name', {
-        'description': 'The datasource name',
-        'type': 'string',
-        'in': 'path',
-        'required': True
-    })
-])
-
 put_datasource_params = OrderedDict([
     ('name', {
         'description': 'The datasource name',
@@ -39,7 +31,7 @@ put_datasource_params = OrderedDict([
         'in': 'path',
         'required': True
     }),
-    ('sourceType', {
+    ('source_type', {
         'description': 'type of datasource',
         'type': 'string',
         'enum': ['file','url'],
@@ -58,37 +50,57 @@ put_datasource_params = OrderedDict([
         'in': 'FormData',
         'required': False
     }),
-    ('hashes', {
-        'description': 'list of files hashes (if datasource has column with files)',
-        'type': 'list',
-        'in': 'FormData',
-        'required': False
-    })
 ])
 
 EXAMPLES = [{
     'name': 'realty price',
-    'source': 'data_sumple.csv',
+    'source': 'https://raw.githubusercontent.com/mindsdb/mindsdb/master/docs/examples/basic/home_rentals.csv',
+    'source_type': 'url',
     'missed_files': False,
     'created_at': datetime.datetime.now(),
     'updated_at': datetime.datetime.now(),
-    'row_count': 3210,
+    'row_count': 5037,
     'columns': [{
-        'name': 'name',
+        'name': 'number_of_rooms',
+        'type': 'number'
+    }, {
+        'name': 'number_of_bathrooms',
+        'type': 'number'
+    }, {
+        'name': 'sqft',
+        'type': 'number'
+    }, {
+        'name': 'location',
         'type': 'string'
     }, {
-        'name': 'price',
+        'name': 'days_on_market',
         'type': 'number'
     }, {
-        'name': 'rooms count',
+        'name': 'initial_price',
         'type': 'number'
     }, {
-        'name': 'photo',
-        'type': 'file',
-        'file_type': 'image'
+        'name': 'neighborhood',
+        'type': 'string'
     }, {
-        'name': 'street',
-        'type': 'dict',
-        'dict': ['east', 'west']
+        'name': 'rental_price',
+        'type': 'number'
     }]
+    # 'columns': [{
+    #     'name': 'name',
+    #     'type': 'string'
+    # }, {
+    #     'name': 'price',
+    #     'type': 'number'
+    # }, {
+    #     'name': 'rooms count',
+    #     'type': 'number'
+    # }, {
+    #     'name': 'photo',
+    #     'type': 'file',
+    #     'file_type': 'image'
+    # }, {
+    #     'name': 'street',
+    #     'type': 'dict',
+    #     'dict': ['east', 'west']
+    # }]
 }]

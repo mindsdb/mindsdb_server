@@ -6,6 +6,7 @@ import os
 
 app, api = get_shared()
 
+api.add_namespace(utility_ns)
 api.add_namespace(predictor_ns)
 api.add_namespace(datasource_ns)
 
