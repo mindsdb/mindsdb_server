@@ -127,8 +127,18 @@ class DatasourceData(Resource):
 @ns_conf.param('index', 'row index')
 class DatasourceFiles(Resource):
     @ns_conf.doc('put_datasource_file', params=put_datasource_file_params)
-    def put(self, name):
+    def put(self, name, column_name, index):
         '''put file'''
+        extension = request.values['extension']
+        fileName = '{}-{}{}'.format(column_name, index, extension)
+        file = request.files['file']
+        filesDir = os.path.join(FILES_PATH, name, 'files')
+        filePath = os.path.join(filesDir, fileName)
+
+        if not os.path.exists(filesDir):
+            os.makedirs(filesDir)
+
+        open(filePath, 'wb').write(file.read())
         return '', 200
 
 @ns_conf.route('/<name>/missed_files')

@@ -92,7 +92,7 @@ class Predictor(Resource):
         '''Remove predictor'''
         return '', 200
 
-    @ns_conf.doc('get_predictor')
+    @ns_conf.doc('put_predictor')
     def put(self, name):
         '''Learning new predictor'''
         data = request.json
@@ -170,7 +170,9 @@ class PredictorPredict(Resource):
         result = mdb.predict(when=when)
         if result and len(result):
             response = result[0].as_dict()
-            response = dict([(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in response.items()])
+            response = dict(
+                [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in response.items()]
+            )
             return response
         return '', 400
 
@@ -192,4 +194,9 @@ class PredictorDownload(Resource):
     @ns_conf.doc('get_predictor_download')
     def get(self, name):
         '''Export predictor to file'''
-        return send_file(BytesIO(b'this is mocked data'), mimetype='text/plain', attachment_filename='predictor_export_mock.txt', as_attachment=True)
+        return send_file(
+            BytesIO(b'this is mocked data'),
+            mimetype='text/plain',
+            attachment_filename='predictor_export_mock.txt',
+            as_attachment=True
+        )

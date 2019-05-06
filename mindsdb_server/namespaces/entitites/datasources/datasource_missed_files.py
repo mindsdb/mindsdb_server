@@ -23,8 +23,7 @@ get_datasource_missed_files_params = OrderedDict([
 datasource_missed_file_metadata = ns_conf.model('DatasourceMissedFile', {
     'column_name': fields.String(required=True, description='file column name'),
     'index': fields.Integer(required=True, description='row index in datasource'),
-    'path': fields.String(required=True, description='file column value'),
-    'hash': fields.String(required=True, description='file hash')
+    'path': fields.String(required=True, description='file column value')
 })
 
 datasource_missed_files_metadata = ns_conf.model('DatasourceMissedFiles', {
@@ -37,12 +36,10 @@ EXAMPLES = [{
     'data': [{
         'column_name': 'file',
         'index': 3,
-        'path': '/tmp/3.jpg',
-        'hash': 'asdasdasd'
+        'path': '/tmp/3.jpg'
     }, {
         'column_name': 'file',
         'index': 4,
-        'path': '/tmp/4.jpg',
-        'hash': 'qweqweqwe'
+        'path': '/tmp/4.jpg'
     }]
 }]

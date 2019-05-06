@@ -19,6 +19,12 @@ put_datasource_file_params = OrderedDict([
         'in': 'path',
         'required': True
     }),
+    ('extension', {
+        'description': 'file extension',
+        'type': 'string',
+        'in': 'FormData',
+        'required': False
+    }),
     ('file', {
         'description': 'file',
         'type': 'file',
