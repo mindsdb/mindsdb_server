@@ -11,9 +11,5 @@ api.add_namespace(datasource_ns)
 
 
 if __name__ == '__main__':
-    try:
-        os.mkdir('storage/')
-        os.mkdir('storage/datasource_files')
-    except:
-        pass
+    os.makedirs('storage/datasource_files', exist_ok=True)
     app.run(debug=True)

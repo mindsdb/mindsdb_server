@@ -40,7 +40,6 @@ def get_datasource():
     datasources = []
     for file in os.listdir('storage'):
         if 'datasource' in file:
-            print(file)
             with open('storage/' + file, 'r') as fp:
                 datasource = json.load(fp)
                 datasource['created_at'] = parse(datasource['created_at'])
@@ -68,7 +67,7 @@ class Datasource(Resource):
         for ds in data_sources:
             if ds['name'] == name:
                 return ds
-        return None
+        return '', 404
 
     @ns_conf.doc('delete_datasource')
     def delete(self, name):
@@ -78,8 +77,8 @@ class Datasource(Resource):
             for ds in data_sources:
                 if ds['name'] == name:
                     return os.remove('storage/datasource_' + ds['name'] + '.json')
-        except:
-            pass
+        except Exception as e:
+            return str(e), 400
         return '', 200
 
     @ns_conf.doc('put_datasource', params=put_datasource_params)
