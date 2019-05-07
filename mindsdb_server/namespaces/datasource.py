@@ -35,13 +35,12 @@ datasources = []
 
 def get_datasource():
     datasources = []
-    for file in os.listdir('storage'):
-        if 'datasource' in file:
-            with open('storage/' + file, 'r') as fp:
-                datasource = json.load(fp)
-                datasource['created_at'] = parse(datasource['created_at'])
-                datasource['update_at'] = parse(datasource['update_at'])
-                datasources.append(datasource)
+    for ds_name in os.listdir('storage'):
+        with open(os.path.join('storage', ds_name, 'metadata.json'), 'w') as fp:
+            datasource = json.load(new_data_source, fp)
+            datasource['created_at'] = parse(datasource['created_at'])
+            datasource['update_at'] = parse(datasource['update_at'])
+            datasources.append(datasource)
     return datasources
 
 
@@ -82,21 +81,23 @@ class Datasource(Resource):
     @ns_conf.marshal_with(datasource_metadata)
     def put(self, name):
         '''add new datasource'''
-        # request.json - for regular put
-        # request.values - for multipart form data
         data = request.json or request.values
 
         datasource_name = data['name']
         datasource_type = data['source_type']
         datasource_source = data['source']
 
-        names = [x['name'] for x in DATASOURCES_LIST_EXAMPLE]
+        names = [x['name'] for x in get_datasource()]
         if datasource_name in names:
             datasource_name += '(1)'
 
+        os.mkdir(os.path.join('storage', datasource_name))
+        os.mkdir(os.path.join('storage', datasource_name, 'resources'))
+
         if datasource_type == 'file':
             datasource_file = request.files['file']
-            path = os.path.join('storage', datasource_source)
+            os.mkdir(os.path.join('storage', datasource_name, 'datasource'))
+            path = os.path.join('storage', datasource_name, 'datasource', datasource_source)
             open(path, 'wb').write(datasource_file.read())
             ds = FileDS(path)
         else:
@@ -105,7 +106,7 @@ class Datasource(Resource):
         columns = [dict(name=x) for x in list(ds.df.keys())]
         row_count = len(ds.df)
 
-        DATASOURCES_LIST_EXAMPLE.append({
+        new_data_source = {
             'name': datasource_name,
             'source_type': datasource_type,
             'source': datasource_source,
@@ -114,10 +115,12 @@ class Datasource(Resource):
             'updated_at': datetime.datetime.now(),
             'row_count': row_count,
             'columns': columns
-        })
+        }
 
-        time.sleep(1.0)
-        return DATASOURCES_LIST_EXAMPLE[-1]
+        with open(os.path.join('storage', datasource_name, 'metadata.json'), 'w') as fp:
+            json.dump(new_data_source, fp)
+
+        return new_data_source
 
 @ns_conf.route('/<name>/data/')
 @ns_conf.param('name', 'Datasource name')
@@ -126,7 +129,7 @@ class DatasourceData(Resource):
     @ns_conf.marshal_with(datasource_rows_metadata)
     def get(self, name):
         '''return data rows'''
-        ds_record = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == name] or [None])[0]
+        ds_record = ([x for x in get_datasource() if x['name'] == name] or [None])[0]
         if ds_record:
             if ds_record['source_type'] == 'file':
                 path = os.path.join('storage', ds_record['source'])
@@ -141,7 +144,6 @@ class DatasourceData(Resource):
             }
             return response, 200
         return '', 404
-        # return GET_DATASOURCE_ROWS_EXAMPLES[0]
 
 @ns_conf.route('/<name>/files/<column_name>:<index>')
 @ns_conf.param('name', 'Datasource name')
@@ -170,7 +172,7 @@ class DatasourceMissedFiles(Resource):
     @ns_conf.marshal_with(datasource_missed_files_metadata)
     def get(self, name):
         '''return missed files'''
-        return GET_DATASOURCE_MISSED_FILES_EXAMPLES[0]
+        return '', 404
 
 
 @ns_conf.route('/<name>/download')
@@ -179,7 +181,7 @@ class DatasourceMissedFiles(Resource):
     @ns_conf.doc('get_datasource_download')
     def get(self, name):
         '''download uploaded file'''
-        ds = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == name] or [None])[0]
+        ds = ([x for x in get_datasource() if x['name'] == name] or [None])[0]
         if not ds:
             return '', 404
         path = os.path.join('storage', ds['source'])
