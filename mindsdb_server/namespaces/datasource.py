@@ -9,21 +9,18 @@ from mindsdb.libs.data_sources.file_ds import FileDS
 from mindsdb_server.namespaces.configs.datasources import ns_conf
 from mindsdb_server.namespaces.entitites.datasources.datasource import (
     datasource_metadata,
-    put_datasource_params,
-    EXAMPLES as DATASOURCES_LIST_EXAMPLE
+    put_datasource_params
 )
 from mindsdb_server.namespaces.entitites.datasources.datasource_data import (
     get_datasource_rows_params,
-    datasource_rows_metadata,
-    EXAMPLES as GET_DATASOURCE_ROWS_EXAMPLES
+    datasource_rows_metadata
 )
 from mindsdb_server.namespaces.entitites.datasources.datasource_files import (
     put_datasource_file_params
 )
 from mindsdb_server.namespaces.entitites.datasources.datasource_missed_files import (
     datasource_missed_files_metadata,
-    get_datasource_missed_files_params,
-    EXAMPLES as GET_DATASOURCE_MISSED_FILES_EXAMPLES
+    get_datasource_missed_files_params
 )
 
 from mindsdb_server.shared_ressources import get_shared
@@ -99,9 +96,7 @@ class Datasource(Resource):
 
         if datasource_type == 'file':
             datasource_file = request.files['file']
-            if not os.path.exists(FILES_PATH):
-                os.mkdir(FILES_PATH)
-            path = os.path.join(FILES_PATH, datasource_source)
+            path = os.path.join('storage', datasource_source)
             open(path, 'wb').write(datasource_file.read())
             ds = FileDS(path)
         else:
@@ -134,7 +129,7 @@ class DatasourceData(Resource):
         ds_record = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == name] or [None])[0]
         if ds_record:
             if ds_record['source_type'] == 'file':
-                path = os.path.join(FILES_PATH, ds_record['source'])
+                path = os.path.join('storage', ds_record['source'])
                 if not os.path.exists(path):
                     return '', 404
             else:
@@ -159,7 +154,7 @@ class DatasourceFiles(Resource):
         extension = request.values['extension']
         fileName = '{}-{}{}'.format(column_name, index, extension)
         file = request.files['file']
-        filesDir = os.path.join(FILES_PATH, name, 'files')
+        filesDir = os.path.join('storage', name, 'files')
         filePath = os.path.join(filesDir, fileName)
 
         if not os.path.exists(filesDir):
@@ -187,7 +182,7 @@ class DatasourceMissedFiles(Resource):
         ds = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == name] or [None])[0]
         if not ds:
             return '', 404
-        path = os.path.join(FILES_PATH, ds['source'])
+        path = os.path.join('storage', ds['source'])
         if not os.path.exists(path):
             return '', 404
 
