@@ -26,7 +26,27 @@ from mindsdb_server.namespaces.entitites.datasources.datasource_missed_files imp
     EXAMPLES as GET_DATASOURCE_MISSED_FILES_EXAMPLES
 )
 
-FILES_PATH = 'uploads'
+from mindsdb_server.shared_ressources import get_shared
+import json
+import datetime
+from dateutil.parser import parse
+import os
+
+app, api = get_shared()
+datasources = []
+
+
+def get_datasource():
+    datasources = []
+    for file in os.listdir('storage'):
+        if 'datasource' in file:
+            with open('storage/' + file, 'r') as fp:
+                datasource = json.load(fp)
+                datasource['created_at'] = parse(datasource['created_at'])
+                datasource['update_at'] = parse(datasource['update_at'])
+                datasources.append(datasource)
+    return datasources
+
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
@@ -34,7 +54,7 @@ class DatasourcesList(Resource):
     @ns_conf.marshal_list_with(datasource_metadata)
     def get(self):
         '''List all datasources'''
-        return DATASOURCES_LIST_EXAMPLE
+        return get_datasource()
 
 @ns_conf.route('/<name>')
 @ns_conf.param('name', 'Datasource name')
@@ -43,16 +63,23 @@ class Datasource(Resource):
     @ns_conf.marshal_with(datasource_metadata)
     def get(self, name):
         '''return datasource metadata'''
-        return DATASOURCES_LIST_EXAMPLE[0]
+        data_sources = get_datasource()
+        for ds in data_sources:
+            if ds['name'] == name:
+                return ds
+        return '', 404
 
     @ns_conf.doc('delete_datasource')
     def delete(self, name):
         '''delete datasource'''
-        to_del = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == name] or [None])[0]
-        if to_del:
-            DATASOURCES_LIST_EXAMPLE.remove(to_del)
-            return '', 200
-        return '', 404
+        try:
+            data_sources = get_datasource()
+            for ds in data_sources:
+                if ds['name'] == name:
+                    return os.remove('storage/datasource_' + ds['name'] + '.json')
+        except Exception as e:
+            return str(e), 400
+        return '', 200
 
     @ns_conf.doc('put_datasource', params=put_datasource_params)
     @ns_conf.marshal_with(datasource_metadata)
@@ -61,7 +88,7 @@ class Datasource(Resource):
         # request.json - for regular put
         # request.values - for multipart form data
         data = request.json or request.values
-        
+
         datasource_name = data['name']
         datasource_type = data['source_type']
         datasource_source = data['source']

@@ -9,8 +9,8 @@ from mindsdb_server.namespaces.entitites.predictor_metadata import (
     EXAMPLES as PREDICTOR_METADATA
 )
 from mindsdb_server.namespaces.configs.predictors import ns_conf
-from mindsdb_server.namespaces.entitites.datasources.datasource import EXAMPLES as DATASOURCES_LIST_EXAMPLE
-
+from mindsdb_server.shared_ressources import get_shared
+from mindsdb_server.namespaces.datasource import get_datasource
 import mindsdb
 
 import os
@@ -31,6 +31,8 @@ from multiprocessing import Process
 DTASOURCE_PREDICTOR_MAP = {
 }
 
+
+app, api = get_shared()
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -54,7 +56,7 @@ class PredictorList(Resource):
     def get(self):
         '''List all predictors'''
 
-        mdb = mindsdb.Predictor(name='metapredictor')
+        mdb = mindsdb.Predictor(name='metapredictor', root_folder='~/mindsdb/mindsdb_storage/1_0_7')
         models = mdb.get_models()
 
         for model in models:
@@ -64,6 +66,7 @@ class PredictorList(Resource):
 
         return models
 
+
 @ns_conf.route('/<name>')
 @ns_conf.param('name', 'The predictor identifier')
 @ns_conf.response(404, 'predictor not found')
@@ -71,19 +74,12 @@ class Predictor(Resource):
     @ns_conf.doc('get_predictor')
     @ns_conf.marshal_with(predictor_metadata, skip_none=True)
     def get(self, name):
-        '''View predictor statistics'''
-        # return PREDICTOR_METADATA[0]
-        mdb = mindsdb.Predictor(name=name)
+        mdb = mindsdb.Predictor(name='metapredictor', root_folder='~/mindsdb/mindsdb_storage/1_0_7')
         model = mdb.get_model_data(name)
 
         for k in ['train_end_at', 'updated_at', 'created_at']:
             if k in model:
                 model[k] = parse_datetime(model[k])
-
-        #debug_pkey_type(model)
-        #print(model['data_analysis']['target_columns_metadata'])
-        #model['data_analysis']['target_columns_metadata'] = 0
-        #model['data_analysis']['input_columns_metadata'] = 0
 
         return model
 
