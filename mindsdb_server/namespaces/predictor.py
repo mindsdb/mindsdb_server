@@ -51,7 +51,7 @@ class PredictorList(Resource):
         models = mdb.get_models()
 
         for model in models:
-            model['data_source'] = model['data_source'].split('/')[1]
+            model['data_source'] = model['data_source'].split('/')[-1]
             for k in ['train_end_at', 'updated_at', 'created_at']:
                 if k in model:
                     model[k] = parse_datetime(model[k])
@@ -117,14 +117,6 @@ class Predictor(Resource):
 
         return '', 200
 
-        # mdb = mindsdb.Predictor(name=name)
-        # model = mdb.get_model_data(name)
-        # for k in ['train_end_at', 'updated_at', 'created_at']:
-        #     if k in model:
-        #         model[k] = parse_datetime(model[k])
-        # return model
-
-
 @ns_conf.route('/<name>/columns')
 @ns_conf.param('name', 'The predictor identifier')
 class PredictorColumns(Resource):
@@ -137,7 +129,7 @@ class PredictorColumns(Resource):
         columns = []
         for col_data in [*model['data_analysis']['target_columns_metadata'], *model['data_analysis']['input_columns_metadata']]:
             columns.append(col_data['column_name'])
-            
+
         return columns, 200
 
 
