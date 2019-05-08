@@ -23,13 +23,6 @@ from dateutil.parser import parse as parse_datetime
 from multiprocessing import Process
 
 
-# Temporary maping for testing
-    # key - predictor name
-    # value - datasource name
-DTASOURCE_PREDICTOR_MAP = {
-}
-
-
 app, api = get_shared()
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
@@ -94,7 +87,6 @@ class Predictor(Resource):
         to_predict = data.get('to_predict')
 
         if data.get('data_source_name'):
-            DTASOURCE_PREDICTOR_MAP[name] = data.get('data_source_name')
             ds = get_datasource(data.get('data_source_name'))
             if ds and ds['source']:
                 if ds['source_type'] == 'url':
@@ -138,17 +130,12 @@ class PredictorColumns(Resource):
     @ns_conf.doc('get_predictor_columns')
     def get(self, name):
         '''List of predictors colums'''
-        # temporary defaults for testing
-        DEFAULT_COLUMNS = [
-            { 'name': 'location', 'type': 'string' },
-            { 'name': 'rental_price', 'type': 'number' },
-        ]
-        ds_name = DTASOURCE_PREDICTOR_MAP.get(name)
-        columns = DEFAULT_COLUMNS
-        if ds_name:
-            ds = get_datasource(ds_name)
-            if ds:
-               columns = ds['columns']
+        mdb = mindsdb.Predictor(name='metapredictor')
+        model = mdb.get_model_data(name)
+
+        columns = []
+        for col_data in model['model_analysis']:
+            columns.append(col_data['column_name'])
 
         return columns, 200
 
