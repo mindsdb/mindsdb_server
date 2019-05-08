@@ -93,7 +93,7 @@ class Predictor(Resource):
                 if ds['source_type'] == 'url':
                     from_data = ds['source']
                 if ds['source_type'] == 'file':
-                    from_data = ds['source']
+                    from_data = os.path.normpath(os.path.abspath(ds['source']))
 
         if not name or not from_data or not to_predict:
             return '', 400
@@ -112,6 +112,7 @@ class Predictor(Resource):
                 to_predict=to_predict
             )
 
+        print(from_data)
         p = Process(target=learn, args=(name, from_data, to_predict))
         p.start()
 
@@ -140,9 +141,13 @@ class PredictorPredict(Resource):
     def post(self, name):
         '''Queries predictor'''
         when = request.json.get('when') or {}
+        print(when)
         mdb = mindsdb.Predictor(name=name)
         result = mdb.predict(when=when)
-        if result and len(result):
+        for result in results:
+            print(result.as_dict())
+        exit()
+        if result is not None and len(result) > 0:
             response = result[0].as_dict()
             response = dict(
                 [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in response.items()]
