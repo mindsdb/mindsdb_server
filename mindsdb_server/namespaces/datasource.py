@@ -195,11 +195,10 @@ class DatasourceMissedFiles(Resource):
     @ns_conf.doc('get_datasource_download')
     def get(self, name):
         '''download uploaded file'''
-        ds = ([x for x in get_datasources() if x['name'] == name] or [None])[0]
+        ds = get_datasource(name)
         if not ds:
             return '', 404
-        path = os.path.join('storage', ds['source'])
-        if not os.path.exists(path):
+        if not os.path.exists(ds['source']):
             return '', 404
 
-        return send_file(path, as_attachment=True)
+        return send_file(os.path.abspath(ds['source']), as_attachment=True)
