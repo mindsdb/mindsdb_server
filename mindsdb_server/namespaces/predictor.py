@@ -5,12 +5,11 @@ from flask_restplus import Resource, fields
 from mindsdb_server.namespaces.entitites.predictor_status import predictor_status, EXAMPLES as PREDICTORS_STATUS_LIST
 from mindsdb_server.namespaces.entitites.predictor_metadata import (
     predictor_metadata,
-    predictor_query_params,
-    EXAMPLES as PREDICTOR_METADATA
+    predictor_query_params
 )
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.shared_ressources import get_shared
-from mindsdb_server.namespaces.datasource import get_datasource
+from mindsdb_server.namespaces.datasource import get_datasource, get_datasources
 import mindsdb
 
 import os
@@ -97,7 +96,7 @@ class Predictor(Resource):
 
         if data.get('data_source_name'):
             DTASOURCE_PREDICTOR_MAP[name] = data.get('data_source_name')
-            ds = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == data.get('data_source_name')] or [None])[0]
+            ds = get_datasource(data.get('data_source_name'))
             if ds and ds['source']:
                 if ds['source_type'] == 'url':
                     from_data = ds['source']
@@ -148,7 +147,7 @@ class PredictorColumns(Resource):
         ds_name = DTASOURCE_PREDICTOR_MAP.get(name)
         columns = DEFAULT_COLUMNS
         if ds_name:
-            ds = ([x for x in DATASOURCES_LIST_EXAMPLE if x['name'] == ds_name] or [None])[0]
+            ds = get_datasource(ds_name)
             if ds:
                columns = ds['columns']
 

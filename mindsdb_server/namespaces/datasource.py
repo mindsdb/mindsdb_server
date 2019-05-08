@@ -28,6 +28,7 @@ import json
 import datetime
 from dateutil.parser import parse
 import os
+import shutil
 
 app, api = get_shared()
 datasources = []
@@ -39,8 +40,8 @@ def get_datasources():
         with open(os.path.join('storage', ds_name, 'metadata.json'), 'r') as fp:
             try:
                 datasource = json.load(fp)
-                datasource['created_at'] = parse(datasource['created_at'])
-                datasource['update_at'] = parse(datasource['updated_at'])
+                datasource['created_at'] = parse(datasource['created_at'].split('.')[0])
+                datasource['updated_at'] = parse(datasource['updated_at'].split('.')[0])
                 datasources.append(datasource)
             except Exception as e:
                 print(e)
@@ -79,11 +80,10 @@ class Datasource(Resource):
     def delete(self, name):
         '''delete datasource'''
         try:
-            data_sources = get_datasources()
-            for ds in data_sources:
-                if ds['name'] == name:
-                    return os.remove('storage/datasource_' + ds['name'] + '.json')
+            data_sources = get_datasource(name)
+            shutil.rmtree(os.path.join('storage', data_sources['name']))
         except Exception as e:
+            print(e)
             return str(e), 400
         return '', 200
 
@@ -121,8 +121,8 @@ class Datasource(Resource):
             'source_type': datasource_type,
             'source': datasource_source,
             'missed_files': False,
-            'created_at': str(datetime.datetime.now()),
-            'updated_at': str(datetime.datetime.now()),
+            'created_at': str(datetime.datetime.now()).split('.')[0],
+            'updated_at': str(datetime.datetime.now()).split('.')[0],
             'row_count': row_count,
             'columns': columns
         }
