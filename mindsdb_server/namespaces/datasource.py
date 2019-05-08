@@ -105,9 +105,9 @@ class Datasource(Resource):
         if datasource_type == 'file':
             datasource_file = request.files['file']
             os.mkdir(os.path.join('storage', datasource_name, 'datasource'))
-            path = os.path.join('storage', datasource_name, 'datasource', datasource_source)
-            open(path, 'wb').write(datasource_file.read())
-            ds = FileDS(path)
+            datasource_source = str(os.path.join('storage', datasource_name, 'datasource', datasource_source))
+            open(datasource_source, 'wb').write(datasource_file.read())
+            ds = FileDS(datasource_source)
         else:
             ds = FileDS(datasource_source)
 

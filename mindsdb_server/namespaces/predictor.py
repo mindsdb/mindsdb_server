@@ -20,7 +20,6 @@ import copy
 import numpy
 from dateutil.parser import parse as parse_datetime
 
-FILES_PATH = 'uploads'
 from multiprocessing import Process
 
 
@@ -101,7 +100,7 @@ class Predictor(Resource):
                 if ds['source_type'] == 'url':
                     from_data = ds['source']
                 if ds['source_type'] == 'file':
-                    from_data = os.path.join(FILES_PATH, ds['source'])
+                    from_data = ds['source']
 
         if not name or not from_data or not to_predict:
             return '', 400
