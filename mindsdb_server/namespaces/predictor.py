@@ -54,6 +54,16 @@ def preparse_results(results):
     else:
         return '', 400
 
+def get_datasource_path(data_source_name):
+    if data_source_name:
+        ds = get_datasource(data_source_name)
+        if ds and ds['source']:
+            if ds['source_type'] == 'url':
+                return ds['source']
+            if ds['source_type'] == 'file':
+                return os.path.normpath(os.path.abspath(ds['source']))
+    return None
+
 @ns_conf.route('/')
 class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
@@ -98,18 +108,15 @@ class Predictor(Resource):
     def put(self, name):
         '''Learning new predictor'''
         data = request.json
-        from_data = data.get('from_data')
         to_predict = data.get('to_predict')
 
-        if data.get('data_source_name'):
-            ds = get_datasource(data.get('data_source_name'))
-            if ds and ds['source']:
-                if ds['source_type'] == 'url':
-                    from_data = ds['source']
-                if ds['source_type'] == 'file':
-                    from_data = os.path.normpath(os.path.abspath(ds['source']))
+        from_data = get_datasource_path(data.get('data_source_name'))
+        if from_data is None:
+            from_data = data.get('from_data')
+        if from_data is None:
+            return 'No valid datasource given', 400
 
-        if not name or not from_data or not to_predict:
+        if name is None or to_predict is None:
             return '', 400
 
         def learn(name, from_data, to_predict):
@@ -167,15 +174,14 @@ class PredictorPredictFromDataSource(Resource):
     @ns_conf.doc('post_predictor_predict', params=predictor_query_params)
     def post(self, name):
         data = request.json
-        from_data = data.get('from_data')
 
-        if data.get('data_source_name'):
-            ds = get_datasource(data.get('data_source_name'))
-            if ds and ds['source']:
-                if ds['source_type'] == 'url':
-                    from_data = ds['source']
-                if ds['source_type'] == 'file':
-                    from_data = os.path.normpath(os.path.abspath(ds['source']))
+        from_data = get_datasource_path(data.get('data_source_name'))
+        if from_data is None:
+            from_data = data.get('from_data')
+        if from_data is None:
+            from_data = data.get('when_data')
+        if from_data is None:
+            return 'No valid datasource given', 400
 
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when_data=from_data)
