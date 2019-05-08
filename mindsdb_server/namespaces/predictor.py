@@ -51,6 +51,7 @@ class PredictorList(Resource):
         models = mdb.get_models()
 
         for model in models:
+            model['data_source'] = model['data_source'].split('/')[1]
             for k in ['train_end_at', 'updated_at', 'created_at']:
                 if k in model:
                     model[k] = parse_datetime(model[k])
