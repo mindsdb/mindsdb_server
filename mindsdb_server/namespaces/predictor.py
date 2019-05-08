@@ -134,9 +134,9 @@ class PredictorColumns(Resource):
         model = mdb.get_model_data(name)
 
         columns = []
-        for col_data in model['model_analysis']:
+        for col_data in [*model['data_analysis']['target_columns_metadata'], *model['data_analysis']['input_columns_metadata']]:
             columns.append(col_data['column_name'])
-
+            
         return columns, 200
 
 
