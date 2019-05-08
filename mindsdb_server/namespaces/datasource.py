@@ -60,8 +60,6 @@ class DatasourcesList(Resource):
     @ns_conf.marshal_list_with(datasource_metadata)
     def get(self):
         '''List all datasources'''
-        print("HERE !!!")
-        print(get_datasources())
         return get_datasources()
 
 @ns_conf.route('/<name>')
