@@ -33,11 +33,12 @@ import shutil
 app, api = get_shared()
 datasources = []
 
+ROOT_STORAGE_DIR = 'storage'
 
 def get_datasources():
     datasources = []
-    for ds_name in os.listdir('storage'):
-        with open(os.path.join('storage', ds_name, 'metadata.json'), 'r') as fp:
+    for ds_name in os.listdir(ROOT_STORAGE_DIR):
+        with open(os.path.join(ROOT_STORAGE_DIR, ds_name, 'metadata.json'), 'r') as fp:
             try:
                 datasource = json.load(fp)
                 datasource['created_at'] = parse(datasource['created_at'].split('.')[0])
@@ -79,7 +80,7 @@ class Datasource(Resource):
         '''delete datasource'''
         try:
             data_sources = get_datasource(name)
-            shutil.rmtree(os.path.join('storage', data_sources['name']))
+            shutil.rmtree(os.path.join(ROOT_STORAGE_DIR, data_sources['name']))
         except Exception as e:
             print(e)
             return str(e), 400
@@ -105,13 +106,13 @@ class Datasource(Resource):
             else:
                 break
 
-        os.mkdir(os.path.join('storage', datasource_name))
-        os.mkdir(os.path.join('storage', datasource_name, 'resources'))
+        os.mkdir(os.path.join(ROOT_STORAGE_DIR, datasource_name))
+        os.mkdir(os.path.join(ROOT_STORAGE_DIR, datasource_name, 'resources'))
 
         if datasource_type == 'file':
             datasource_file = request.files['file']
-            os.mkdir(os.path.join('storage', datasource_name, 'datasource'))
-            datasource_source = str(os.path.join('storage', datasource_name, 'datasource', datasource_source))
+            os.mkdir(os.path.join(ROOT_STORAGE_DIR, datasource_name, 'datasource'))
+            datasource_source = str(os.path.join(ROOT_STORAGE_DIR, datasource_name, 'datasource', datasource_source))
             open(datasource_source, 'wb').write(datasource_file.read())
             ds = FileDS(datasource_source)
         else:
@@ -131,7 +132,7 @@ class Datasource(Resource):
             'columns': columns
         }
 
-        with open(os.path.join('storage', datasource_name, 'metadata.json'), 'w') as fp:
+        with open(os.path.join(ROOT_STORAGE_DIR, datasource_name, 'metadata.json'), 'w') as fp:
             json.dump(new_data_source, fp)
 
         return get_datasource(datasource_name)
@@ -146,7 +147,7 @@ class DatasourceData(Resource):
         ds_record = ([x for x in get_datasources() if x['name'] == name] or [None])[0]
         if ds_record:
             if ds_record['source_type'] == 'file':
-                path = os.path.join('storage', ds_record['source'])
+                path = os.path.join(ROOT_STORAGE_DIR, ds_record['source'])
                 if not os.path.exists(path):
                     return '', 404
             else:
@@ -170,7 +171,7 @@ class DatasourceFiles(Resource):
         extension = request.values['extension']
         fileName = '{}-{}{}'.format(column_name, index, extension)
         file = request.files['file']
-        filesDir = os.path.join('storage', name, 'files')
+        filesDir = os.path.join(ROOT_STORAGE_DIR, name, 'files')
         filePath = os.path.join(filesDir, fileName)
 
         if not os.path.exists(filesDir):

@@ -54,7 +54,7 @@ class PredictorList(Resource):
     def get(self):
         '''List all predictors'''
 
-        mdb = mindsdb.Predictor(name='metapredictor', root_folder='~/mindsdb/mindsdb_storage/1_0_7')
+        mdb = mindsdb.Predictor(name='metapredictor')
         models = mdb.get_models()
 
         for model in models:
@@ -72,7 +72,7 @@ class Predictor(Resource):
     @ns_conf.doc('get_predictor')
     @ns_conf.marshal_with(predictor_metadata, skip_none=True)
     def get(self, name):
-        mdb = mindsdb.Predictor(name='metapredictor', root_folder='~/mindsdb/mindsdb_storage/1_0_7')
+        mdb = mindsdb.Predictor(name='metapredictor')
         model = mdb.get_model_data(name)
 
         for k in ['train_end_at', 'updated_at', 'created_at']:
