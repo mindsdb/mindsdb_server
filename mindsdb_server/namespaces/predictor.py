@@ -2,7 +2,7 @@ from io import BytesIO
 from flask import request, send_file
 from flask_restplus import Resource, fields
 
-from mindsdb_server.namespaces.entitites.predictor_status import predictor_status, EXAMPLES as PREDICTORS_STATUS_LIST
+from mindsdb_server.namespaces.entitites.predictor_status import predictor_status
 from mindsdb_server.namespaces.entitites.predictor_metadata import (
     predictor_metadata,
     predictor_query_params
