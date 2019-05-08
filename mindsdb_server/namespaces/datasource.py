@@ -96,8 +96,14 @@ class Datasource(Resource):
         datasource_source = data['source']
 
         names = [x['name'] for x in get_datasources()]
-        if datasource_name in names:
-            datasource_name += '(1)'
+        print(names)
+        for i in range(1,100):
+            if datasource_name in names:
+                previous_index = i - 1
+                datasource_name = datasource_name.replace(f'({previous_index})', '')
+                datasource_name += f'({i})'
+            else:
+                break
 
         os.mkdir(os.path.join('storage', datasource_name))
         os.mkdir(os.path.join('storage', datasource_name, 'resources'))
