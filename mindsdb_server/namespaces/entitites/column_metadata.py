@@ -12,6 +12,6 @@ column_metadata = ns_conf.model('ColumnMetadata', {
     'data_type_distribution': fields.Nested(histogram_data, required=True, description='The count of cells per data type'),
     'data_distribution': fields.Nested(data_distribution_metadata, required=False, description='The distribution of the data in this column'),
     'consistency': fields.Nested(quality_dimension, required=False, description='The consistency quality score'),
-    'completeness': fields.Nested(quality_dimension, required=False, description='The completeness quality score'),
+    'redundancy': fields.Nested(quality_dimension, required=False, description='The redundancy quality score'),
     'variability': fields.Nested(quality_dimension, required=False, description='The variability quality score')
 })

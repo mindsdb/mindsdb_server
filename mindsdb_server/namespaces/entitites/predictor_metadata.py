@@ -89,7 +89,7 @@ EXAMPLES = [{
                     ],
                     'description': 'The data is in good shape, we have identified one consistency warning'
                 },
-                'completeness': {
+                'redundancy': {
                     'score': '10/10'
                 },
                 'variability': {
@@ -131,7 +131,7 @@ EXAMPLES = [{
                 'consistency':  {
                     'score': '10/10'
                 },
-                'completeness': {
+                'redundancy': {
                     'score': '10/10'
                 },
                 'variability': {
@@ -158,7 +158,7 @@ EXAMPLES = [{
                 'consistency':  {
                     'score': '10/10'
                 },
-                'completeness': {
+                'redundancy': {
                     'score': '10/10'
                 },
                 'variability': {
@@ -218,7 +218,7 @@ EXAMPLES = [{
                             'consistency':  {
                                 'score': '10/10'
                             },
-                            'completeness': {
+                            'redundancy': {
                                 'score': '10/10'
                             },
                             'variability': {
@@ -245,7 +245,7 @@ EXAMPLES = [{
                             'consistency':  {
                                 'score': '10/10'
                             },
-                            'completeness': {
+                            'redundancy': {
                                 'score': '10/10'
                             },
                             'variability': {
