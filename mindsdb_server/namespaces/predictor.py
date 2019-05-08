@@ -40,6 +40,20 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
             for item in model[k]:
                 debug_pkey_type(item, copy.deepcopy(keys), reset_keyes=False)
 
+def preparse_results(results):
+    response_arr = []
+    for result in results:
+        response = dict(
+            [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in result.items()]
+        )
+        response_arr.append(response)
+    if len(response_arr) == 1:
+        return response_arr[0]
+    elif len(response_arr) > 1:
+        return response_arr
+    else:
+        return '', 400
+
 @ns_conf.route('/')
 class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
@@ -144,19 +158,7 @@ class PredictorPredict(Resource):
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when=when)
 
-        response_arr = []
-        for result in results:
-            response = dict(
-                [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in result.items()]
-            )
-            response_arr.append(response)
-        if len(response_arr) == 1:
-            return response_arr[0]
-        elif len(response_arr) > 1:
-            return response_arr
-        else:
-            return '', 400
-
+        return preparse_results(results)
 
 
 @ns_conf.route('/<name>/predict_datasource')
@@ -166,7 +168,6 @@ class PredictorPredictFromDataSource(Resource):
     def post(self, name):
         data = request.json
         from_data = data.get('from_data')
-        to_predict = data.get('to_predict')
 
         if data.get('data_source_name'):
             ds = get_datasource(data.get('data_source_name'))
@@ -177,8 +178,8 @@ class PredictorPredictFromDataSource(Resource):
                     from_data = os.path.normpath(os.path.abspath(ds['source']))
 
         mdb = mindsdb.Predictor(name=name)
-        results = mdb.predict(when=when)
-        return '', 400
+        results = mdb.predict(when_data=from_data)
+        return preparse_results(results)
 
 @ns_conf.route('/<name>/upload')
 @ns_conf.param('name', 'The predictor identifier')
