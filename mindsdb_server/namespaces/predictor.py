@@ -141,20 +141,44 @@ class PredictorPredict(Resource):
     def post(self, name):
         '''Queries predictor'''
         when = request.json.get('when') or {}
-        print(when)
         mdb = mindsdb.Predictor(name=name)
-        result = mdb.predict(when=when)
-        for result in results:
-            print(result.as_dict())
-        exit()
-        if result is not None and len(result) > 0:
-            response = result[0].as_dict()
-            response = dict(
-                [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in response.items()]
-            )
-            return response
-        return '', 400
+        results = mdb.predict(when=when)
 
+        response_arr = []
+        for result in results:
+            response = dict(
+                [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in result.items()]
+            )
+            response_arr.append(response)
+        if len(response_arr) == 1:
+            return response_arr[0]
+        elif len(response_arr) > 1:
+            return response_arr
+        else:
+            return '', 400
+
+
+
+@ns_conf.route('/<name>/predict_datasource')
+@ns_conf.param('name', 'The predictor identifier')
+class PredictorPredictFromDataSource(Resource):
+    @ns_conf.doc('post_predictor_predict', params=predictor_query_params)
+    def post(self, name):
+        data = request.json
+        from_data = data.get('from_data')
+        to_predict = data.get('to_predict')
+
+        if data.get('data_source_name'):
+            ds = get_datasource(data.get('data_source_name'))
+            if ds and ds['source']:
+                if ds['source_type'] == 'url':
+                    from_data = ds['source']
+                if ds['source_type'] == 'file':
+                    from_data = os.path.normpath(os.path.abspath(ds['source']))
+
+        mdb = mindsdb.Predictor(name=name)
+        results = mdb.predict(when=when)
+        return '', 400
 
 @ns_conf.route('/<name>/upload')
 @ns_conf.param('name', 'The predictor identifier')
