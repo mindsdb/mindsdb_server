@@ -146,12 +146,10 @@ class DatasourceData(Resource):
         '''return data rows'''
         ds_record = ([x for x in get_datasources() if x['name'] == name] or [None])[0]
         if ds_record:
+            path = ds_record['source']
             if ds_record['source_type'] == 'file':
-                path = os.path.join(ROOT_STORAGE_DIR, ds_record['source'])
                 if not os.path.exists(path):
                     return '', 404
-            else:
-                path = ds_record['source']
             ds = FileDS(path)
             keys = list(ds.df.keys())
             response = {
