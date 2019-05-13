@@ -1,3 +1,5 @@
+metadata.json
+tmp/*
 integration_testing/*.csv
 integration_testing/*.tsv
 integration_testing/*.sql
