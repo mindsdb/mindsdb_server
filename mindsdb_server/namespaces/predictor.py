@@ -204,9 +204,11 @@ class PredictorDownload(Resource):
     @ns_conf.doc('get_predictor_download')
     def get(self, name):
         '''Export predictor to file'''
+        mdb = mindsdb.Predictor(name='metapredictor')
+        mdb.export_model(model_name=name)
         return send_file(
             BytesIO(b'this is mocked data'),
-            mimetype='text/plain',
-            attachment_filename='predictor_export_mock.txt',
+            mimetype='application/zip',
+            attachment_filename=f'{name}.zip',
             as_attachment=True
         )
