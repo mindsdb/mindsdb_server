@@ -196,13 +196,12 @@ class PredictorUpload(Resource):
         '''Upload existing predictor'''
         predictor_file = request.files['file']
 
-        fname = 'predictor-{}.zip'.format(name)
-        fpath = os.path.join('tmp', fname)
+        fpath = os.path.join('tmp',  name + 'zip')
         with open(fpath, 'wb') as f:
             f.write(predictor_file.read())
 
-        mdb = mindsdb.Predictor(name=name)
-        mdb.load(mindsdb_storage_dir=fpath)
+        mdb = mindsdb.Predictor(name='metapredictor')
+        mdb.load_model(model_archive_path=fpath)
         try:
             os.remove(fpath)
         except Exception:
@@ -223,7 +222,6 @@ class PredictorDownload(Resource):
             BytesIO(b'this is mocked data'),
             mimetype='application/zip',
             attachment_filename=f'{name}.zip',
-
 
         mdb = mindsdb.Predictor(name='metapredictor')
         mdb.export_model(model_name=name)
