@@ -194,7 +194,19 @@ class PredictorUpload(Resource):
     def put(self, name):
         '''Upload existing predictor'''
         predictor_file = request.files['file']
-        predictor_file.read()
+
+        fname = 'predictor-{}.zip'.format(name)
+        fpath = os.path.join('tmp', fname)
+        with open(fpath, 'wb') as f:
+            f.write(predictor_file.read())
+
+        mdb = mindsdb.Predictor(name=name)
+        mdb.load(mindsdb_storage_dir=fpath)
+        try:
+            os.remove(fpath)
+        except Exception:
+            pass
+
         return '', 200
 
 
@@ -204,9 +216,19 @@ class PredictorDownload(Resource):
     @ns_conf.doc('get_predictor_download')
     def get(self, name):
         '''Export predictor to file'''
+        mdb = mindsdb.Predictor(name=name)
+        fname = 'predictor-{}.zip'.format(name)
+        fpath = os.path.join('tmp', fname)
+        mdb.export(mindsdb_storage_dir=fpath[:-4])
+        with open(fpath, 'rb') as f:
+            data = BytesIO(f.read())
+        try:
+            os.remove(fpath)
+        except Exception:
+            pass
         return send_file(
-            BytesIO(b'this is mocked data'),
-            mimetype='text/plain',
-            attachment_filename='predictor_export_mock.txt',
+            data,
+            mimetype='application/zip',
+            attachment_filename=fname,
             as_attachment=True
         )
