@@ -12,4 +12,5 @@ api.add_namespace(datasource_ns)
 
 if __name__ == '__main__':
     os.makedirs('storage', exist_ok=True)
+    os.makedirs('tmp', exist_ok=True)
     app.run(debug=True)

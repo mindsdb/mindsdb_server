@@ -18,6 +18,7 @@ import pickle
 import sys
 import copy
 import numpy
+import shutil
 from dateutil.parser import parse as parse_datetime
 
 from multiprocessing import Process
@@ -194,7 +195,19 @@ class PredictorUpload(Resource):
     def put(self, name):
         '''Upload existing predictor'''
         predictor_file = request.files['file']
-        predictor_file.read()
+
+        fname = 'predictor-{}.zip'.format(name)
+        fpath = os.path.join('tmp', fname)
+        with open(fpath, 'wb') as f:
+            f.write(predictor_file.read())
+
+        mdb = mindsdb.Predictor(name=name)
+        mdb.load(mindsdb_storage_dir=fpath)
+        try:
+            os.remove(fpath)
+        except Exception:
+            pass
+
         return '', 200
 
 
@@ -205,10 +218,30 @@ class PredictorDownload(Resource):
     def get(self, name):
         '''Export predictor to file'''
         mdb = mindsdb.Predictor(name='metapredictor')
-        mdb.export_model(model_name=name)
+
         return send_file(
             BytesIO(b'this is mocked data'),
             mimetype='application/zip',
             attachment_filename=f'{name}.zip',
+
+
+        mdb = mindsdb.Predictor(name='metapredictor')
+        mdb.export_model(model_name=name)
+        fname = name + '.zip'
+        fpath = os.path.join('tmp', name + '.zip')
+        shutil.move(fname, fpath)
+
+        with open(fpath, 'rb') as f:
+            data = BytesIO(f.read())
+
+        try:
+            os.remove(fpath)
+        except Exception:
+            pass
+
+        return send_file(
+            data,
+            mimetype='application/zip',
+            attachment_filename=fname,
             as_attachment=True
         )
