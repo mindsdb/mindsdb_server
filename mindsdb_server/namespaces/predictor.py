@@ -196,7 +196,7 @@ class PredictorUpload(Resource):
         '''Upload existing predictor'''
         predictor_file = request.files['file']
 
-        fpath = os.path.join('tmp',  name + 'zip')
+        fpath = os.path.join('tmp',  name + '.zip')
         with open(fpath, 'wb') as f:
             f.write(predictor_file.read())
 
