@@ -31,6 +31,14 @@ predictor_query_params = OrderedDict([
     }),
 ])
 
+upload_predictor_params = OrderedDict([
+    ('file', {
+        'description': 'file',
+        'type': 'file',
+        'in': 'FormData',
+        'required': True
+    })
+])
 
 # examples
 

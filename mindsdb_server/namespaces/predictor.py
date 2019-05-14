@@ -5,7 +5,8 @@ from flask_restplus import Resource, fields
 from mindsdb_server.namespaces.entitites.predictor_status import predictor_status
 from mindsdb_server.namespaces.entitites.predictor_metadata import (
     predictor_metadata,
-    predictor_query_params
+    predictor_query_params,
+    upload_predictor_params
 )
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.shared_ressources import get_shared
@@ -190,15 +191,14 @@ class PredictorPredictFromDataSource(Resource):
         results = mdb.predict(when_data=from_data)
         return preparse_results(results)
 
-@ns_conf.route('/<name>/upload')
-@ns_conf.param('name', 'The predictor identifier')
+@ns_conf.route('/upload')
 class PredictorUpload(Resource):
-    @ns_conf.doc('predictor_query')
-    def put(self, name):
+    @ns_conf.doc('predictor_query', params=upload_predictor_params)
+    def post(self):
         '''Upload existing predictor'''
         predictor_file = request.files['file']
 
-        fpath = os.path.join('tmp',  name + '.zip')
+        fpath = os.path.join('tmp', 'new.zip')
         with open(fpath, 'wb') as f:
             f.write(predictor_file.read())
 
