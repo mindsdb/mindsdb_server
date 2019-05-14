@@ -103,6 +103,8 @@ class Predictor(Resource):
     @ns_conf.doc('delete_predictor')
     def delete(self, name):
         '''Remove predictor'''
+        mdb = mindsdb.Predictor(name='metapredictor')
+        mdb.delete_model(name)
         return '', 200
 
     @ns_conf.doc('put_predictor')
