@@ -7,8 +7,8 @@ from collections import OrderedDict
 
 predictor_metadata = ns_conf.model('PredictorMetadata', {
     # Primary key
-    'name': fields.String(required=True, description='The predictor name'),
-    'version': fields.String(required=True, description='The predictor version to publish under, this is so that we can train multiple predictors for the same problem but expose them via the same name'),
+    'name': fields.String(required=False, description='The predictor name'),
+    'version': fields.String(required=False, description='The predictor version to publish under, this is so that we can train multiple predictors for the same problem but expose them via the same name'),
     # other attributes
     'data_preparation': fields.Nested(data_preparation_metadata, required=False, description='The metadata used in the preparation stage, in which we break the data into train, test, validation'),
     'data_analysis': fields.Nested(data_analysis_metadata, required=False, description='The metadata used in the analysis stage, in which we extract statistical information from the input data'),

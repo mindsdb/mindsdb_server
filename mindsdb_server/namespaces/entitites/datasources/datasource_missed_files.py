@@ -21,14 +21,14 @@ get_datasource_missed_files_params = OrderedDict([
 ])
 
 datasource_missed_file_metadata = ns_conf.model('DatasourceMissedFile', {
-    'column_name': fields.String(required=True, description='file column name'),
-    'index': fields.Integer(required=True, description='row index in datasource'),
-    'path': fields.String(required=True, description='file column value')
+    'column_name': fields.String(required=False, description='file column name'),
+    'index': fields.Integer(required=False, description='row index in datasource'),
+    'path': fields.String(required=False, description='file column value')
 })
 
 datasource_missed_files_metadata = ns_conf.model('DatasourceMissedFiles', {
-    'rowcount': fields.Integer(required=True, description='number of missed files'),
-    'data': fields.List(fields.Nested(datasource_missed_file_metadata), required=True, description='columns description')
+    'rowcount': fields.Integer(required=False, description='number of missed files'),
+    'data': fields.List(fields.Nested(datasource_missed_file_metadata), required=False, description='columns description')
 })
 
 EXAMPLES = [{
