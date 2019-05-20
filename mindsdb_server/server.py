@@ -4,13 +4,14 @@ from mindsdb_server.shared_ressources import get_shared
 import json
 import os
 
-app, api = get_shared()
-
-api.add_namespace(predictor_ns)
-api.add_namespace(datasource_ns)
-
-
-if __name__ == '__main__':
+def start_server():
     os.makedirs('storage', exist_ok=True)
     os.makedirs('tmp', exist_ok=True)
-    app.run(debug=True)
+    app, api = get_shared()
+    api.add_namespace(predictor_ns)
+    api.add_namespace(datasource_ns)
+    app.run(debug=True)	
+	
+
+if __name__ == '__main__':
+    start_server()
