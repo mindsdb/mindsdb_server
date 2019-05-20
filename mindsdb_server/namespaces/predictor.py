@@ -133,7 +133,7 @@ class Predictor(Resource):
 
             this is work for celery worker here?
             '''
-            import mindsdb
+            print(mindsdb.CONFIG.MINDSDB_STORAGE_PATH)
             mdb = mindsdb.Predictor(name=name)
             mdb.learn(
                 from_data=from_data,

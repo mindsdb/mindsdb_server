@@ -38,7 +38,7 @@ ROOT_STORAGE_DIR = 'storage'
 def get_datasources():
     datasources = []
     for ds_name in os.listdir(ROOT_STORAGE_DIR):
-        if ds_name == 'predictors':
+        if ds_name == ('predictors', 'uuid.mdb_base'):
             continue
         with open(os.path.join(ROOT_STORAGE_DIR, ds_name, 'metadata.json'), 'r') as fp:
             try:
