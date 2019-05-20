@@ -5,16 +5,16 @@ import json
 import os
 import mindsdb
 
-app, api = get_shared()
-
-api.add_namespace(predictor_ns)
-api.add_namespace(datasource_ns)
-
-
-if __name__ == '__main__':
+def start_server():
     os.makedirs('storage', exist_ok=True)
     os.makedirs('storage/predictors', exist_ok=True)
     os.makedirs('tmp', exist_ok=True)
-
     mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage','predictors')
+    app, api = get_shared()
+    api.add_namespace(predictor_ns)
+    api.add_namespace(datasource_ns)
     app.run(debug=True)
+
+
+if __name__ == '__main__':
+    start_server()
