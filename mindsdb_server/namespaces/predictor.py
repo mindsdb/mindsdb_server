@@ -134,8 +134,8 @@ class Predictor(Resource):
             this is work for celery worker here?
             '''
             import mindsdb
-            global global_mdb
-            global_mdb.learn(
+            mdb = mindsdb.Predictor(name=name)
+            mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict
             )
