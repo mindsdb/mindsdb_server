@@ -26,6 +26,7 @@ from multiprocessing import Process
 
 
 app, api = get_shared()
+global_mdb = mindsdb.Predictor(name='metapredictor')
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -71,10 +72,9 @@ class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
     @ns_conf.marshal_list_with(predictor_status, skip_none=True)
     def get(self):
+        global global_mdb
         '''List all predictors'''
-
-        mdb = mindsdb.Predictor(name='metapredictor')
-        models = mdb.get_models()
+        models = global_mdb.get_models()
 
         for model in models:
             model['data_source'] = model['data_source'].split('/')[-1]
@@ -84,7 +84,7 @@ class PredictorList(Resource):
                         model[k] = parse_datetime(str(model[k]).split('.')[0])
                     except Exception as e:
                         model[k] = parse_datetime(str(model[k]))
-                        
+
         return models
 
 
@@ -95,8 +95,8 @@ class Predictor(Resource):
     @ns_conf.doc('get_predictor')
     @ns_conf.marshal_with(predictor_metadata, skip_none=True)
     def get(self, name):
-        mdb = mindsdb.Predictor(name='metapredictor')
-        model = mdb.get_model_data(name)
+        global global_mdb
+        model = global_mdb.get_model_data(name)
 
         for k in ['train_end_at', 'updated_at', 'created_at']:
             if k in model:
@@ -107,8 +107,8 @@ class Predictor(Resource):
     @ns_conf.doc('delete_predictor')
     def delete(self, name):
         '''Remove predictor'''
-        mdb = mindsdb.Predictor(name='metapredictor')
-        mdb.delete_model(name)
+        global global_mdb
+        global_mdb.delete_model(name)
         return '', 200
 
     @ns_conf.doc('put_predictor')
@@ -134,8 +134,8 @@ class Predictor(Resource):
             this is work for celery worker here?
             '''
             import mindsdb
-            mdb = mindsdb.Predictor(name=name)
-            mdb.learn(
+            global global_mdb
+            global_mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict
             )
@@ -152,8 +152,8 @@ class PredictorColumns(Resource):
     @ns_conf.doc('get_predictor_columns')
     def get(self, name):
         '''List of predictors colums'''
-        mdb = mindsdb.Predictor(name='metapredictor')
-        model = mdb.get_model_data(name)
+        global global_mdb
+        model = global_mdb.get_model_data(name)
 
         columns = []
         for col_data in [*model['data_analysis']['target_columns_metadata'], *model['data_analysis']['input_columns_metadata']]:
@@ -199,14 +199,14 @@ class PredictorUpload(Resource):
     @ns_conf.doc('predictor_query', params=upload_predictor_params)
     def post(self):
         '''Upload existing predictor'''
+        global global_mdb
         predictor_file = request.files['file']
 
         fpath = os.path.join('tmp', 'new.zip')
         with open(fpath, 'wb') as f:
             f.write(predictor_file.read())
 
-        mdb = mindsdb.Predictor(name='metapredictor')
-        mdb.load_model(model_archive_path=fpath)
+        global_mdb.load_model(model_archive_path=fpath)
         try:
             os.remove(fpath)
         except Exception:
@@ -221,9 +221,8 @@ class PredictorDownload(Resource):
     @ns_conf.doc('get_predictor_download')
     def get(self, name):
         '''Export predictor to file'''
-
-        mdb = mindsdb.Predictor(name='metapredictor')
-        mdb.export_model(model_name=name)
+        global global_mdb
+        global_mdb.export_model(model_name=name)
         fname = name + '.zip'
         fpath = os.path.join('tmp', name + '.zip')
         shutil.move(fname, fpath)
