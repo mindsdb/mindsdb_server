@@ -79,7 +79,7 @@ class PredictorList(Resource):
         for model in models:
             model['data_source'] = model['data_source'].split('/')[-1]
             for k in ['train_end_at', 'updated_at', 'created_at']:
-                if k in model:
+                if k in model and model[k] is not None:
                     try:
                         model[k] = parse_datetime(str(model[k]).split('.')[0])
                     except Exception as e:
