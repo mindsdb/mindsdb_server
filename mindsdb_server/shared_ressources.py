@@ -16,8 +16,5 @@ def get_shared():
         initialized = True
         app = Flask(__name__)
         api = Api(app)
-        @app.route('/util/ping')
-        def ping():
-            return json.dumps({'status': 'ok'})
-            
+
     return app, api
