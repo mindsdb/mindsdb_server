@@ -59,7 +59,7 @@ def get_datasource(name):
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
-    @ns_conf.doc('get_atasources_list')
+    @ns_conf.doc('get_datasources_list')
     @ns_conf.marshal_list_with(datasource_metadata)
     def get(self):
         '''List all datasources'''
@@ -189,10 +189,9 @@ class DatasourceMissedFiles(Resource):
         '''return missed files'''
         return '', 404
 
-
 @ns_conf.route('/<name>/download')
 @ns_conf.param('name', 'Datasource name')
-class DatasourceMissedFiles(Resource):
+class DatasourceMissedFilesDownload(Resource):
     @ns_conf.doc('get_datasource_download')
     def get(self, name):
         '''download uploaded file'''
