@@ -3,14 +3,12 @@ from flask_restplus import Resource, fields
 from mindsdb_server.namespaces.configs.util import ns_conf
 import json
 
-statusOk = json.dumps({'status': 'ok'})
-
 @ns_conf.route('/ping')
 class Ping(Resource):
     @ns_conf.doc('get_ping')
     def get(self):
         '''Checks server avaliable'''
-        return statusOk
+        return {'status': 'ok'}
 
 @ns_conf.route('/shutdown')
 class Shutdown(Resource):
