@@ -38,14 +38,17 @@ datasources = []
 def get_datasources():
     datasources = []
     for ds_name in os.listdir(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH):
-        with open(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds_name, 'metadata.json'), 'r') as fp:
-            try:
-                datasource = json.load(fp)
-                datasource['created_at'] = parse(datasource['created_at'].split('.')[0])
-                datasource['updated_at'] = parse(datasource['updated_at'].split('.')[0])
-                datasources.append(datasource)
-            except Exception as e:
-                print(e)
+        try:
+            with open(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds_name, 'metadata.json'), 'r') as fp:
+                try:
+                    datasource = json.load(fp)
+                    datasource['created_at'] = parse(datasource['created_at'].split('.')[0])
+                    datasource['updated_at'] = parse(datasource['updated_at'].split('.')[0])
+                    datasources.append(datasource)
+                except Exception as e:
+                    print(e)
+        except Exception as e:
+            print(e)
     return datasources
 
 def get_datasource(name):
