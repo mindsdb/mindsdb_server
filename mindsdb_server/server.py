@@ -7,10 +7,14 @@ import os
 import mindsdb
 
 def start_server():
-    os.makedirs('storage', exist_ok=True)
-    os.makedirs('storage/predictors', exist_ok=True)
-    os.makedirs('tmp', exist_ok=True)
-    mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage','predictors')
+    mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage')
+    mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'predictors')
+    mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'datasources')
+    mindsdb.CONFIG.MINDSDB_TEMP_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'tmp')
+    os.makedirs(mindsdb.CONFIG.MINDSDB_STORAGE_PATH, exist_ok=True)
+    os.makedirs(mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH, exist_ok=True)
+    os.makedirs(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, exist_ok=True)
+    os.makedirs(mindsdb.CONFIG.MINDSDB_TEMP_PATH, exist_ok=True)
     app, api = get_shared()
     api.add_namespace(predictor_ns)
     api.add_namespace(datasource_ns)
