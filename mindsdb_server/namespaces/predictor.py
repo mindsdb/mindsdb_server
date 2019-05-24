@@ -99,7 +99,7 @@ class Predictor(Resource):
         model = global_mdb.get_model_data(name)
 
         for k in ['train_end_at', 'updated_at', 'created_at']:
-            if k in model:
+            if k in model and model[k] is not None:
                 model[k] = parse_datetime(model[k])
 
         return model
