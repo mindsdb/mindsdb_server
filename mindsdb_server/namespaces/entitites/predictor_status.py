@@ -12,7 +12,8 @@ predictor_status = ns_conf.model('PredictorStatus', {
     'data_source': fields.String(required=False, description='The data source it\'s learning from'),
     'predict': fields.List(fields.String, required=False, description='The list of columns/fields to be predicted'),
     'accuracy': fields.Float(description='The current accuracy of the model'),
-    'status': fields.String(required=False, description='The current model status', enum=['training', 'complete']),
+    'status': fields.String(required=False, description='The current model status', enum=['training', 'complete', 'error']),
+    'current_phase': fields.String(required=False, description='Current training phase'),
     'train_end_at': fields.DateTime(required=False, description='The time the predictor finished training'),
     'updated_at': fields.DateTime(required=False, description='The time the predictor was last updated at'),
     'created_at': fields.DateTime(required=False, description='The time the predictor was created at')
