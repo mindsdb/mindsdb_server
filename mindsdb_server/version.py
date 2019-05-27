@@ -1,1 +1,1 @@
-mindsdb_version="0.9.5"
+mindsdb_version="0.9.6"
