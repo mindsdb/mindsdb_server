@@ -5,8 +5,22 @@ from mindsdb_server.shared_ressources import get_shared
 import json
 import os
 import mindsdb
+import logging
+import sys
 
 def start_server():
+    # by default werkzeug send all to stderr. Here is dividing by log-level to stderr and stdout.
+    if not logging.root.handlers:
+        rootLogger = logging.getLogger()
+
+        outStream = logging.StreamHandler(sys.stdout)
+        outStream.addFilter(lambda record: record.levelno <= logging.INFO)
+        rootLogger.addHandler(outStream)
+
+        errStream = logging.StreamHandler(sys.stderr)
+        errStream.addFilter(lambda record: record.levelno > logging.INFO)
+        rootLogger.addHandler(errStream)
+
     mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage')
     mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'predictors')
     mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'datasources')
