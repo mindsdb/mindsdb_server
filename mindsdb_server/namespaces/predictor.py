@@ -121,6 +121,7 @@ class Predictor(Resource):
         if from_data is None:
             from_data = data.get('from_data')
         if from_data is None:
+            print('No valid datasource given')
             return 'No valid datasource given', 400
 
         if name is None or to_predict is None:
