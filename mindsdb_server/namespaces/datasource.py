@@ -4,7 +4,7 @@ import datetime
 from flask import request, send_file
 from flask_restplus import Resource, fields
 
-from mindsdb.libs.data_sources.file_ds import FileDS
+#from mindsdb.libs.data_sources.file_ds import FileDS
 
 from mindsdb_server.namespaces.configs.datasources import ns_conf
 from mindsdb_server.namespaces.entitites.datasources.datasource import (

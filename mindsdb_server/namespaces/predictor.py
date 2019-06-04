@@ -202,8 +202,7 @@ class PredictorUpload(Resource):
         '''Upload existing predictor'''
         global global_mdb
         predictor_file = request.files['file']
-
-        fpath = os.path.join('tmp', 'new.zip')
+        fpath = os.path.join(mindsdb.CONFIG.MINDSDB_TEMP_PATH, 'new.zip')
         with open(fpath, 'wb') as f:
             f.write(predictor_file.read())
 
@@ -225,8 +224,8 @@ class PredictorDownload(Resource):
         global global_mdb
         global_mdb.export_model(model_name=name)
         fname = name + '.zip'
-        original_file = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH, fname)
-        fpath = os.path.join('tmp', fname)
+        original_file = os.path.join(fname)
+        fpath = os.path.join(mindsdb.CONFIG.MINDSDB_TEMP_PATH, fname)
         shutil.move(original_file, fpath)
 
         with open(fpath, 'rb') as f:
