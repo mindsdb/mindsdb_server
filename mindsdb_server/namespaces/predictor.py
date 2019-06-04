@@ -225,8 +225,9 @@ class PredictorDownload(Resource):
         global global_mdb
         global_mdb.export_model(model_name=name)
         fname = name + '.zip'
-        fpath = os.path.join('tmp', name + '.zip')
-        shutil.move(fname, fpath)
+        original_file = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH, fname)
+        fpath = os.path.join('tmp', fname)
+        shutil.move(original_file, fpath)
 
         with open(fpath, 'rb') as f:
             data = BytesIO(f.read())
