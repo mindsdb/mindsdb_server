@@ -46,6 +46,7 @@ share/python-wheels/
 .DStore
 .DS_Store
 .idea
+.vscode
 
 # virtualenv
 .venv
