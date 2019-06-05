@@ -1,8 +1,14 @@
 This server uses flask_restplus to define the API
 
-please run like:
+
+# Development installation
+
+To install and run mindsdb_server for development, activate your virtualenv and run:
 
 ```python
+python setup.py develop
+pip install -r requirements.txt
+cd mindsdb_server
 python3 server.py
 ```
 
