@@ -6,7 +6,8 @@ from mindsdb_server.namespaces.entitites.predictor_status import predictor_statu
 from mindsdb_server.namespaces.entitites.predictor_metadata import (
     predictor_metadata,
     predictor_query_params,
-    upload_predictor_params
+    upload_predictor_params,
+    put_predictor_params
 )
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.shared_ressources import get_shared
@@ -111,7 +112,7 @@ class Predictor(Resource):
         global_mdb.delete_model(name)
         return '', 200
 
-    @ns_conf.doc('put_predictor')
+    @ns_conf.doc('put_predictor', params=put_predictor_params)
     def put(self, name):
         '''Learning new predictor'''
         data = request.json

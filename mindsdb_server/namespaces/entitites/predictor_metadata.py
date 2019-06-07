@@ -20,7 +20,7 @@ predictor_metadata = ns_conf.model('PredictorMetadata', {
 
 predictor_query_params = OrderedDict([
     ('name', {
-        'description': 'The datasource name',
+        'description': 'The predictor name',
         'type': 'string',
         'in': 'path',
         'required': True
@@ -40,6 +40,34 @@ upload_predictor_params = OrderedDict([
         'type': 'file',
         'in': 'FormData',
         'required': True
+    })
+])
+
+put_predictor_params = OrderedDict([
+    ('name', {
+        'description': 'The predictor name',
+        'type': 'string',
+        'in': 'path',
+        'required': True
+    }),
+    ('data_source_name', {
+        'description': 'The predictor name',
+        'type': 'string',
+        'in': 'body',
+        'required': True
+    }),
+    ('from_data', {
+        'description': '',
+        'type': 'string',
+        'in': 'body',
+        'required': False
+    }),
+    ('to_predict', {
+        'description': 'list of column names to predict',
+        'type': 'array',
+        'in': 'body',
+        'required': True,
+        'example': "['number_of_rooms', 'price']"
     })
 ])
 
