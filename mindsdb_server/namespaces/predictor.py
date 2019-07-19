@@ -48,7 +48,7 @@ def preparse_results(results):
     response_arr = []
     for result in results:
         response = dict(
-            [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in result.items()]
+            [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in result]
         )
         response_arr.append(response)
     if len(response_arr) == 1:
