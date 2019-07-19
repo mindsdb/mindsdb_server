@@ -47,9 +47,14 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
 def preparse_results(results):
     response_arr = []
     for result in results:
-        response = dict(
-            [(key, float(val)) if isinstance(val, numpy.float32) else (key, val) for key, val in result.as_dict()]
-        )
+        response = []
+        for k in result.as_dict():
+            v = result.as_dict()[k]
+            if isinstance(v,numpy.float32):
+                v = float(v)
+            response.append((k,v))
+        response = dict(response)
+        
         response_arr.append(response)
     if len(response_arr) == 1:
         return response_arr[0]
