@@ -54,7 +54,7 @@ def preparse_results(results):
                 v = float(v)
             response.append((k,v))
         response = dict(response)
-        
+
         response_arr.append(response)
     if len(response_arr) == 1:
         return response_arr[0]
@@ -147,7 +147,6 @@ class Predictor(Resource):
                 to_predict=to_predict
             )
 
-        print(from_data)
         p = Process(target=learn, args=(name, from_data, to_predict))
         p.start()
 
