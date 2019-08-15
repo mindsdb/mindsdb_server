@@ -46,16 +46,9 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
 
 def preparse_results(results):
     response_arr = []
-    for result in results:
-        response = []
-        for k in result.as_dict():
-            v = result.as_dict()[k]
-            if isinstance(v,numpy.float32):
-                v = float(v)
-            response.append((k,v))
-        response = dict(response)
 
-        response_arr.append(response)
+    for res in results:
+        response_arr.append(res.explain())
     if len(response_arr) == 1:
         return response_arr[0]
     elif len(response_arr) > 1:
@@ -201,6 +194,7 @@ class PredictorPredictFromDataSource(Resource):
 
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when_data=from_data)
+
         return preparse_results(results)
 
 @ns_conf.route('/upload')
