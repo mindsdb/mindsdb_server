@@ -133,7 +133,7 @@ class Predictor(Resource):
         if name is None or to_predict is None:
             return '', 400
 
-        def learn(name, from_data, to_predict):
+        def learn(name, from_data, to_predict, stop_training_in_x_seconds=16*3600):
             '''
             running at subprocess due to
             ValueError: signal only works in main thread
@@ -143,11 +143,15 @@ class Predictor(Resource):
             mdb = mindsdb.Predictor(name=name)
             mdb.learn(
                 from_data=from_data,
-                to_predict=to_predict
+                to_predict=to_predict,
+                stop_training_in_x_seconds=stop_training_in_x_seconds
             )
 
-        p = Process(target=learn, args=(name, from_data, to_predict))
-        p.start()
+        if sys.paltform() == 'linux':
+            p = Process(target=learn, args=(name, from_data, to_predict))
+            p.start()
+        else:
+            learn(name,from_data,to_predict,1200)
 
         return '', 200
 
