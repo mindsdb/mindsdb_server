@@ -49,9 +49,7 @@ def preparse_results(results):
 
     for res in results:
         response_arr.append(res.explain())
-    if len(response_arr) == 1:
-        return response_arr[0]
-    elif len(response_arr) > 1:
+    if len(response_arr) > 0:
         return response_arr
     else:
         return '', 400
