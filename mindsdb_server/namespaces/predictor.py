@@ -138,7 +138,7 @@ class Predictor(Resource):
                 stop_training_in_x_seconds=stop_training_in_x_seconds
             )
 
-        if sys.paltform() == 'linux':
+        if sys.paltform == 'linux':
             p = Process(target=learn, args=(name, from_data, to_predict))
             p.start()
         else:
