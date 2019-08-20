@@ -1,0 +1,36 @@
+language: python
+matrix:
+  include:
+    - name: "Python 3.7.3 on Ubuntu 16.0.4"
+      os: linux
+      python: 3.7.3
+      node: 11.15.0
+      dist: xenial
+      sudo: true
+      env:
+        DEPLOYMENT_ENV="true"
+
+notifications:
+  # send notifications only on master failure
+  email:
+    only: master
+cache: pip
+# install dependencies
+install:
+  - travis_wait pip3 install --upgrade pip
+  - travis_wait pip3 install --no-cache-dir -e .;
+
+before_script: cd tests/ci_tests
+# run tests
+script:
+  - then travis_wait 60 python fast_test.py
+
+# deploy to pip
+deploy:
+  - provider: pypi
+    user: "mindsdb_sysadmin"
+    password: $PYPI_SYSADMIN_PASSWORD
+    distributions: "sdist"
+    on:
+      branch: release
+      condition: $DEPLOYMENT_ENV = "true"
