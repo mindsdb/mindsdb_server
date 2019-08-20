@@ -1,5 +1,4 @@
 import setuptools
-from mindsdb_server.version import mindsdb_version
 
 
 about = {}
