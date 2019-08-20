@@ -1,26 +1,36 @@
 import setuptools
 from mindsdb_server.version import mindsdb_version
+
+
+about = {}
+with open("mindsdb/__about__.py") as fp:
+    exec(fp.read(), about)
+
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 with open('requirements.txt') as req_file:
     requirements = req_file.read().splitlines()
-print(mindsdb_version)
+
 setuptools.setup(
-    name="mindsdb_server",
-    version=mindsdb_version,
-    author="MindsDB Inc",
-    author_email="jorge@mindsdb.com",
-    description="MindsDB server, provides server capabilities to mindsdb native python library",
+    name=about['__title__'],
+    version=about['__version__'],
+    url=about['__github__'],
+    download_url=about['__pypi__'],
+    license=about['__license__'],
+    author=about['__author__'],
+    author_email=about['__email__'],
+    description=about['__description__'],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/mindsdb/mindsdb_server",
     packages=setuptools.find_packages(),
     install_requires=requirements,
+    dependency_links=dependency_links,
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ),
-    python_requires=">=3.4"
+    python_requires=">=3.6"
 )
