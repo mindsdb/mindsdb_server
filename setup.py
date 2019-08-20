@@ -2,7 +2,7 @@ import setuptools
 
 
 about = {}
-with open("mindsdb/__about__.py") as fp:
+with open("mindsdb_server/__about__.py") as fp:
     exec(fp.read(), about)
 
 
