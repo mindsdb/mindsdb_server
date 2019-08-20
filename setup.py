@@ -2,7 +2,7 @@ import setuptools
 
 
 about = {}
-with open("mindsdb/__about__.py") as fp:
+with open("mindsdb_server/__about__.py") as fp:
     exec(fp.read(), about)
 
 
@@ -25,7 +25,6 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     install_requires=requirements,
-    dependency_links=dependency_links,
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

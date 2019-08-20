@@ -23,8 +23,9 @@ install:
 before_script: cd tests/ci_tests
 # run tests
 script:
-  - then travis_wait 60 python fast_test.py
-
+  - travis_wait 60 python fast_test.py
+  - cd ../..
+  
 # deploy to pip
 deploy:
   - provider: pypi
