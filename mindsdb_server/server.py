@@ -33,7 +33,7 @@ def start_server():
     api.add_namespace(predictor_ns)
     api.add_namespace(datasource_ns)
     api.add_namespace(utils_ns)
-    app.run(debug=True, port=47334, host='0.0.0.0)
+    app.run(debug=True, port=47334, host='0.0.0.0')
 
 if __name__ == '__main__':
     start_server()
