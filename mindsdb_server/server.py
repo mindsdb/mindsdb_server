@@ -29,10 +29,13 @@ def start_server():
     os.makedirs(mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_TEMP_PATH, exist_ok=True)
+
     app, api = get_shared()
+
     api.add_namespace(predictor_ns)
     api.add_namespace(datasource_ns)
     api.add_namespace(utils_ns)
+
     app.run(debug=True, port=47334, host='0.0.0.0')
 
 if __name__ == '__main__':
