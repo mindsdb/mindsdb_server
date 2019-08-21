@@ -1,0 +1,9 @@
+[Unit]
+Description=MIndsdbServer
+
+[Service]
+WorkingDirectory=/home/ubuntu/mindsdb_server
+ExecStart=/usr/bin/python3 mindsdb_server/server.py
+
+[Install]
+WantedBy=multi-user.target
