@@ -74,7 +74,7 @@ class PredictorList(Resource):
         models = global_mdb.get_models()
 
         for model in models:
-            model['data_source'] = model['data_source'].split('/')[-1]
+            #model['data_source'] = model['data_source'].split('/')[-1]
             for k in ['train_end_at', 'updated_at', 'created_at']:
                 if k in model and model[k] is not None:
                     try:
@@ -135,7 +135,9 @@ class Predictor(Resource):
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
-                stop_training_in_x_seconds=stop_training_in_x_seconds
+                stop_training_in_x_seconds=stop_training_in_x_seconds,
+                equal_accuracy_for_all_output_categories = True,
+                sample_margin_of_error = 0.005
             )
 
         if sys.platform == 'linux':
