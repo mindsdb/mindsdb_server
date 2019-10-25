@@ -4,7 +4,7 @@ from flask_restplus import fields
 
 
 data_preparation_metadata = ns_conf.model('DataPreparationMetadata', {
-    'accepted_margin_of_error': fields.Float(required=False, description='This is the margin of error that the user accepted when training the predictor, based on this we estimate how much data to actually sample from the provieded data set'),
+    'accepted_margin_of_error': fields.Float(required=False, description='This is the margin of error that the user accepted when training the predictor, based on this we estimate how much data to actually sample from the provided data set'),
     'total_row_count': fields.Integer(required=False, description='The total number of rows found on the data set'),
     'used_row_count': fields.Integer(required=False, description='The number of rows sampled fro the entire dataset, this is calculated accordingly from the margin of error argument'),
     'test_row_count': fields.Integer(required=False, description='The number of rows used on the test subset'),
