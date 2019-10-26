@@ -1,3 +1,0 @@
-Example multi-predict call:
-
-curl -d '{"data_source_name":"home_rentals_test"}'   -H "Content-Type: application/json" -X POST 'localhost:47334/predictors/home_rentals_predictor/predict_datasource'
