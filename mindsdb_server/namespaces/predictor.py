@@ -174,7 +174,7 @@ class Predictor(Resource):
             try:
                 model_swapping_map[original_name] = True
                 global_mdb.delete_model(original_name)
-                global_mdb.rename(name, original_name)
+                global_mdb.rename_model(name, original_name)
                 model_swapping_map[original_name] = False
             except:
                 model_swapping_map[original_name] = False
