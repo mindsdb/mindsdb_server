@@ -14,6 +14,7 @@ from mindsdb_server.shared_ressources import get_shared
 from mindsdb_server.namespaces.datasource import get_datasource, get_datasources
 import mindsdb
 
+import time
 import os
 import json
 import pickle
@@ -28,6 +29,7 @@ from multiprocessing import Process
 
 app, api = get_shared()
 global_mdb = mindsdb.Predictor(name='metapredictor')
+model_swapping_map = {}
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -117,6 +119,9 @@ class Predictor(Resource):
     @ns_conf.doc('put_predictor', params=put_predictor_params)
     def put(self, name):
         '''Learning new predictor'''
+        global model_swapping_map
+        global global_mdb
+
         data = request.json
         to_predict = data.get('to_predict')
 
@@ -126,7 +131,7 @@ class Predictor(Resource):
                 retrain = True
             else:
                 retrain = False
-        else:
+        except:
             retrain = None
 
         from_data = get_datasource_path(data.get('data_source_name'))
@@ -166,9 +171,14 @@ class Predictor(Resource):
             learn(name,from_data,to_predict,1200)
 
         if retrain is True:
-            global_mdb.delete_model(name)
-            global_mdb.rename(name, original_name)
-        
+            try:
+                model_swapping_map[original_name] = True
+                global_mdb.delete_model(name)
+                global_mdb.rename(name, original_name)
+                model_swapping_map[original_name] = False
+            except:
+                model_swapping_map[original_name] = False
+
         return '', 200
 
 @ns_conf.route('/<name>/columns')
@@ -211,7 +221,14 @@ class PredictorPredict(Resource):
     @ns_conf.doc('post_predictor_predict', params=predictor_query_params)
     def post(self, name):
         '''Queries predictor'''
+        global model_swapping_map
+
         when = request.json.get('when') or {}
+
+        # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
+        while name in model_swapping_map and model_swapping_map[name] is True:
+            time.sleep(1)
+
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when=when)
 
@@ -223,12 +240,14 @@ class PredictorPredict(Resource):
 class PredictorPredictFromDataSource(Resource):
     @ns_conf.doc('post_predictor_predict', params=predictor_query_params)
     def post(self, name):
+        global model_swapping_map
+
         data = request.json
 
         from_data = get_datasource_path(data.get('data_source_name'))
         try:
             format_flag = data.get('format_flag')
-        else:
+        except:
             format_flag = 'explain'
 
         if from_data is None:
@@ -237,6 +256,10 @@ class PredictorPredictFromDataSource(Resource):
             from_data = data.get('when_data')
         if from_data is None:
             return 'No valid datasource given', 400
+            
+        # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
+        while name in model_swapping_map and model_swapping_map[name] is True:
+            time.sleep(1)
 
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when_data=from_data)
