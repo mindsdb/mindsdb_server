@@ -173,7 +173,7 @@ class Predictor(Resource):
         if retrain is True:
             try:
                 model_swapping_map[original_name] = True
-                global_mdb.delete_model(name)
+                global_mdb.delete_model(original_name)
                 global_mdb.rename(name, original_name)
                 model_swapping_map[original_name] = False
             except:
@@ -256,7 +256,7 @@ class PredictorPredictFromDataSource(Resource):
             from_data = data.get('when_data')
         if from_data is None:
             return 'No valid datasource given', 400
-            
+
         # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
         while name in model_swapping_map and model_swapping_map[name] is True:
             time.sleep(1)
