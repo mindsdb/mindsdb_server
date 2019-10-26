@@ -44,11 +44,17 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
             for item in model[k]:
                 debug_pkey_type(item, copy.deepcopy(keys), reset_keyes=False)
 
-def preparse_results(results):
+def preparse_results(results, format_flag='epitomize'):
     response_arr = []
 
     for res in results:
-        response_arr.append(res.explain())
+        if format_flag == 'explain':
+            response_arr.append(res.explain())
+        elif format_flag == 'epitomize':
+            response_arr.append(res.epitomize())
+        # Default to explain for now
+        else:
+            response_arr.append(res.explain())
     if len(response_arr) > 0:
         return response_arr
     else:
@@ -203,6 +209,11 @@ class PredictorPredictFromDataSource(Resource):
         data = request.json
 
         from_data = get_datasource_path(data.get('data_source_name'))
+        try:
+            format_flag = data.get('format_flag')
+        else:
+            format_flag = 'explain'
+
         if from_data is None:
             from_data = data.get('from_data')
         if from_data is None:
@@ -213,7 +224,7 @@ class PredictorPredictFromDataSource(Resource):
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when_data=from_data)
 
-        return preparse_results(results)
+        return preparse_results(results, format_flag)
 
 @ns_conf.route('/upload')
 class PredictorUpload(Resource):
