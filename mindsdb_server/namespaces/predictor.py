@@ -120,6 +120,15 @@ class Predictor(Resource):
         data = request.json
         to_predict = data.get('to_predict')
 
+        try:
+            retrain = data.get('retrain')
+            if retrain in ('true', 'True'):
+                retrain = True
+            else:
+                retrain = False
+        else:
+            retrain = None
+
         from_data = get_datasource_path(data.get('data_source_name'))
         if from_data is None:
             from_data = data.get('from_data')
@@ -129,6 +138,10 @@ class Predictor(Resource):
 
         if name is None or to_predict is None:
             return '', 400
+
+        if retrain is True:
+            original_name = name
+            name = name + '_retrained'
 
         def learn(name, from_data, to_predict, stop_training_in_x_seconds=16*3600):
             '''
@@ -152,6 +165,10 @@ class Predictor(Resource):
         else:
             learn(name,from_data,to_predict,1200)
 
+        if retrain is True:
+            global_mdb.delete_model(name)
+            global_mdb.rename(name, original_name)
+        
         return '', 200
 
 @ns_conf.route('/<name>/columns')
