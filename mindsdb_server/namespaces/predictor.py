@@ -202,8 +202,7 @@ class PredictorColumns(Resource):
 class AnalyseDataset(Resource):
     @ns_conf.doc('analyse_dataset')
     def get(self, name):
-        data = request.json
-        from_data = get_datasource_path(data.get('data_source_name'))
+        from_data = get_datasource_path(request.args.get('data_source_name'))
         if from_data is None:
             from_data = data.get('from_data')
         if from_data is None:
