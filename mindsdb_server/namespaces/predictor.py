@@ -46,7 +46,7 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
             for item in model[k]:
                 debug_pkey_type(item, copy.deepcopy(keys), reset_keyes=False)
 
-def preparse_results(results, format_flag='epitomize'):
+def preparse_results(results, format_flag='explain'):
     response_arr = []
 
     for res in results:
@@ -57,6 +57,7 @@ def preparse_results(results, format_flag='epitomize'):
         # Default to explain for now
         else:
             response_arr.append(res.explain())
+
     if len(response_arr) > 0:
         return response_arr
     else:
