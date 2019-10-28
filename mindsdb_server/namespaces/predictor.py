@@ -210,10 +210,9 @@ class AnalyseDataset(Resource):
             print('No valid datasource given')
             return 'No valid datasource given', 400
 
-        mdb = mindsdb.Predictor(name=name)
-        mdb.analyse_dataset(from_data)
+        analysis = global_mdb.analyse_dataset(from_data)
 
-        return '', 200
+        return analysis, 200
 
 
 @ns_conf.route('/<name>/predict')
