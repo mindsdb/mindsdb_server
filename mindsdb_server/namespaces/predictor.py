@@ -192,8 +192,16 @@ class PredictorColumns(Resource):
         model = global_mdb.get_model_data(name)
 
         columns = []
-        for col_data in [*model['data_analysis']['target_columns_metadata'], *model['data_analysis']['input_columns_metadata']]:
-            columns.append(col_data['column_name'])
+        for array, is_target_array in [(model['data_analysis']['target_columns_metadata'], True), (model['data_analysis']['input_columns_metadata'], False)]:
+            for col_data in array:
+                column = {
+                    'name': col_data['column_name'],
+                    'data_type': col_data['data_type'].lower(),
+                    'is_target_column': is_target_array
+                }
+                if column['data_type'] == 'categorical':
+                    column['distribution'] = col_data["data_distribution"]["data_histogram"]["x"]
+                columns.append(column)
 
         return columns, 200
 
@@ -230,7 +238,7 @@ class PredictorPredict(Resource):
 
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when=when, run_confidence_variation_analysis=True)
-
+        # return '', 500
         return preparse_results(results)
 
 
