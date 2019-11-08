@@ -10,15 +10,15 @@
 mkdir mindsdb_docker
 cd mindsdb_docker
 curl https://raw.githubusercontent.com/mindsdb/mindsdb_server/master/distributions/docker/Dockerfile > Dockerfile
-docker build -t mindsdb .
+docker build -t mindsdb_server .
 cd ..
 rm -rf mindsdb_docker > /dev/null 2>&1
 
-echo "Do you want to run MindsDB container (yes/no)?"
+echo "Do you want to run MindsDB Server container (yes/no)?"
 read run
 
 if [ "$run" = "yes" ]; then
-    echo "Running Mindsdb container..."
-    docker run -d -it  --name=mindsdb mindsdb
-    docker exec -it mindsdb python
+    echo "Running Mindsdb Server container..."
+    docker run -d -it  --name=mindsdb_server mindsdb_server
+    docker exec -it mindsdb_server python
 fi
