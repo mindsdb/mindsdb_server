@@ -1,4 +1,4 @@
-FROM mindsdb:mindsdb
+FROM mindsdb:latest
 
 RUN pip install --no-cache-dir mindsdb_server
 
