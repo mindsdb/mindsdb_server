@@ -1,4 +1,6 @@
 language: python
+services:
+  - docker
 matrix:
   include:
     - name: "Python 3.7.3 on Ubuntu 16.0.4"
@@ -25,7 +27,7 @@ before_script: cd tests/ci_tests
 script:
   - travis_wait 60 python fast_test.py
   - cd ../..
-  
+
 # deploy to pip
 deploy:
   - provider: pypi
@@ -35,3 +37,11 @@ deploy:
     on:
       branch: release
       condition: $DEPLOYMENT_ENV = "true"
+# after pip is deployed, we can deploy to dockerhub
+after_deploy:
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then sleep 15; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then cd distributions/docker; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker build -t docker-build .; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker tag docker-build $REGISTRY_USER/mindsdb_server:latest; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then cd ../..; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS" && docker push $REGISTRY_USER/mindsdb_server && docker logout; fi

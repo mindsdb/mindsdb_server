@@ -9,6 +9,7 @@ train_data.csv
 *.test.*
 .cache*
 storage/*
+mindsdb/*
 mindsdb_storage/*
 config/personal_config.py
 *.jar

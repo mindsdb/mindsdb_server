@@ -1,7 +1,11 @@
-This server uses flask_restplus to define the API
+# Mindsdb Server
+
+[![Build Status](https://travis-ci.org/mindsdb/mindsdb_server.svg?branch=master)](https://travis-ci.org/mindsdb/mindsdb_server)
+
+This server uses flask_restplus to define the API.
 
 
-# Development installation
+## Development installation
 
 To install and run mindsdb_server for development, activate your virtualenv and run:
 
@@ -12,7 +16,7 @@ cd mindsdb_server
 python3 server.py
 ```
 
-# The code inside mindsdb_server
+## The code inside mindsdb_server
 
  * ```namespaces/<endpoint.py>```: these contains a file per API resource 
  * ```namespaces/configs```: these are the configs for the API resources

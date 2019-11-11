@@ -14,6 +14,7 @@ from mindsdb_server.shared_ressources import get_shared
 from mindsdb_server.namespaces.datasource import get_datasource, get_datasources
 import mindsdb
 
+import time
 import os
 import json
 import pickle
@@ -28,6 +29,7 @@ from multiprocessing import Process
 
 app, api = get_shared()
 global_mdb = mindsdb.Predictor(name='metapredictor')
+model_swapping_map = {}
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -44,11 +46,18 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
             for item in model[k]:
                 debug_pkey_type(item, copy.deepcopy(keys), reset_keyes=False)
 
-def preparse_results(results):
+def preparse_results(results, format_flag='explain'):
     response_arr = []
 
     for res in results:
-        response_arr.append(res.explain())
+        if format_flag == 'explain':
+            response_arr.append(res.explain())
+        elif format_flag == 'epitomize':
+            response_arr.append(res.epitomize())
+        # Default to explain for now
+        else:
+            response_arr.append(res.explain())
+
     if len(response_arr) > 0:
         return response_arr
     else:
@@ -74,7 +83,7 @@ class PredictorList(Resource):
         models = global_mdb.get_models()
 
         for model in models:
-            model['data_source'] = model['data_source'].split('/')[-1]
+            #model['data_source'] = model['data_source'].split('/')[-1]
             for k in ['train_end_at', 'updated_at', 'created_at']:
                 if k in model and model[k] is not None:
                     try:
@@ -111,8 +120,20 @@ class Predictor(Resource):
     @ns_conf.doc('put_predictor', params=put_predictor_params)
     def put(self, name):
         '''Learning new predictor'''
+        global model_swapping_map
+        global global_mdb
+
         data = request.json
         to_predict = data.get('to_predict')
+
+        try:
+            retrain = data.get('retrain')
+            if retrain in ('true', 'True'):
+                retrain = True
+            else:
+                retrain = False
+        except:
+            retrain = None
 
         from_data = get_datasource_path(data.get('data_source_name'))
         if from_data is None:
@@ -123,6 +144,10 @@ class Predictor(Resource):
 
         if name is None or to_predict is None:
             return '', 400
+
+        if retrain is True:
+            original_name = name
+            name = name + '_retrained'
 
         def learn(name, from_data, to_predict, stop_training_in_x_seconds=16*3600):
             '''
@@ -135,7 +160,9 @@ class Predictor(Resource):
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
-                stop_training_in_x_seconds=stop_training_in_x_seconds
+                stop_training_in_x_seconds=stop_training_in_x_seconds,
+                equal_accuracy_for_all_output_categories = True,
+                sample_margin_of_error = 0.005
             )
 
         if sys.platform == 'linux':
@@ -143,6 +170,15 @@ class Predictor(Resource):
             p.start()
         else:
             learn(name,from_data,to_predict,1200)
+
+        if retrain is True:
+            try:
+                model_swapping_map[original_name] = True
+                global_mdb.delete_model(original_name)
+                global_mdb.rename_model(name, original_name)
+                model_swapping_map[original_name] = False
+            except:
+                model_swapping_map[original_name] = False
 
         return '', 200
 
@@ -156,10 +192,34 @@ class PredictorColumns(Resource):
         model = global_mdb.get_model_data(name)
 
         columns = []
-        for col_data in [*model['data_analysis']['target_columns_metadata'], *model['data_analysis']['input_columns_metadata']]:
-            columns.append(col_data['column_name'])
+        for array, is_target_array in [(model['data_analysis']['target_columns_metadata'], True), (model['data_analysis']['input_columns_metadata'], False)]:
+            for col_data in array:
+                column = {
+                    'name': col_data['column_name'],
+                    'data_type': col_data['data_type'].lower(),
+                    'is_target_column': is_target_array
+                }
+                if column['data_type'] == 'categorical':
+                    column['distribution'] = col_data["data_distribution"]["data_histogram"]["x"]
+                columns.append(column)
 
         return columns, 200
+
+@ns_conf.route('/<name>/analyse_dataset')
+@ns_conf.param('name', 'The predictor identifier')
+class AnalyseDataset(Resource):
+    @ns_conf.doc('analyse_dataset')
+    def get(self, name):
+        from_data = get_datasource_path(request.args.get('data_source_name'))
+        if from_data is None:
+            from_data = data.get('from_data')
+        if from_data is None:
+            print('No valid datasource given')
+            return 'No valid datasource given', 400
+
+        analysis = global_mdb.analyse_dataset(from_data)
+
+        return analysis, 200
 
 
 @ns_conf.route('/<name>/predict')
@@ -168,10 +228,17 @@ class PredictorPredict(Resource):
     @ns_conf.doc('post_predictor_predict', params=predictor_query_params)
     def post(self, name):
         '''Queries predictor'''
-        when = request.json.get('when') or {}
-        mdb = mindsdb.Predictor(name=name)
-        results = mdb.predict(when=when)
+        global model_swapping_map
 
+        when = request.json.get('when') or {}
+
+        # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
+        while name in model_swapping_map and model_swapping_map[name] is True:
+            time.sleep(1)
+
+        mdb = mindsdb.Predictor(name=name)
+        results = mdb.predict(when=when, run_confidence_variation_analysis=True)
+        # return '', 500
         return preparse_results(results)
 
 
@@ -180,9 +247,16 @@ class PredictorPredict(Resource):
 class PredictorPredictFromDataSource(Resource):
     @ns_conf.doc('post_predictor_predict', params=predictor_query_params)
     def post(self, name):
+        global model_swapping_map
+
         data = request.json
 
         from_data = get_datasource_path(data.get('data_source_name'))
+        try:
+            format_flag = data.get('format_flag')
+        except:
+            format_flag = 'explain'
+
         if from_data is None:
             from_data = data.get('from_data')
         if from_data is None:
@@ -190,10 +264,14 @@ class PredictorPredictFromDataSource(Resource):
         if from_data is None:
             return 'No valid datasource given', 400
 
+        # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
+        while name in model_swapping_map and model_swapping_map[name] is True:
+            time.sleep(1)
+
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when_data=from_data)
 
-        return preparse_results(results)
+        return preparse_results(results, format_flag)
 
 @ns_conf.route('/upload')
 class PredictorUpload(Resource):
