@@ -8,7 +8,8 @@ import mindsdb
 import logging
 import sys
 
-def start_server():
+
+def prepare_server():
     # by default werkzeug send all to stderr. Here is dividing by log-level to stderr and stdout.
     if not logging.root.handlers:
         rootLogger = logging.getLogger()
@@ -34,13 +35,28 @@ def start_server():
     os.makedirs(mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_TEMP_PATH, exist_ok=True)
+    
     #'''
     app, api = get_shared()
 
     api.add_namespace(predictor_ns)
     api.add_namespace(datasource_ns)
     api.add_namespace(utils_ns)
+    
+    return app, api
 
+def gen_docs(print_json=True):
+    
+    app, api = prepare_server()
+    urlvars = False  # Build query strings in URLs
+    swagger = True  # Export Swagger specifications
+    data = api.as_postman(urlvars=urlvars, swagger=swagger)
+    if print_json:
+        print(json.dumps(data))
+    return data
+
+def start_server():
+    app, api = prepare_server()
     app.run(debug=True, port=47334, host='0.0.0.0')
 
 if __name__ == '__main__':
