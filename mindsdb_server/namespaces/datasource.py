@@ -153,7 +153,8 @@ class Analyze(Resource):
             print('No valid datasource given')
             return 'No valid datasource given', 400
 
-        analysis = global_mdb.analyse_dataset(ds['name'])
+        print(ds)
+        analysis = global_mdb.analyse_dataset(ds['source'])
 
         return analysis, 200
 
