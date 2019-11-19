@@ -34,6 +34,8 @@ import mindsdb
 
 app, api = get_shared()
 datasources = []
+global_mdb = mindsdb.Predictor(name='datasource_metapredictor')
+
 
 def get_datasources():
     datasources = []
@@ -145,14 +147,13 @@ class Datasource(Resource):
 class Analyze(Resource):
     @ns_conf.doc('analyse_dataset')
     def get(self, name):
-        from_data = get_datasource_path(request.args.get('data_source_name'))
-        if from_data is None:
-            from_data = data.get('from_data')
-        if from_data is None:
+        global global_mdb
+        ds = get_datasource(name)
+        if ds['name'] is None:
             print('No valid datasource given')
             return 'No valid datasource given', 400
 
-        analysis = global_mdb.analyse_dataset(from_data)
+        analysis = global_mdb.analyse_dataset(ds['name'])
 
         return analysis, 200
 
