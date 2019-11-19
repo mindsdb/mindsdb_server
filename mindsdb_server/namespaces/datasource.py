@@ -140,6 +140,22 @@ class Datasource(Resource):
 
         return get_datasource(datasource_name)
 
+@ns_conf.route('/<name>/analyze')
+@ns_conf.param('name', 'Datasource name')
+class Analyze(Resource):
+    @ns_conf.doc('analyse_dataset')
+    def get(self, name):
+        from_data = get_datasource_path(request.args.get('data_source_name'))
+        if from_data is None:
+            from_data = data.get('from_data')
+        if from_data is None:
+            print('No valid datasource given')
+            return 'No valid datasource given', 400
+
+        analysis = global_mdb.analyse_dataset(from_data)
+
+        return analysis, 200
+
 @ns_conf.route('/<name>/data/')
 @ns_conf.param('name', 'Datasource name')
 class DatasourceData(Resource):
