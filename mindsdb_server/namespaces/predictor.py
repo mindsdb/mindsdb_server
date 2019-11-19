@@ -205,22 +205,6 @@ class PredictorColumns(Resource):
 
         return columns, 200
 
-@ns_conf.route('/<name>/analyse_dataset')
-@ns_conf.param('name', 'The predictor identifier')
-class AnalyseDataset(Resource):
-    @ns_conf.doc('analyse_dataset')
-    def get(self, name):
-        from_data = get_datasource_path(request.args.get('data_source_name'))
-        if from_data is None:
-            from_data = data.get('from_data')
-        if from_data is None:
-            print('No valid datasource given')
-            return 'No valid datasource given', 400
-
-        analysis = global_mdb.analyse_dataset(from_data)
-
-        return analysis, 200
-
 
 @ns_conf.route('/<name>/predict')
 @ns_conf.param('name', 'The predictor identifier')
