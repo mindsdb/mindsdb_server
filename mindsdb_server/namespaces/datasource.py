@@ -6,7 +6,7 @@ import shutil
 import mindsdb
 from dateutil.parser import parse
 from flask import request, send_file
-from flask_restplus import Resource
+from flask_restplus import Resource, abort
 from mindsdb import FileDS
 
 from mindsdb_server.namespaces.configs.datasources import ns_conf
@@ -97,6 +97,9 @@ class Datasource(Resource):
         datasource_name = data['name']
         datasource_type = data['source_type']
         datasource_source = data['source']
+
+        if datasource_type == 'file' and 'file' not in request.files:
+            abort(400, "Argument 'file' is missing")
 
         names = [x['name'] for x in get_datasources()]
         print(names)
