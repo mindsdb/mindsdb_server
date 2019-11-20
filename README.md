@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/mindsdb/mindsdb_server.svg?branch=master)](https://travis-ci.org/mindsdb/mindsdb_server)
 
-This server uses flask_restplus to define the API.
+Please make sure to read the [API Docs](apidocs.mindsdb.com).
 
 
 ## Development installation
