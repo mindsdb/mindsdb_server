@@ -1,35 +1,31 @@
+import copy
+import os
+import shutil
+import sys
+import time
 from io import BytesIO
-from flask import request, send_file
-from flask_restplus import Resource, fields
+from multiprocessing import Process
 
-from mindsdb_server.namespaces.entitites.predictor_status import predictor_status
+import mindsdb
+from dateutil.parser import parse as parse_datetime
+from flask import request, send_file
+from flask_restplus import Resource, abort
+
+from mindsdb_server.namespaces.configs.predictors import ns_conf
+from mindsdb_server.namespaces.datasource import get_datasource
 from mindsdb_server.namespaces.entitites.predictor_metadata import (
     predictor_metadata,
     predictor_query_params,
     upload_predictor_params,
     put_predictor_params
 )
-from mindsdb_server.namespaces.configs.predictors import ns_conf
+from mindsdb_server.namespaces.entitites.predictor_status import predictor_status
 from mindsdb_server.shared_ressources import get_shared
-from mindsdb_server.namespaces.datasource import get_datasource, get_datasources
-import mindsdb
-
-import time
-import os
-import json
-import pickle
-import sys
-import copy
-import numpy
-import shutil
-from dateutil.parser import parse as parse_datetime
-
-from multiprocessing import Process
-
 
 app, api = get_shared()
 global_mdb = mindsdb.Predictor(name='metapredictor')
 model_swapping_map = {}
+
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -46,6 +42,7 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
             for item in model[k]:
                 debug_pkey_type(item, copy.deepcopy(keys), reset_keyes=False)
 
+
 def preparse_results(results, format_flag='explain'):
     response_arr = []
 
@@ -61,7 +58,8 @@ def preparse_results(results, format_flag='explain'):
     if len(response_arr) > 0:
         return response_arr
     else:
-        return '', 400
+        abort(400, "")
+
 
 def get_datasource_path(data_source_name):
     if data_source_name:
@@ -73,6 +71,7 @@ def get_datasource_path(data_source_name):
                 return os.path.normpath(os.path.abspath(ds['source']))
     return None
 
+
 @ns_conf.route('/')
 class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
@@ -83,7 +82,7 @@ class PredictorList(Resource):
         models = global_mdb.get_models()
 
         for model in models:
-            #model['data_source'] = model['data_source'].split('/')[-1]
+            # model['data_source'] = model['data_source'].split('/')[-1]
             for k in ['train_end_at', 'updated_at', 'created_at']:
                 if k in model and model[k] is not None:
                     try:
@@ -140,16 +139,16 @@ class Predictor(Resource):
             from_data = data.get('from_data')
         if from_data is None:
             print('No valid datasource given')
-            return 'No valid datasource given', 400
+            abort(400, 'No valid datasource given')
 
         if name is None or to_predict is None:
-            return '', 400
+            abort(400, "name, to_predict are required")
 
         if retrain is True:
             original_name = name
             name = name + '_retrained'
 
-        def learn(name, from_data, to_predict, stop_training_in_x_seconds=16*3600):
+        def learn(name, from_data, to_predict, stop_training_in_x_seconds=16 * 3600):
             '''
             running at subprocess due to
             ValueError: signal only works in main thread
@@ -161,15 +160,15 @@ class Predictor(Resource):
                 from_data=from_data,
                 to_predict=to_predict,
                 stop_training_in_x_seconds=stop_training_in_x_seconds,
-                equal_accuracy_for_all_output_categories = True,
-                sample_margin_of_error = 0.005
+                equal_accuracy_for_all_output_categories=True,
+                sample_margin_of_error=0.005
             )
 
         if sys.platform == 'linux':
             p = Process(target=learn, args=(name, from_data, to_predict))
             p.start()
         else:
-            learn(name,from_data,to_predict,1200)
+            learn(name, from_data, to_predict, 1200)
 
         if retrain is True:
             try:
@@ -182,6 +181,7 @@ class Predictor(Resource):
 
         return '', 200
 
+
 @ns_conf.route('/<name>/columns')
 @ns_conf.param('name', 'The predictor identifier')
 class PredictorColumns(Resource):
@@ -192,7 +192,8 @@ class PredictorColumns(Resource):
         model = global_mdb.get_model_data(name)
 
         columns = []
-        for array, is_target_array in [(model['data_analysis']['target_columns_metadata'], True), (model['data_analysis']['input_columns_metadata'], False)]:
+        for array, is_target_array in [(model['data_analysis']['target_columns_metadata'], True),
+                                       (model['data_analysis']['input_columns_metadata'], False)]:
             for col_data in array:
                 column = {
                     'name': col_data['column_name'],
@@ -246,7 +247,7 @@ class PredictorPredictFromDataSource(Resource):
         if from_data is None:
             from_data = data.get('when_data')
         if from_data is None:
-            return 'No valid datasource given', 400
+            abort(400, 'No valid datasource given')
 
         # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
         while name in model_swapping_map and model_swapping_map[name] is True:
@@ -256,6 +257,7 @@ class PredictorPredictFromDataSource(Resource):
         results = mdb.predict(when_data=from_data)
 
         return preparse_results(results, format_flag)
+
 
 @ns_conf.route('/upload')
 class PredictorUpload(Resource):
