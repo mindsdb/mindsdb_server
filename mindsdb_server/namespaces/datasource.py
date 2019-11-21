@@ -85,7 +85,7 @@ class Datasource(Resource):
             shutil.rmtree(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, data_sources['name']))
         except Exception as e:
             print(e)
-            return str(e), 400
+            abort(400, str(e))
         return '', 200
 
     @ns_conf.doc('put_datasource', params=put_datasource_params)
@@ -153,7 +153,7 @@ class Analyze(Resource):
         ds = get_datasource(name)
         if ds['name'] is None:
             print('No valid datasource given')
-            return 'No valid datasource given', 400
+            abort(400, 'No valid datasource given')
 
         print(ds)
         analysis = global_mdb.analyse_dataset(ds['source'])
@@ -173,14 +173,14 @@ class DatasourceData(Resource):
             path = ds_record['source']
             if ds_record['source_type'] == 'file':
                 if not os.path.exists(path):
-                    return '', 404
+                    abort(404, "")
             ds = FileDS(path)
             keys = list(ds.df.keys())
             response = {
                 'data': [dict(zip(keys, x)) for x in ds.df.values]
             }
             return response, 200
-        return '', 404
+        abort(404, "")
 
 
 @ns_conf.route('/<name>/files/<column_name>:<index>')
@@ -211,7 +211,7 @@ class DatasourceMissedFiles(Resource):
     @ns_conf.marshal_with(datasource_missed_files_metadata)
     def get(self, name):
         '''return missed files'''
-        return '', 404
+        abort(404, '')
 
 
 @ns_conf.route('/<name>/download')
@@ -222,8 +222,8 @@ class DatasourceMissedFilesDownload(Resource):
         '''download uploaded file'''
         ds = get_datasource(name)
         if not ds:
-            return '', 404
+            abort(404, "{} not found".format(name))
         if not os.path.exists(ds['source']):
-            return '', 404
+            abort(404, "{} not found".format(name))
 
         return send_file(os.path.abspath(ds['source']), as_attachment=True)

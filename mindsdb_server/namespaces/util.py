@@ -1,7 +1,8 @@
 from flask import request
-from flask_restplus import Resource, fields
+from flask_restplus import Resource, abort
+
 from mindsdb_server.namespaces.configs.util import ns_conf
-import json
+
 
 @ns_conf.route('/ping')
 class Ping(Resource):
@@ -9,6 +10,7 @@ class Ping(Resource):
     def get(self):
         '''Checks server avaliable'''
         return {'status': 'ok'}
+
 
 @ns_conf.route('/shutdown')
 class Shutdown(Resource):
@@ -21,7 +23,4 @@ class Shutdown(Resource):
                 return '', 500
             func()
             return '', 200
-        return '', 403
-
-
-
+        abort(403, "")
