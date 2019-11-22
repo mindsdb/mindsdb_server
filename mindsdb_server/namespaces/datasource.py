@@ -156,7 +156,7 @@ class Analyze(Resource):
             abort(400, 'No valid datasource given')
 
         print(ds)
-        analysis = global_mdb.analyse_dataset(ds['source'])
+        analysis = global_mdb.analyse_dataset(ds['source'], sample_margin_of_error=0.01)
 
         return analysis, 200
 
