@@ -21,7 +21,7 @@ def start_server():
         errStream.addFilter(lambda record: record.levelno > logging.INFO)
         rootLogger.addHandler(errStream)
 
-    '''
+    #'''
     mindsdb.CONFIG.MINDSDB_STORAGE_PATH =  '/home/george/tmpsotre'
     mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH = '/home/george/tmpsotre/pred'
     mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = '/home/george/tmpsotre/ds'
@@ -35,7 +35,7 @@ def start_server():
     os.makedirs(mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_TEMP_PATH, exist_ok=True)
-     #'''
+     '''
     app, api = get_shared()
 
     api.add_namespace(predictor_ns)

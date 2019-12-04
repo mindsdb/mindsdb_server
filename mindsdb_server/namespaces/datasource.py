@@ -31,7 +31,6 @@ app, api = get_shared()
 datasources = []
 global_mdb = mindsdb.Predictor(name='datasource_metapredictor')
 
-
 def get_datasources():
     datasources = []
     for ds_name in os.listdir(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH):
@@ -54,6 +53,13 @@ def get_datasource(name):
         if ds['name'] == name:
             return ds
     return None
+
+def save_datasource_metadata(ds):
+        ds['created_at'] = str(ds['created_at']).split('.')[0]
+        ds['updated_at'] = str(datetime.datetime.now()).split('.')[0]
+
+        with open(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'metadata.json'), 'w') as fp:
+            json.dump(ds, fp)
 
 
 @ns_conf.route('/')
@@ -132,14 +138,13 @@ class Datasource(Resource):
             'source_type': datasource_type,
             'source': datasource_source,
             'missed_files': False,
-            'created_at': str(datetime.datetime.now()).split('.')[0],
-            'updated_at': str(datetime.datetime.now()).split('.')[0],
+            'created_at': datetime.datetime.now(),
+            'updated_at': datetime.datetime.now(),
             'row_count': row_count,
             'columns': columns
         }
 
-        with open(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'metadata.json'), 'w') as fp:
-            json.dump(new_data_source, fp)
+        save_datasource_metadata(new_data_source)
 
         return get_datasource(datasource_name)
 
@@ -155,8 +160,13 @@ class Analyze(Resource):
             print('No valid datasource given')
             abort(400, 'No valid datasource given')
 
-        print(ds)
+        if 'analysis_data' in ds and ds['analysis_data'] is not None:
+            return ds['analysis_data'], 200
+
         analysis = global_mdb.analyse_dataset(ds['source'], sample_margin_of_error=0.01)
+
+        ds['analysis_data'] = analysis
+        save_datasource_metadata(ds)
 
         return analysis, 200
 
