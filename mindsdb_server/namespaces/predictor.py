@@ -126,6 +126,11 @@ class Predictor(Resource):
         to_predict = data.get('to_predict')
 
         try:
+            ignore_columns = data.get('ignore_columns')
+        except:
+            ignore_columns = []
+            
+        try:
             retrain = data.get('retrain')
             if retrain in ('true', 'True'):
                 retrain = True
@@ -148,7 +153,7 @@ class Predictor(Resource):
             original_name = name
             name = name + '_retrained'
 
-        def learn(name, from_data, to_predict, stop_training_in_x_seconds=16 * 3600):
+        def learn(name, from_data, to_predict, ignore_columns, stop_training_in_x_seconds=16 * 3600):
             '''
             running at subprocess due to
             ValueError: signal only works in main thread
@@ -161,14 +166,15 @@ class Predictor(Resource):
                 to_predict=to_predict,
                 stop_training_in_x_seconds=stop_training_in_x_seconds,
                 equal_accuracy_for_all_output_categories=True,
-                sample_margin_of_error=0.005
+                sample_margin_of_error=0.005,
+                ignore_columns=ignore_columns
             )
 
         if sys.platform == 'linux':
             p = Process(target=learn, args=(name, from_data, to_predict))
             p.start()
         else:
-            learn(name, from_data, to_predict, 1200)
+            learn(name, from_data, to_predict, ignore_columns, 1200)
 
         if retrain is True:
             try:
