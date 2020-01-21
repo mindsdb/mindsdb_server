@@ -22,9 +22,10 @@ def start_server():
         rootLogger.addHandler(errStream)
 
     '''
-    mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH = '/tmp'
-    mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = '/tmp'
-    mindsdb.CONFIG.MINDSDB_TEMP_PATH = '/tmp'
+    mindsdb.CONFIG.MINDSDB_STORAGE_PATH =  '/home/george/tmpsotre'
+    mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH = '/home/george/tmpsotre/pred'
+    mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = '/home/george/tmpsotre/ds'
+    mindsdb.CONFIG.MINDSDB_TEMP_PATH = '/home/george/tmpsotre/tmp'
     '''
     mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage')
     mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'predictors')

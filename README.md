@@ -1,9 +1,12 @@
-# Mindsdb Server
 
 [![Build Status](https://travis-ci.org/mindsdb/mindsdb_server.svg?branch=master)](https://travis-ci.org/mindsdb/mindsdb_server)
+[![PyPI version](https://badge.fury.io/py/mindsdb-server.svg)](https://badge.fury.io/py/mindsdb-server)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/mindsdb-server)
+[![API Docs](https://img.shields.io/badge/API-Documentation-green)](https://apidocs.mindsdb.com/?version=latest)
+
+# Mindsdb Server
 
 This server uses flask_restplus to define the API.
-
 
 ## Development installation
 

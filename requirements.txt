@@ -1,4 +1,3 @@
-mindsdb
 flask
 flask-restplus
 werkzeug
