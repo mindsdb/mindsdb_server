@@ -129,7 +129,10 @@ class Predictor(Resource):
             ignore_columns = data.get('ignore_columns')
         except:
             ignore_columns = []
-            
+
+        if type(ignore_columns) != type([]):
+            ignore_columns = []
+
         try:
             retrain = data.get('retrain')
             if retrain in ('true', 'True'):
@@ -199,7 +202,7 @@ class AnalyseDataset(Resource):
             print('No valid datasource given')
             return 'No valid datasource given', 400
 
-        analysis = global_mdb.analyse_dataset(from_data, sample_margin_of_error=0.01)
+        analysis = global_mdb.analyse_dataset(from_data, sample_margin_of_error=0.025)
 
         return analysis, 200
 
