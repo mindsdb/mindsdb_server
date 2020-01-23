@@ -163,17 +163,17 @@ class Predictor(Resource):
 
             this is work for celery worker here?
             '''
+            logging.basicConfig(level=logging.DEBUG)
             mdb = mindsdb.Predictor(name=name)
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
-                stop_training_in_x_seconds=stop_training_in_x_seconds,
+                stop_training_in_x_seconds=300,
                 equal_accuracy_for_all_output_categories=True,
-                sample_margin_of_error=0.005,
-                ignore_columns=ignore_columns
+                sample_margin_of_error=0.02,
+                ignore_columns=ignore_columns,
+                unstable_parameters_dict={'use_selfaware_model': False}
             )
-
-mdb.learn(from_data=train,  use_gpu=True, to_predict=['is_returned'], sample_margin_of_error=0.02, unstable_parameters_dict={'use_selfaware_model': False}, stop_training_in_x_seconds=400, equal_accuracy_for_all_output_categories=True)
 
         if sys.platform == 'linux':
             p = Process(target=learn, args=(name, from_data, to_predict))
