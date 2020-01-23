@@ -163,6 +163,7 @@ class Predictor(Resource):
 
             this is work for celery worker here?
             '''
+            import logging
             logging.basicConfig(level=logging.DEBUG)
             mdb = mindsdb.Predictor(name=name)
             mdb.learn(
