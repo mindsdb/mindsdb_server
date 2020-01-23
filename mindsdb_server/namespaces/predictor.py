@@ -169,7 +169,7 @@ class Predictor(Resource):
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
-                stop_training_in_x_seconds=300,
+                stop_training_in_x_seconds=8000,
                 equal_accuracy_for_all_output_categories=True,
                 sample_margin_of_error=0.02,
                 ignore_columns=ignore_columns,
