@@ -173,8 +173,6 @@ class Predictor(Resource):
                 ignore_columns=ignore_columns
             )
 
-mdb.learn(from_data=train,  use_gpu=True, to_predict=['is_returned'], sample_margin_of_error=0.02, unstable_parameters_dict={'use_selfaware_model': False}, stop_training_in_x_seconds=400, equal_accuracy_for_all_output_categories=True)
-
         if sys.platform == 'linux':
             p = Process(target=learn, args=(name, from_data, to_predict))
             p.start()
