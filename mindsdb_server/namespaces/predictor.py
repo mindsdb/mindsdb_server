@@ -7,6 +7,7 @@ from io import BytesIO
 from multiprocessing import Process
 
 import mindsdb
+import lightwood
 from dateutil.parser import parse as parse_datetime
 from flask import request, send_file
 from flask_restplus import Resource, abort
@@ -80,6 +81,7 @@ class PredictorList(Resource):
         global global_mdb
         '''List all predictors'''
         models = global_mdb.get_models()
+        good_modles = []
 
         for model in models:
             # model['data_source'] = model['data_source'].split('/')[-1]
@@ -90,7 +92,11 @@ class PredictorList(Resource):
                     except Exception as e:
                         model[k] = parse_datetime(str(model[k]))
 
-        return models
+            if 'name' in model:
+                if 'metapredictor' not in model['name']:
+                    good_modles.append(model)
+
+        return good_modles
 
 
 @ns_conf.route('/<name>')
@@ -128,6 +134,9 @@ class Predictor(Resource):
         try:
             kwargs = data.get('kwargs')
         except:
+            kwargs = None
+
+        if type(kwargs) != type({}):
             kwargs = {}
 
         if 'stop_training_in_x_seconds' not in kwargs:
@@ -138,6 +147,13 @@ class Predictor(Resource):
 
         if 'sample_margin_of_error' not in kwargs:
             kwargs['sample_margin_of_error'] = 0.005
+
+        if 'unstable_parameters_dict' not in kwargs:
+            kwargs['unstable_parameters_dict'] = {}
+
+        if 'use_selfaware_model' not in kwargs['unstable_parameters_dict']:
+            kwargs['unstable_parameters_dict']['use_selfaware_model'] = False
+
 
         try:
             ignore_columns = data.get('ignore_columns')
@@ -178,6 +194,7 @@ class Predictor(Resource):
             this is work for celery worker here?
             '''
             mdb = mindsdb.Predictor(name=name)
+            lightwood.config.config.CONFIG.HELPER_MIXERS = True
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
