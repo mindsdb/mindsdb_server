@@ -1,3 +1,4 @@
+uuid.mdb_base
 metadata.json
 tmp/*
 integration_testing/*.csv
