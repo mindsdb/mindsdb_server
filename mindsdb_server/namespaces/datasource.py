@@ -163,7 +163,7 @@ class Analyze(Resource):
         if 'analysis_data' in ds and ds['analysis_data'] is not None:
             return ds['analysis_data'], 200
 
-        analysis = global_mdb.analyse_dataset(ds['source'], sample_margin_of_error=0.01)
+        analysis = global_mdb.analyse_dataset(ds['source'], sample_margin_of_error=0.025)
 
         ds['analysis_data'] = analysis
         save_datasource_metadata(ds)

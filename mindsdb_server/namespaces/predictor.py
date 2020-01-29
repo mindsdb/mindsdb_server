@@ -126,10 +126,27 @@ class Predictor(Resource):
         to_predict = data.get('to_predict')
 
         try:
+            kwargs = data.get('kwargs')
+        except:
+            kwargs = {}
+
+        if 'stop_training_in_x_seconds' not in kwargs:
+            kwargs['stop_training_in_x_seconds'] = 3600
+
+        if 'equal_accuracy_for_all_output_categories' not in kwargs:
+            kwargs['equal_accuracy_for_all_output_categories'] = True
+
+        if 'sample_margin_of_error' not in kwargs:
+            kwargs['sample_margin_of_error'] = 0.005
+
+        try:
             ignore_columns = data.get('ignore_columns')
         except:
             ignore_columns = []
-            
+
+        if type(ignore_columns) != type([]):
+            ignore_columns = []
+
         try:
             retrain = data.get('retrain')
             if retrain in ('true', 'True'):
@@ -153,7 +170,7 @@ class Predictor(Resource):
             original_name = name
             name = name + '_retrained'
 
-        def learn(name, from_data, to_predict, ignore_columns, stop_training_in_x_seconds=16 * 3600):
+        def learn(name, from_data, to_predict, ignore_columns, kwargs):
             '''
             running at subprocess due to
             ValueError: signal only works in main thread
@@ -164,17 +181,15 @@ class Predictor(Resource):
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
-                stop_training_in_x_seconds=stop_training_in_x_seconds,
-                equal_accuracy_for_all_output_categories=True,
-                sample_margin_of_error=0.005,
-                ignore_columns=ignore_columns
+                ignore_columns=ignore_columns,
+                **kwargs
             )
 
         if sys.platform == 'linux':
-            p = Process(target=learn, args=(name, from_data, to_predict))
+            p = Process(target=learn, args=(name, from_data, to_predict, ignore_columns, kwargs))
             p.start()
         else:
-            learn(name, from_data, to_predict, ignore_columns, 1200)
+            learn(name, from_data, to_predict, ignore_columns, kwargs)
 
         if retrain is True:
             try:
@@ -199,7 +214,7 @@ class AnalyseDataset(Resource):
             print('No valid datasource given')
             return 'No valid datasource given', 400
 
-        analysis = global_mdb.analyse_dataset(from_data, sample_margin_of_error=0.01)
+        analysis = global_mdb.analyse_dataset(from_data, sample_margin_of_error=0.025)
 
         return analysis, 200
 
@@ -265,6 +280,11 @@ class PredictorPredictFromDataSource(Resource):
         except:
             format_flag = 'explain'
 
+        try:
+            kwargs = data.get('kwargs')
+        except:
+            kwargs = {}
+
         if from_data is None:
             from_data = data.get('from_data')
         if from_data is None:
@@ -277,7 +297,10 @@ class PredictorPredictFromDataSource(Resource):
             time.sleep(1)
 
         mdb = mindsdb.Predictor(name=name)
-        results = mdb.predict(when_data=from_data)
+        try:
+            results = mdb.predict(when_data=from_data, **kwargs)
+        except:
+            results = mdb.predict(when=from_data, **kwargs)
 
         return preparse_results(results, format_flag)
 
