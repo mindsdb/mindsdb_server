@@ -194,7 +194,9 @@ class Predictor(Resource):
             this is work for celery worker here?
             '''
             mdb = mindsdb.Predictor(name=name)
-            lightwood.config.config.CONFIG.HELPER_MIXERS = True
+            sys.platform not in ['win32','cygwin','windows']:
+                lightwood.config.config.CONFIG.HELPER_MIXERS = True
+                
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
