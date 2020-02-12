@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from flask_restplus import fields
+from flask_restx import fields
 from mindsdb_server.namespaces.configs.datasources import ns_conf
 
 get_datasource_rows_params = OrderedDict([

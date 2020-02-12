@@ -1,4 +1,4 @@
-from flask_restplus import fields
+from flask_restx import fields
 from collections import OrderedDict
 
 from mindsdb_server.namespaces.configs.datasources import ns_conf

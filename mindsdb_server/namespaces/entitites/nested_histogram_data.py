@@ -1,7 +1,7 @@
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.namespaces.entitites.column_metadata import column_metadata
 
-from flask_restplus import fields
+from flask_restx import fields
 
 nested_histogram_data = ns_conf.model('NestedHistogramData', {
     'x': fields.List(fields.String, required=False, description='Ordered labels'),
