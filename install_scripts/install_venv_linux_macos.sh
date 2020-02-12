@@ -7,9 +7,9 @@ mkdir "$SERVER_PATH"
 cd "$SERVER_PATH"
 "$PYPATH" -m virtualenv env
 source env/bin/activate
-env/bin/pip install --upgrade pip
-env/bin/pip install mindsdb --no-cache-dir
-env/bin/pip install mindsdb-server --no-cache-dir
+pip install --upgrade pip || pip3 install --upgrade pip
+pip install mindsdb --no-cache-dir || pip3 install mindsdb --no-cache-dir
+pip install mindsdb-server --no-cache-dir || pip3 install mindsdb-server --no-cache-dir
 echo "
 from mindsdb_server import start_server
 if __name__ == '__main__':
