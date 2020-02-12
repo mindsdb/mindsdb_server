@@ -206,8 +206,11 @@ class Predictor(Resource):
             )
 
         if sys.platform == 'linux':
-            p = Process(target=learn, args=(name, from_data, to_predict, ignore_columns, kwargs))
-            p.start()
+            try:
+                p = Process(target=learn, args=(name, from_data, to_predict, ignore_columns, kwargs))
+                p.start()
+            except:
+                learn(name, from_data, to_predict, ignore_columns, kwargs)
         else:
             learn(name, from_data, to_predict, ignore_columns, kwargs)
 
