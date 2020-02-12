@@ -137,6 +137,16 @@ class Predictor(Resource):
         to_predict = data.get('to_predict')
 
         try:
+            mp = str(data.get('mp'))
+        except:
+            mp = False
+
+        if str(mp) == 'True' or str(mp) == 'true':
+            mp = True
+        else:
+            mp = False
+
+        try:
             kwargs = data.get('kwargs')
         except:
             kwargs = None
@@ -209,7 +219,7 @@ class Predictor(Resource):
                 **kwargs
             )
 
-        if sys.platform == 'linux':
+        if mp == True:
             p = Process(target=learn, args=(name, from_data, to_predict, ignore_columns, kwargs))
             p.start()
         else:
