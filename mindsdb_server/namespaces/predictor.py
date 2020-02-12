@@ -52,7 +52,8 @@ def preparse_results(results, format_flag='explain'):
             response_arr.append(res.explain())
         elif format_flag == 'epitomize':
             response_arr.append(res.epitomize())
-        # Default to explain for now
+        elif format_flag == 'new_explain':
+            response_arr.append(results.explanation)
         else:
             response_arr.append(res.explain())
 
@@ -274,6 +275,11 @@ class PredictorPredict(Resource):
 
         when = request.json.get('when') or {}
 
+        try:
+            format_flag = data.get('format_flag')
+        except:
+            format_flag = 'explain'
+
         # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
         while name in model_swapping_map and model_swapping_map[name] is True:
             time.sleep(1)
@@ -281,7 +287,7 @@ class PredictorPredict(Resource):
         mdb = mindsdb.Predictor(name=name)
         results = mdb.predict(when=when, run_confidence_variation_analysis=True)
         # return '', 500
-        return preparse_results(results)
+        return preparse_results(results, format_flag)
 
 
 @ns_conf.route('/<name>/predict_datasource')
