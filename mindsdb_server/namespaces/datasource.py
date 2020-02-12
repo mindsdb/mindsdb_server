@@ -6,7 +6,7 @@ import shutil
 import mindsdb
 from dateutil.parser import parse
 from flask import request, send_file
-from flask_restplus import Resource, abort
+from flask_restx import Resource, abort
 from mindsdb import FileDS
 
 from mindsdb_server.namespaces.configs.datasources import ns_conf

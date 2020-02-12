@@ -3,7 +3,7 @@ from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.namespaces.entitites.histogram_data import histogram_data
 from mindsdb_server.namespaces.entitites.label_group import label_group
 
-from flask_restplus import fields
+from flask_restx import fields
 
 data_distribution_metadata = ns_conf.model('DataDistributionMetadata', {
     'data_histogram': fields.Nested(histogram_data, required=False, description='The histogram representing the data in this column if possible'),

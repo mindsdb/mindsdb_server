@@ -3,7 +3,7 @@ from mindsdb_server.namespaces.entitites.quality_dimension import quality_dimens
 from mindsdb_server.namespaces.entitites.histogram_data import histogram_data, NUMERIC_EXAMPLE
 from mindsdb_server.namespaces.entitites.data_distribution_metadata import data_distribution_metadata
 
-from flask_restplus import fields
+from flask_restx import fields
 
 column_metadata = ns_conf.model('ColumnMetadata', {
     'column_name': fields.String(required=False, description='The column name'),
