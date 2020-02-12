@@ -5,7 +5,7 @@
 
 mkdir "$SERVER_PATH"
 cd "$SERVER_PATH"
-"$PYPATH" -m virtualenv env
+"$PYPATH" -m virtualenv env --python="$PYPATH"
 source env/bin/activate
 pip install --upgrade pip || pip3 install --upgrade pip
 pip install mindsdb --upgrade --no-cache-dir || pip3 install mindsdb --upgrade --no-cache-dir
