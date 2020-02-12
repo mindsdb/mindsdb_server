@@ -9,7 +9,7 @@ cd "$SERVER_PATH"
 source env/bin/activate
 env/bin/pip3 install --upgrade pip || env/bin/pip install --upgrade pip
 env/bin/pip3 install mindsdb --upgrade --no-cache-dir || env/bin/pip install mindsdb --upgrade --no-cache-dir
-env/bin/pip install mindsdb-server --upgrade --no-cache-dir || env/bin/pip3 install mindsdb-server --upgrade --no-cache-dir
+env/bin/pip3 install mindsdb-server --upgrade --no-cache-dir || env/bin/pip install mindsdb-server --upgrade --no-cache-dir
 echo "
 from mindsdb_server import start_server
 if __name__ == '__main__':
