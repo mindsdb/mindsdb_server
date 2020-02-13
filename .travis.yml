@@ -38,7 +38,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" != "windows" ]; then travis_wait 15 pip3 install mindsdb; fi
 
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then travis_wait 15 pip install --no-cache-dir -e .; fi
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then travis_wait 15 pip install mindsdb; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then travis_wait 15 pip install git+https://github.com/mindsdb/mindsdb.git@master --no-cache-dir; fi
 
 before_script: cd tests/ci_tests
 # run tests
