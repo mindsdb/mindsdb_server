@@ -261,7 +261,10 @@ class PredictorColumns(Resource):
     def get(self, name):
         '''List of predictors colums'''
         global global_mdb
-        model = global_mdb.get_model_data(name)
+        try:
+            model = global_mdb.get_model_data(name)
+        except Exception:
+            abort(404, 'Invalid predictor name')
 
         columns = []
         for array, is_target_array in [(model['data_analysis']['target_columns_metadata'], True),
