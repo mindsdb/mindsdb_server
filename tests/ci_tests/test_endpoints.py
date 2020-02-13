@@ -1,12 +1,11 @@
 import unittest
-
-
 from mindsdb_server.server import start_server
+
 
 class PredictorTest(unittest.TestCase):
 
     def setUp(self):
-        appl = start_server()
+        appl = start_server(from_tests=True)
         self.app = appl.test_client()
 
     def test_predictors(self):
@@ -37,7 +36,7 @@ class PredictorTest(unittest.TestCase):
 class DatasourceTest(unittest.TestCase):
 
     def setUp(self):
-        appl = start_server()
+        appl = start_server(from_tests=True)
         self.app = appl.test_client()
     
     def test_datasources(self):
@@ -60,7 +59,7 @@ class DatasourceTest(unittest.TestCase):
 class UtilTest(unittest.TestCase):
 
     def setUp(self):
-        appl = start_server()
+        appl = start_server(from_tests=True)
         self.app = appl.test_client()
 
     def test_ping(self):
