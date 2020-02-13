@@ -26,6 +26,7 @@ cache: pip
 install:
   - travis_wait pip3 install --upgrade pip
   - travis_wait pip3 install --no-cache-dir -e .
+  - travis_wait 15 pip3 install mindsdb
 
 before_script: cd tests/ci_tests
 # run tests
