@@ -11,6 +11,11 @@ matrix:
       sudo: true
       env:
         DEPLOYMENT_ENV="true"
+      
+    - name: "Python 3.7.2 on OSX"
+      os: osx
+      language: shell
+      dist: xcode10.2
 
 notifications:
   # send notifications only on master failure
@@ -20,12 +25,12 @@ cache: pip
 # install dependencies
 install:
   - travis_wait pip3 install --upgrade pip
-  - travis_wait pip3 install --no-cache-dir -e .;
+  - travis_wait pip3 install --no-cache-dir -e .
 
 before_script: cd tests/ci_tests
 # run tests
 script:
-  - python test_endpoints.py
+  - python3 test_endpoints.py
   - cd ../..
 
 # deploy to pip
