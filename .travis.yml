@@ -25,7 +25,7 @@ install:
 before_script: cd tests/ci_tests
 # run tests
 script:
-  - travis_wait 60 python fast_test.py
+  - python test_endpoints.py
   - cd ../..
 
 # deploy to pip
@@ -35,13 +35,14 @@ deploy:
     password: $PYPI_SYSADMIN_PASSWORD
     distributions: "sdist"
     on:
-      branch: release
+      branch: master
       condition: $DEPLOYMENT_ENV = "true"
+      
 # after pip is deployed, we can deploy to dockerhub
 after_deploy:
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then sleep 15; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then cd distributions/docker; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker build -t docker-build .; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker tag docker-build $REGISTRY_USER/mindsdb_server:latest; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then cd ../..; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS" && docker push $REGISTRY_USER/mindsdb_server && docker logout; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then sleep 15; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then cd distributions/docker; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then docker build -t docker-build .; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then docker tag docker-build $REGISTRY_USER/mindsdb_server:latest; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then cd ../..; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS" && docker push $REGISTRY_USER/mindsdb_server && docker logout; fi
