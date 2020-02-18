@@ -1,9 +1,9 @@
 #!/bin/bash
 "$PYPATH" -m pip install --user --upgrade pip
 "$PYPATH" -m pip install --user virtualenv
-mkdir -p "$SERVER_PATH" || mkdir "$SERVER_PATH"
+mkdir -p ''$SERVER_PATH'' || mkdir ''$SERVER_PATH''
 
-cd "$SERVER_PATH"
+cd ''$SERVER_PATH''
 
 "$PYPATH" -m virtualenv env --python="$PYPATH"
 
