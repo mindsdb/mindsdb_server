@@ -7,6 +7,8 @@ cd "$SERVER_PATH";
 
 "$PYPATH" -m virtualenv env --python="$PYPATH";
 
+echo "./"$SERVER_PATH"/env/bin/activate";
+
 source "./"$SERVER_PATH"/env/bin/activate";
 
 echo "./"$SERVER_PATH"/env/bin/activate";
