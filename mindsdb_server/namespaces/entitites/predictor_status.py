@@ -1,6 +1,6 @@
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 
-from flask_restplus import fields
+from flask_restx import fields
 import datetime
 
 predictor_status = ns_conf.model('PredictorStatus', {

@@ -11,6 +11,20 @@ matrix:
       sudo: true
       env:
         DEPLOYMENT_ENV="true"
+      
+    - name: "Python 3.7.2 on OSX"
+      os: osx
+      language: shell
+      dist: xcode10.2
+
+    - name: "Python 3.7.3 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version=3.7.3
+        - python -m pip install --upgrade pip
+      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+
 
 notifications:
   # send notifications only on master failure
@@ -19,13 +33,18 @@ notifications:
 cache: pip
 # install dependencies
 install:
-  - travis_wait pip3 install --upgrade pip
-  - travis_wait pip3 install --no-cache-dir -e .;
+  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then travis_wait 15 pip3 install --upgrade pip; fi
+  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then travis_wait 15 pip3 install --no-cache-dir -e .; fi
+  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then travis_wait 15 pip3 install mindsdb; fi
+
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then travis_wait 15 pip install --no-cache-dir -e .; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then travis_wait 15 pip install git+https://github.com/mindsdb/mindsdb.git@master --no-cache-dir; fi
 
 before_script: cd tests/ci_tests
 # run tests
 script:
-  - travis_wait 60 python fast_test.py
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then travis_wait 15 python test_endpoints.py; fi
+  - if [ "$TRAVIS_OS_NAME" != "windows" ]; then travis_wait 15 python3 test_endpoints.py; fi
   - cd ../..
 
 # deploy to pip
@@ -35,13 +54,14 @@ deploy:
     password: $PYPI_SYSADMIN_PASSWORD
     distributions: "sdist"
     on:
-      branch: release
+      branch: master
       condition: $DEPLOYMENT_ENV = "true"
+      
 # after pip is deployed, we can deploy to dockerhub
 after_deploy:
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then sleep 15; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then cd distributions/docker; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker build -t docker-build .; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker tag docker-build $REGISTRY_USER/mindsdb_server:latest; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then cd ../..; fi
-  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "release" ]]; then docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS" && docker push $REGISTRY_USER/mindsdb_server && docker logout; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then sleep 15; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then cd distributions/docker; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then docker build -t docker-build .; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then docker tag docker-build $REGISTRY_USER/mindsdb_server:latest; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then cd ../..; fi
+  -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS" && docker push $REGISTRY_USER/mindsdb_server && docker logout; fi

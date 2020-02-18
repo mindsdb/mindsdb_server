@@ -10,7 +10,7 @@ import mindsdb
 import lightwood
 from dateutil.parser import parse as parse_datetime
 from flask import request, send_file
-from flask_restplus import Resource, abort
+from flask_restx import Resource, abort
 
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.namespaces.datasource import get_datasource
@@ -108,7 +108,11 @@ class Predictor(Resource):
     @ns_conf.marshal_with(predictor_metadata, skip_none=True)
     def get(self, name):
         global global_mdb
-        model = global_mdb.get_model_data(name)
+
+        try:
+            model = global_mdb.get_model_data(name)
+        except Exception as e:
+            abort(404, "")
 
         for k in ['train_end_at', 'updated_at', 'created_at']:
             if k in model and model[k] is not None:
@@ -257,7 +261,10 @@ class PredictorColumns(Resource):
     def get(self, name):
         '''List of predictors colums'''
         global global_mdb
-        model = global_mdb.get_model_data(name)
+        try:
+            model = global_mdb.get_model_data(name)
+        except Exception:
+            abort(404, 'Invalid predictor name')
 
         columns = []
         for array, is_target_array in [(model['data_analysis']['target_columns_metadata'], True),

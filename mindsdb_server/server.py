@@ -8,7 +8,7 @@ import mindsdb
 import logging
 import sys
 
-def start_server():
+def start_server(from_tests=False):
     # by default werkzeug send all to stderr. Here is dividing by log-level to stderr and stdout.
     if not logging.root.handlers:
         rootLogger = logging.getLogger()
@@ -42,6 +42,10 @@ def start_server():
     api.add_namespace(datasource_ns)
     api.add_namespace(utils_ns)
 
+    # return only app for tests to use test_client
+    if from_tests:
+        return app
+    
     app.run(debug=True, port=47334, host='0.0.0.0')
 
 if __name__ == '__main__':

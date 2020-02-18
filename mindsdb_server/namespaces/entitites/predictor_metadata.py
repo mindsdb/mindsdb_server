@@ -2,7 +2,7 @@ from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.namespaces.entitites.data_preparation_metadata import data_preparation_metadata, EXAMPLE as PREPARATION_METADATA_EXAMPLE
 from mindsdb_server.namespaces.entitites.data_analysis_metadata import data_analysis_metadata#, EXAMPLE as DATA_ANALYSIS_METADATA_EXAMPLE
 from mindsdb_server.namespaces.entitites.target_column_metadata import target_column_metadata#, EXAMPLES as TARGET_COLUMN_METADATA_EXAMPLES
-from flask_restplus import fields
+from flask_restx import fields
 from collections import OrderedDict
 
 predictor_metadata = ns_conf.model('PredictorMetadata', {

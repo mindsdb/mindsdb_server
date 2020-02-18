@@ -1,5 +1,5 @@
 from mindsdb_server.namespaces.configs.predictors import ns_conf
-from flask_restplus import fields
+from flask_restx import fields
 
 
 quality_metric = ns_conf.model('QualityMetric', {

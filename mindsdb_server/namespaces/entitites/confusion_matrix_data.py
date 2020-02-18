@@ -1,7 +1,7 @@
 from mindsdb_server.namespaces.configs.predictors import ns_conf
 from mindsdb_server.namespaces.entitites.column_metadata import column_metadata
 
-from flask_restplus import fields
+from flask_restx import fields
 
 confusion_matrix_data = ns_conf.model('ConfusionMatrixData', {
     'matrix': fields.List(fields.List(fields.Integer, required=True)),

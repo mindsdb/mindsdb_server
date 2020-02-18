@@ -1,5 +1,5 @@
 from flask import Flask, url_for
-from flask_restplus import Api
+from flask_restx import Api
 import json
 #from werkzeug.middleware.proxy_fix import ProxyFix
 

@@ -4,7 +4,7 @@ from mindsdb_server.namespaces.entitites.nested_histogram_data import nested_his
 from mindsdb_server.namespaces.entitites.confusion_matrix_data import confusion_matrix_data
 
 
-from flask_restplus import fields
+from flask_restx import fields
 
 target_column_metadata = ns_conf.model('TargetColumnMetadata', {
     'column_name': fields.String(required=False, description='The column name'),
