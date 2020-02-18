@@ -6,7 +6,7 @@ cd "%SERVER_PATH%"
 "%PYPATH%" -m virtualenv env
 
 env\Scripts\pip.exe install --upgrade pip
-env\Scripts\pip.exe install mindsdb  --no-cache-dir
+env\Scripts\pip.exe install mindsdb --no-cache-dir
 env\Scripts\pip.exe install mindsdb-server --no-cache-dir
 
 echo from mindsdb_server import start_server > run_mindsdb_server.py
