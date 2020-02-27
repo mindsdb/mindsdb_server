@@ -169,15 +169,6 @@ class Predictor(Resource):
         if 'use_selfaware_model' not in kwargs['unstable_parameters_dict']:
             kwargs['unstable_parameters_dict']['use_selfaware_model'] = False
 
-
-        try:
-            ignore_columns = data.get('ignore_columns')
-        except:
-            ignore_columns = []
-
-        if type(ignore_columns) != type([]):
-            ignore_columns = []
-
         try:
             retrain = data.get('retrain')
             if retrain in ('true', 'True'):
@@ -201,7 +192,7 @@ class Predictor(Resource):
             original_name = name
             name = name + '_retrained'
 
-        def learn(name, from_data, to_predict, ignore_columns, kwargs):
+        def learn(name, from_data, to_predict, kwargs):
             '''
             running at subprocess due to
             ValueError: signal only works in main thread
@@ -215,15 +206,14 @@ class Predictor(Resource):
             mdb.learn(
                 from_data=from_data,
                 to_predict=to_predict,
-                ignore_columns=ignore_columns,
                 **kwargs
             )
 
         if mp == True:
-            p = Process(target=learn, args=(name, from_data, to_predict, ignore_columns, kwargs))
+            p = Process(target=learn, args=(name, from_data, to_predict, kwargs))
             p.start()
         else:
-            learn(name, from_data, to_predict, ignore_columns, kwargs)
+            learn(name, from_data, to_predict, kwargs)
 
         if retrain is True:
             try:
