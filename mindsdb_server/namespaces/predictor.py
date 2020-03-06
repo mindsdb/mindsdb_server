@@ -394,8 +394,9 @@ class PredictorDownload(Resource):
         global global_mdb
 
         try:
-            new_model_name = request.args.get('new_name')
-            global_mdb.rename_model(name, new_model_name)
+            new_name = request.args.get('new_name')
+            global_mdb.rename_model(name, new_name)
         except Exception as e:
             return str(e), 400
-        return 200
+        
+        return f'Renamed model to {new_name}', 200
