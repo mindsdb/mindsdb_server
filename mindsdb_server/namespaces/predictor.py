@@ -375,7 +375,7 @@ class PredictorDownload(Resource):
 
         try:
             os.remove(fpath)
-        except Exception:
+        except Exception as e:
             pass
 
         return send_file(
@@ -384,3 +384,18 @@ class PredictorDownload(Resource):
             attachment_filename=fname,
             as_attachment=True
         )
+
+@ns_conf.route('/<name>/rename')
+@ns_conf.param('name', 'The predictor identifier')
+class PredictorDownload(Resource):
+    @ns_conf.doc('get_predictor_download')
+    def get(self, name):
+        '''Export predictor to file'''
+        global global_mdb
+
+        try:
+            new_model_name = request.args.get('new_name')
+            global_mdb.rename_model(name, new_model_name)
+        except Exception as e:
+            return str(e), 400
+        return 200
