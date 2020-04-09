@@ -8,7 +8,7 @@ import mindsdb
 import logging
 import sys
 
-def start_server(from_tests=False):
+def start_server(from_tests=False, port=47334, storage_path=''):
     # by default werkzeug send all to stderr. Here is dividing by log-level to stderr and stdout.
     if not logging.root.handlers:
         rootLogger = logging.getLogger()
@@ -27,7 +27,7 @@ def start_server(from_tests=False):
     mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = '/home/george/tmpsotre/ds'
     mindsdb.CONFIG.MINDSDB_TEMP_PATH = '/home/george/tmpsotre/tmp'
     '''
-    mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage')
+    mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage', storage_path)
     mindsdb.CONFIG.MINDSDB_PREDICTORS_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'predictors')
     mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'datasources')
     mindsdb.CONFIG.MINDSDB_TEMP_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'tmp')
@@ -46,7 +46,7 @@ def start_server(from_tests=False):
     if from_tests:
         return app
     
-    app.run(debug=True, port=47334, host='0.0.0.0')
+    app.run(debug=True, port=port, host='0.0.0.0')
 
 if __name__ == '__main__':
     start_server()
