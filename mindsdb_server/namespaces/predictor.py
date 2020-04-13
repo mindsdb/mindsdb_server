@@ -52,7 +52,7 @@ def preparse_results(results, format_flag='explain'):
         elif format_flag == 'epitomize':
             response_arr.append(res.epitomize())
         elif format_flag == 'new_explain':
-            response_arr.append(results.explanation)
+            response_arr.append(res.explanation)
         else:
             response_arr.append(res.explain())
 
