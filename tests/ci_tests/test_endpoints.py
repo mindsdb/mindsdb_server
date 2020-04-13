@@ -32,6 +32,23 @@ class PredictorTest(unittest.TestCase):
         response = self.app.get('/predictors/dummy_predictor')
         assert response.status_code == 404
 
+    def test_analyse_invalid_datasource(self):
+        """
+        Call unexisting predictor
+        then check the response is NOT FOUND
+        """
+        response = self.app.get('/predictors/dummy_predictor/analyse_dataset')
+        assert response.status_code == 400
+
+    def test_analyse_invalid_datasource(self):
+        """
+        Call unexisting predictor
+        then check the response is NOT FOUND
+        """
+        from_data = 'https://raw.githubusercontent.com/mindsdb/mindsdb-examples/master/benchmarks/heart_disease/processed_data/train.csv'
+        response = self.app.get('/predictors/dummy_predictor/analyse_dataset?from_data='+ from_data)
+        print(response)
+        assert response.status_code == 200
 
 class DatasourceTest(unittest.TestCase):
 
