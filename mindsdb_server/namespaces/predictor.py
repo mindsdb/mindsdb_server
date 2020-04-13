@@ -46,7 +46,6 @@ def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, appe
 
 def preparse_results(results, format_flag='explain'):
     response_arr = []
-
     for res in results:
         if format_flag == 'explain':
             response_arr.append(res.explain())
@@ -233,7 +232,7 @@ class AnalyseDataset(Resource):
     def get(self, name):
         from_data = get_datasource_path(request.args.get('data_source_name'))
         if from_data is None:
-            from_data = data.get('from_data')
+            from_data = request.args.get('from_data')
         if from_data is None:
             print('No valid datasource given')
             return 'No valid datasource given', 400
@@ -279,9 +278,9 @@ class PredictorPredict(Resource):
     def post(self, name):
         '''Queries predictor'''
         global model_swapping_map
+        data = request.json
 
-        when = request.json.get('when') or {}
-
+        when = data.get('when') or {}
         try:
             format_flag = data.get('format_flag')
         except:
@@ -398,5 +397,5 @@ class PredictorDownload(Resource):
             global_mdb.rename_model(name, new_name)
         except Exception as e:
             return str(e), 400
-        
+
         return f'Renamed model to {new_name}', 200
