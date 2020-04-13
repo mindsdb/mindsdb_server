@@ -233,7 +233,7 @@ class AnalyseDataset(Resource):
     def get(self, name):
         from_data = get_datasource_path(request.args.get('data_source_name'))
         if from_data is None:
-            from_data = data.get('from_data')
+            from_data = request.args.get('from_data')
         if from_data is None:
             print('No valid datasource given')
             return 'No valid datasource given', 400
