@@ -168,6 +168,8 @@ class Predictor(Resource):
         if 'use_selfaware_model' not in kwargs['unstable_parameters_dict']:
             kwargs['unstable_parameters_dict']['use_selfaware_model'] = False
 
+        print(kwargs)
+        exit()
         try:
             retrain = data.get('retrain')
             if retrain in ('true', 'True'):
@@ -286,12 +288,17 @@ class PredictorPredict(Resource):
         except:
             format_flag = 'explain'
 
+        try:
+            kwargs = data.get('kwargs')
+        except:
+            kwargs = {}
+
         # Not the fanciest semaphor, but should work since restplus is multi-threaded and this condition should rarely be reached
         while name in model_swapping_map and model_swapping_map[name] is True:
             time.sleep(1)
 
         mdb = mindsdb.Predictor(name=name)
-        results = mdb.predict(when=when, run_confidence_variation_analysis=True)
+        results = mdb.predict(when=when, run_confidence_variation_analysis=True, **kwargs)
         # return '', 500
         return preparse_results(results, format_flag)
 

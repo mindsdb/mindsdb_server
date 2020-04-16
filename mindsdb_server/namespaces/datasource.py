@@ -104,17 +104,18 @@ class Datasource(Resource):
             datasource_name = data['name']
         else:
             datasource_name = name
-
         datasource_type = data['source_type']
 
         if 'source' in data:
             datasource_source = data['source']
+        else:
+            datasource_source = name
 
         if datasource_type == 'file' and 'file' not in request.files:
             abort(400, "Argument 'file' is missing")
 
         names = [x['name'] for x in get_datasources()]
-        print(names)
+
         for i in range(1, 100):
             if datasource_name in names:
                 previous_index = i - 1
