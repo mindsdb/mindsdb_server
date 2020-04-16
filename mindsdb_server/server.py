@@ -14,6 +14,7 @@ def start_server(from_tests=False, port=None, storage_path=''):
     parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
     parser.add_argument('--port', type=int, default=47334)
     parser.add_argument('--use_mindsdb_storage_dir', type=bool, default=False)
+    parser.add_argument('--host', type=str, default='0.0.0.0')
     args = parser.parse_args()
 
     # by default werkzeug send all to stderr. Here is dividing by log-level to stderr and stdout.
@@ -50,7 +51,7 @@ def start_server(from_tests=False, port=None, storage_path=''):
     if from_tests:
         return app
 
-    app.run(debug=True, port=port, host='0.0.0.0')
+    app.run(debug=True, port=port, host=args.host)
 
 if __name__ == '__main__':
     start_server()
