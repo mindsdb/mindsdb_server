@@ -100,9 +100,15 @@ class Datasource(Resource):
         '''add new datasource'''
         data = request.json or request.values
 
-        datasource_name = data['name']
+        if 'name' in data:
+            datasource_name = data['name']
+        else:
+            datasource_name = name
+
         datasource_type = data['source_type']
-        datasource_source = data['source']
+
+        if 'source' in data:
+            datasource_source = data['source']
 
         if datasource_type == 'file' and 'file' not in request.files:
             abort(400, "Argument 'file' is missing")
