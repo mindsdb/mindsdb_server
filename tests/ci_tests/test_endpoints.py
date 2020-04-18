@@ -32,6 +32,22 @@ class PredictorTest(unittest.TestCase):
         response = self.app.get('/predictors/dummy_predictor')
         assert response.status_code == 404
 
+    def test_analyse_invalid_datasource(self):
+        """
+        Don't provide datasource
+        then check the response is No valid datasource given
+        """
+        response = self.app.get('/predictors/dummy_predictor/analyse_dataset')
+        assert response.status_code == 400
+
+    def test_analyse_valid_datasource(self):
+        """
+        Add valid datasource as parameter
+        then check the response is 200
+        """
+        from_data = 'https://raw.githubusercontent.com/mindsdb/mindsdb-examples/master/benchmarks/heart_disease/processed_data/train.csv'
+        response = self.app.get('/predictors/dummy_predictor/analyse_dataset?from_data='+ from_data)
+        assert response.status_code == 200
 
 class DatasourceTest(unittest.TestCase):
 
