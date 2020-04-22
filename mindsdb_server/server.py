@@ -15,7 +15,7 @@ def start_server(from_tests=False, port=None, storage_path='', debug=True):
     parser.add_argument('--port', type=int, default=47334)
     parser.add_argument('--use_mindsdb_storage_dir', type=bool, default=False)
     parser.add_argument('--host', type=str, default='0.0.0.0')
-    
+
     args = parser.parse_args()
 
     # by default werkzeug send all to stderr. Here is dividing by log-level to stderr and stdout.
@@ -38,6 +38,7 @@ def start_server(from_tests=False, port=None, storage_path='', debug=True):
 
     mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'datasources')
     mindsdb.CONFIG.MINDSDB_TEMP_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'tmp')
+    
     os.makedirs(mindsdb.CONFIG.MINDSDB_STORAGE_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_TEMP_PATH, exist_ok=True)
