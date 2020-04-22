@@ -9,7 +9,7 @@ import mindsdb
 import logging
 import sys
 
-def start_server(from_tests=False, port=None, storage_path=''):
+def start_server(from_tests=False, port=None, storage_path='', debug=True):
 
     parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
     parser.add_argument('--port', type=int, default=47334)
@@ -52,7 +52,7 @@ def start_server(from_tests=False, port=None, storage_path=''):
     if from_tests:
         return app
 
-    app.run(debug=True, port=port, host=args.host)
+    app.run(debug=debug, port=port, host=args.host)
 
 if __name__ == '__main__':
     start_server()
