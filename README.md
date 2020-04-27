@@ -14,7 +14,7 @@
 
 # Mindsdb Server
 
-This server uses flask_restplus to define the API. Check [API's docs](https://apidocs.mindsdb.com/?version=latest) for detailed information about each endpoint.
+This server uses flask_restx to define the API. Check [API's docs](https://apidocs.mindsdb.com/?version=latest) for detailed information about each endpoint.
 
 ## Installation
 
