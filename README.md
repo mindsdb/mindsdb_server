@@ -6,8 +6,8 @@
 
 <p align="center">
     <a href="https://travis-ci.org/mindsdb/mindsdb_server"><img src="https://travis-ci.org/mindsdb/mindsdb_server.svg?branch=master" alt="Build status"></a>
-   <a href="https://pypi.org/project/lightwood/"><img src="https://badge.fury.io/py/mindsdb-server.svg" alt="PyPi Version"></a>
-  <a href="https://pypi.org/project/MindsDB/"><img src="https://img.shields.io/pypi/dm/mindsdb-server" alt="PyPi Downloads"></a>
+   <a href="https://pypi.org/project/mindsdb-server/"><img src="https://badge.fury.io/py/mindsdb-server.svg" alt="PyPi Version"></a>
+  <a href="https://pypi.org/project/mindsdb-server/"><img src="https://img.shields.io/pypi/dm/mindsdb-server" alt="PyPi Downloads"></a>
   <a href="https://community.mindsdb.com/"><img src="https://img.shields.io/discourse/posts?server=https%3A%2F%2Fcommunity.mindsdb.com%2F" alt="MindsDB Community"></a>
   <a href="https://apidocs.mindsdb.com/?version=latest"><img src="https://img.shields.io/badge/API-Documentation-green" alt="API Docs"></a>
 </p>
