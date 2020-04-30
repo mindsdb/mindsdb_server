@@ -1,3 +1,4 @@
+"%PYPATH%" -m pip install wheel --no-binary :all:
 "%PYPATH%" -m pip install --user --upgrade pip
 "%PYPATH%" -m pip install --user virtualenv
 
