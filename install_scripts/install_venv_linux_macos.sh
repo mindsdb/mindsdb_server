@@ -1,11 +1,11 @@
 #!/bin/bash
-"$PYPATH" -m pip install --user --upgrade pip
-"$PYPATH" -m pip install --user virtualenv
-mkdir -p "$SERVER_PATH" || mkdir "$SERVER_PATH"
+"${PYPATH}" -m pip install --user --upgrade pip
+"${PYPATH}" -m pip install --user virtualenv
+mkdir -p "${SERVER_PATH}" || mkdir "${SERVER_PATH}"
 
-cd "$SERVER_PATH"
+cd "${SERVER_PATH}"
 
-"$PYPATH" -m virtualenv env --python="$PYPATH"
+"${PYPATH}" -m virtualenv env --python="${PYPATH}"
 
 source env/bin/activate
 env/bin/pip3 install --upgrade pip || env/bin/pip install --upgrade pip
