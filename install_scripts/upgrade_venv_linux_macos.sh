@@ -2,7 +2,7 @@
 
 
 
-cd "$SERVER_PATH"
+cd "${SERVER_PATH}"
 
 source env/bin/activate
 env/bin/pip3 install --upgrade pip || env/bin/pip install --upgrade pip
