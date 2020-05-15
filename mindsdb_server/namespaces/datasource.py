@@ -238,10 +238,12 @@ class DatasourceData(Resource):
             where = [x for x in where if x['field'] in column_names]
             marks = {}
             if len(where) > 0:
-                # TODO check escape "
                 for i in range(len(where)):
+                    field = where[i]["field"].replace('"', '""')
+                    if ' ' in field:
+                        field = f'"{field}"'
                     marks['var' + str(i)] = '%' + where[i]['value'] + '%'
-                    where[i] = f'{where[i]["field"]} like :var{i}'
+                    where[i] = f'{field} like :var{i}'
                 where = 'where ' + ' and '.join(where)
             else:
                 where = ''
