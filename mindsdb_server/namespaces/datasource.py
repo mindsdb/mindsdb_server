@@ -2,6 +2,8 @@ import datetime
 import json
 import os
 import shutil
+import sqlite3
+import re
 
 import mindsdb
 from dateutil.parser import parse
@@ -60,6 +62,11 @@ def save_datasource_metadata(ds):
 
         with open(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'metadata.json'), 'w') as fp:
             json.dump(ds, fp)
+
+def create_sqlite_db(path, ds):
+    con = sqlite3.connect(path)
+    ds.to_sql(name='data', con=con, index=False)
+    con.close()
 
 
 @ns_conf.route('/')
@@ -127,9 +134,10 @@ class Datasource(Resource):
         os.mkdir(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name))
         os.mkdir(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'resources'))
 
+        ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'datasource')
+        os.mkdir(ds_dir)
         if datasource_type == 'file':
             datasource_file = request.files['file']
-            os.mkdir(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'datasource'))
             datasource_source = str(
                 os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'datasource', datasource_source))
             open(datasource_source, 'wb').write(datasource_file.read())
@@ -139,6 +147,8 @@ class Datasource(Resource):
 
         columns = [dict(name=x) for x in list(ds.df.keys())]
         row_count = len(ds.df)
+
+        create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), ds)
 
         new_data_source = {
             'name': datasource_name,
@@ -187,14 +197,70 @@ class DatasourceData(Resource):
         '''return data rows'''
         ds_record = ([x for x in get_datasources() if x['name'] == name] or [None])[0]
         if ds_record:
-            path = ds_record['source']
-            if ds_record['source_type'] == 'file':
-                if not os.path.exists(path):
-                    abort(404, "")
-            ds = FileDS(path)
-            keys = list(ds.df.keys())
+            ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds_record['name'], 'datasource')
+            db_path = os.path.join(ds_dir, 'sqlite.db')
+            if os.path.isfile(db_path) is False:
+                path = ds_record['source']
+                if ds_record['source_type'] == 'file':
+                    if not os.path.exists(path):
+                        abort(404, "")
+                ds = FileDS(path)
+                create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), ds)
+
+            limit = ''
+            offset = ''
+            order = ''
+            params = {
+                'page[size]': None,
+                'page[number]': None
+            }
+            where = []
+            for key, value in request.args.items():
+                if key == 'page[size]':
+                    params['page[size]'] = int(value)
+                elif key == 'page[number]':
+                    params['page[number]'] = int(value)
+                elif key.startswith('filter'):
+                    result = re.search(r'filter\[(.*)\]', key)
+                    field = result.groups(1)[0]
+                    where.append({'field': field, 'value': value})
+            if params['page[size]'] is not None:
+                limit = f"limit {params['page[size]']}"
+            if params['page[size]'] is not None and params['page[number]'] is not None:
+                offset = f"offset {params['page[size]'] * params['page[number]']}"
+
+            con = sqlite3.connect(db_path)
+            cur = con.cursor()
+            cur.execute('pragma table_info(data);')
+            column_name_index = [x[0] for x in cur.description].index('name')
+            columns = cur.fetchall()
+            column_names = [x[column_name_index] for x in columns]
+            where = [x for x in where if x['field'] in column_names]
+            marks = {}
+            if len(where) > 0:
+                for i in range(len(where)):
+                    field = where[i]["field"].replace('"', '""')
+                    if ' ' in field:
+                        field = f'"{field}"'
+                    marks['var' + str(i)] = '%' + where[i]['value'] + '%'
+                    where[i] = f'{field} like :var{i}'
+                where = 'where ' + ' and '.join(where)
+            else:
+                where = ''
+            count_query = ' '.join(['select count(1) from data', where])
+            query = ' '.join(['select * from data', where, order, limit, offset])
+
+            cur.execute(count_query, marks)
+            rowcount = cur.fetchone()[0]
+            cur.execute(query, marks)
+            data = cur.fetchall()
+            data = [dict(zip(column_names, x)) for x in data]
+            cur.close()
+            con.close()
+
             response = {
-                'data': [dict(zip(keys, x)) for x in ds.df.values]
+                'rowcount': rowcount,
+                'data': data
             }
             return response, 200
         abort(404, "")
