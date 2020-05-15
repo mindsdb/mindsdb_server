@@ -212,22 +212,22 @@ class DatasourceData(Resource):
             order = ''
             params = {
                 'page[size]': None,
-                'page[number]': None
+                'page[offset]': None
             }
             where = []
             for key, value in request.args.items():
                 if key == 'page[size]':
                     params['page[size]'] = int(value)
-                elif key == 'page[number]':
-                    params['page[number]'] = int(value)
+                if key == 'page[offset]':
+                    params['page[offset]'] = int(value)
                 elif key.startswith('filter'):
                     result = re.search(r'filter\[(.*)\]', key)
                     field = result.groups(1)[0]
                     where.append({'field': field, 'value': value})
             if params['page[size]'] is not None:
                 limit = f"limit {params['page[size]']}"
-            if params['page[size]'] is not None and params['page[number]'] is not None:
-                offset = f"offset {params['page[size]'] * params['page[number]']}"
+            if params['page[size]'] is not None and params['page[offset]'] is not None:
+                offset = f"offset {params['page[offset]']}"
 
             con = sqlite3.connect(db_path)
             cur = con.cursor()
