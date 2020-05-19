@@ -5,6 +5,9 @@ import shutil
 import sqlite3
 import re
 
+import tempfile
+import multipart
+
 import mindsdb
 from dateutil.parser import parse
 from flask import request, send_file
@@ -105,7 +108,36 @@ class Datasource(Resource):
     @ns_conf.marshal_with(datasource_metadata)
     def put(self, name):
         '''add new datasource'''
-        data = request.json or request.values
+        data = {}
+        def on_field(field):
+            name = field.field_name.decode()
+            value = field.value.decode()
+            data[name] = value
+
+        def on_file(file):
+            data['file'] = file.file_name.decode()
+
+        temp_dir_path = tempfile.mkdtemp(prefix='gateway_')
+
+        parser = multipart.create_form_parser(
+            headers=request.headers,
+            on_field=on_field,
+            on_file=on_file,
+            config={
+                'UPLOAD_DIR': temp_dir_path.encode(),    # bytes required
+                'UPLOAD_KEEP_FILENAME': True,
+                'UPLOAD_KEEP_EXTENSIONS': True,
+                'MAX_MEMORY_FILE_SIZE': 0
+            }
+        )
+
+        while True:
+            chunk = request.stream.read(8192)
+            if not chunk:
+                break
+            parser.write(chunk)
+        parser.finalize()
+        parser.close()
 
         if 'name' in data:
             datasource_name = data['name']
@@ -118,7 +150,7 @@ class Datasource(Resource):
         else:
             datasource_source = name
 
-        if datasource_type == 'file' and 'file' not in request.files:
+        if datasource_type == 'file' and 'file' not in data:
             abort(400, "Argument 'file' is missing")
 
         names = [x['name'] for x in get_datasources()]
@@ -137,13 +169,16 @@ class Datasource(Resource):
         ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'datasource')
         os.mkdir(ds_dir)
         if datasource_type == 'file':
-            datasource_file = request.files['file']
-            datasource_source = str(
-                os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'datasource', datasource_source))
-            open(datasource_source, 'wb').write(datasource_file.read())
+            datasource_source = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, datasource_name, 'datasource', datasource_source)
+            os.replace(
+                os.path.join(temp_dir_path, data['file']),
+                datasource_source
+            )
             ds = FileDS(datasource_source)
         else:
             ds = FileDS(datasource_source)
+
+        os.rmdir(temp_dir_path)
 
         columns = [dict(name=x) for x in list(ds.df.keys())]
         row_count = len(ds.df)
