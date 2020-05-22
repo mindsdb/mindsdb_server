@@ -299,6 +299,7 @@ class PredictorPredict(Resource):
             time.sleep(1)
 
         mdb = mindsdb.Predictor(name=name)
+        print(when,kwargs)
         results = mdb.predict(when=when, run_confidence_variation_analysis=True, **kwargs)
         # return '', 500
         return preparse_results(results, format_flag)

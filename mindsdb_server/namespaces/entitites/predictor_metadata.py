@@ -16,6 +16,7 @@ predictor_metadata = ns_conf.model('PredictorMetadata', {
     'accuracy': fields.Float(description='The current accuracy of the model'),
     'data_analysis': fields.Nested(data_analysis_metadata, required=False, description='The metadata used in the analysis stage, in which we extract statistical information from the input data'),
     'model_analysis': fields.List(fields.Nested(target_column_metadata), required=False, description='The model analysis stage, in which we extract statistical information from the input data for each target variable, thus, this is a list; one item per target column')
+    ,'data_analysis_v2': fields.Raw(default={})
 })
 
 predictor_query_params = OrderedDict([
