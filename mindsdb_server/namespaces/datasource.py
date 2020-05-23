@@ -144,7 +144,7 @@ class Datasource(Resource):
         else:
             datasource_name = name
         datasource_type = data['source_type']
-        
+
         if 'source' in data:
             datasource_source = data['source']
         else:
