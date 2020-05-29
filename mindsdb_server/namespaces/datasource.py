@@ -217,8 +217,8 @@ class Analyze(Resource):
 
         analysis = global_mdb.analyse_dataset(ds['source'], sample_margin_of_error=0.025)
 
-        ds['analysis_data'] = analysis
-        save_datasource_metadata(ds)
+        #ds['analysis_data'] = analysis
+        #save_datasource_metadata(ds)
 
         return analysis, 200
 
