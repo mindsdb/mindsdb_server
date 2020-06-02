@@ -66,9 +66,9 @@ def save_datasource_metadata(ds):
         with open(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'metadata.json'), 'w') as fp:
             json.dump(ds, fp)
 
-def create_sqlite_db(path, ds):
+def create_sqlite_db(path, data_frame):
     con = sqlite3.connect(path)
-    ds.to_sql(name='data', con=con, index=False)
+    data_frame.to_sql(name='data', con=con, index=False)
     con.close()
 
 
@@ -180,10 +180,54 @@ class Datasource(Resource):
 
         os.rmdir(temp_dir_path)
 
-        columns = [dict(name=x) for x in list(ds.df.keys())]
-        row_count = len(ds.df)
+        df = ds.df
+        analysis = global_mdb.analyse_dataset(datasource_source, sample_margin_of_error=0.025)
+        columns = [dict(name=x) for x in list(df.keys())]
 
-        create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), ds)
+        types_map = {
+            'Numeric': {
+                'Int': 'int64',
+                'Float': 'float64',
+                'Binary': 'bool'
+            },
+            'Date': {
+                'Date': 'datetime64',       # YYYY-MM-DD
+                'Timestamp': 'datetime64'   # YYYY-MM-DD hh:mm:ss or 1852362464
+            },
+            'Categorical': {
+                'Binary Category': 'category',
+                'Category': 'category'
+            },
+            'File Path': {
+                'Image': 'object',
+                'Video': 'object',
+                'Audio': 'object'
+            },
+            'Url': {},
+            'Sequential': {
+                'Text': 'object',
+                'Array': 'object'
+            }
+        }
+
+        row_count = len(df)
+
+        for column in columns:
+            try:
+                name = column['name']
+                col_type = analysis['data_analysis_v2'][name]['typing']['data_type']
+                col_subtype = analysis['data_analysis_v2'][name]['typing']['data_subtype']
+                new_type = types_map[col_type][col_subtype]
+                if new_type == 'int64' or new_type == 'float64':
+                    df[name] = df[name].apply(lambda x: x.replace(',','.'))
+                if new_type == 'int64':
+                    df = df.astype({name: 'float64'})
+                df = df.astype({name: new_type})
+            except Exception as e:
+                print(e)
+                print(f'Error: cant convert type of DS column {name} to {new_type}')
+
+        create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df)
 
         new_data_source = {
             'name': datasource_name,
