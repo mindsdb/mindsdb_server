@@ -71,6 +71,57 @@ def create_sqlite_db(path, data_frame):
     data_frame.to_sql(name='data', con=con, index=False)
     con.close()
 
+def get_analysis(source):
+    global global_mdb
+    return global_mdb.analyse_dataset(source, sample_margin_of_error=0.025)
+
+def cast_df_columns_types(df):
+    types_map = {
+        'Numeric': {
+            'Int': 'int64',
+            'Float': 'float64',
+            'Binary': 'bool'
+        },
+        'Date': {
+            'Date': 'datetime64',       # YYYY-MM-DD
+            'Timestamp': 'datetime64'   # YYYY-MM-DD hh:mm:ss or 1852362464
+        },
+        'Categorical': {
+            'Binary Category': 'category',
+            'Category': 'category'
+        },
+        'File Path': {
+            'Image': 'object',
+            'Video': 'object',
+            'Audio': 'object'
+        },
+        'Url': {},
+        'Sequential': {
+            'Text': 'object',
+            'Array': 'object'
+        }
+    }
+
+    analysis = get_analysis(df)
+    columns = [dict(name=x) for x in list(df.keys())]
+
+    for column in columns:
+        try:
+            name = column['name']
+            col_type = analysis['data_analysis_v2'][name]['typing']['data_type']
+            col_subtype = analysis['data_analysis_v2'][name]['typing']['data_subtype']
+            new_type = types_map[col_type][col_subtype]
+            if new_type == 'int64' or new_type == 'float64':
+                df[name] = df[name].apply(lambda x: x.replace(',','.'))
+            if new_type == 'int64':
+                df = df.astype({name: 'float64'})
+            df = df.astype({name: new_type})
+        except Exception as e:
+            print(e)
+            print(f'Error: cant convert type of DS column {name} to {new_type}')
+    
+    return df
+
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
@@ -181,53 +232,11 @@ class Datasource(Resource):
         os.rmdir(temp_dir_path)
 
         df = ds.df
-        analysis = global_mdb.analyse_dataset(datasource_source, sample_margin_of_error=0.025)
         columns = [dict(name=x) for x in list(df.keys())]
-
-        types_map = {
-            'Numeric': {
-                'Int': 'int64',
-                'Float': 'float64',
-                'Binary': 'bool'
-            },
-            'Date': {
-                'Date': 'datetime64',       # YYYY-MM-DD
-                'Timestamp': 'datetime64'   # YYYY-MM-DD hh:mm:ss or 1852362464
-            },
-            'Categorical': {
-                'Binary Category': 'category',
-                'Category': 'category'
-            },
-            'File Path': {
-                'Image': 'object',
-                'Video': 'object',
-                'Audio': 'object'
-            },
-            'Url': {},
-            'Sequential': {
-                'Text': 'object',
-                'Array': 'object'
-            }
-        }
-
         row_count = len(df)
 
-        for column in columns:
-            try:
-                name = column['name']
-                col_type = analysis['data_analysis_v2'][name]['typing']['data_type']
-                col_subtype = analysis['data_analysis_v2'][name]['typing']['data_subtype']
-                new_type = types_map[col_type][col_subtype]
-                if new_type == 'int64' or new_type == 'float64':
-                    df[name] = df[name].apply(lambda x: x.replace(',','.'))
-                if new_type == 'int64':
-                    df = df.astype({name: 'float64'})
-                df = df.astype({name: new_type})
-            except Exception as e:
-                print(e)
-                print(f'Error: cant convert type of DS column {name} to {new_type}')
-
-        create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df)
+        df_with_types = cast_df_columns_types(df)
+        create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
         new_data_source = {
             'name': datasource_name,
@@ -259,7 +268,7 @@ class Analyze(Resource):
         if 'analysis_data' in ds and ds['analysis_data'] is not None:
             return ds['analysis_data'], 200
 
-        analysis = global_mdb.analyse_dataset(ds['source'], sample_margin_of_error=0.025)
+        analysis = get_analysis(ds['source'])
 
         ds['analysis_data'] = analysis
         save_datasource_metadata(ds)
@@ -284,7 +293,9 @@ class DatasourceData(Resource):
                     if not os.path.exists(path):
                         abort(404, "")
                 ds = FileDS(path)
-                create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), ds)
+                
+                df_with_types = cast_df_columns_types(ds.df)
+                create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
             limit = ''
             offset = ''
