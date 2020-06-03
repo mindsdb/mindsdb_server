@@ -171,6 +171,35 @@ def get_sqlite_columns_names(cursor):
     columns = cursor.fetchall()
     return [x[column_name_index] for x in columns]
 
+def get_sqlite_data(db_path, where=[], limit=None, offset=None):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+
+    offset = '' if limit is None or offset is None else f'offset {offset}'
+    limit = '' if limit is None else f'limit {limit}'
+
+    columns_names = get_sqlite_columns_names(cur)
+    where = [x for x in where if x['field'] in columns_names]
+    where, marks = prepare_sql_where(where)
+
+    count_query = ' '.join(['select count(1) from data', where])
+    cur.execute(count_query, marks)
+    rowcount = cur.fetchone()[0]
+
+    query = ' '.join(['select * from data', where, limit, offset])
+    cur.execute(query, marks)
+    data = cur.fetchall()
+    data = [dict(zip(columns_names, x)) for x in data]
+
+    cur.close()
+    con.close()
+
+    return {
+        'data': data,
+        'rowcount': rowcount,
+        'columns_names': columns_names
+    }
+
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
@@ -347,29 +376,16 @@ class AnalyzeSubset(Resource):
                     abort(400, f'Not valid filter "{key}"')
                 where.append(param)
 
-        con = sqlite3.connect(db_path)
-        cur = con.cursor()
+        sqlite_data = get_sqlite_data(db_path, where)
 
-        column_names = get_sqlite_columns_names(cur)
-        where = [x for x in where if x['field'] in column_names]
-        where, marks = prepare_sql_where(where)
-
-        query = ' '.join(['select * from data', where])
-        cur.execute(query, marks)
-        data = cur.fetchall()
-        data = [dict(zip(column_names, x)) for x in data]
-
-        cur.close()
-        con.close()
-
-        if len(data) == 0:
+        if sqlite_data['rowcount'] == 0:
             return abort(400, 'Empty dataset after filters applying')
 
         temp_file_fd, temp_file_path = tempfile.mkstemp(prefix='mindsdb_data_subset_', suffix='.csv', dir='/tmp')
         with open(temp_file_path, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=column_names)
+            writer = csv.DictWriter(csvfile, fieldnames=sqlite_data['columns_names'])
             writer.writeheader()
-            for row in data:
+            for row in sqlite_data['data']:
                 writer.writerow(row)
 
         analysis = get_analysis(temp_file_path)
@@ -419,31 +435,11 @@ class DatasourceData(Resource):
                     abort(400, f'Not valid filter "{key}"')
                 where.append(param)
 
-        limit = '' if params['page[size]'] is None else f"limit {params['page[size]']}"
-        offset = '' if params['page[size]'] is None or params['page[offset]'] is None else f"offset {params['page[offset]']}"
-
-        con = sqlite3.connect(db_path)
-        cur = con.cursor()
-
-        column_names = get_sqlite_columns_names(cur)
-        where = [x for x in where if x['field'] in column_names]
-        where, marks = prepare_sql_where(where)
-
-        count_query = ' '.join(['select count(1) from data', where])
-        cur.execute(count_query, marks)
-        rowcount = cur.fetchone()[0]
-
-        query = ' '.join(['select * from data', where, limit, offset])
-        cur.execute(query, marks)
-        data = cur.fetchall()
-        data = [dict(zip(column_names, x)) for x in data]
-
-        cur.close()
-        con.close()
+        sqlite_data = get_sqlite_data(db_path, where, params['page[size]'], params['page[offset]'])
 
         response = {
-            'rowcount': rowcount,
-            'data': data
+            'rowcount': sqlite_data['rowcount'],
+            'data': sqlite_data['data']
         }
         return response, 200
 
