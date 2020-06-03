@@ -403,9 +403,6 @@ class DatasourceData(Resource):
             df_with_types = cast_df_columns_types(ds.df)
             create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
-        limit = ''
-        offset = ''
-        order = ''
         params = {
             'page[size]': None,
             'page[offset]': None
@@ -422,10 +419,8 @@ class DatasourceData(Resource):
                     abort(400, f'Not valid filter "{key}"')
                 where.append(param)
 
-        if params['page[size]'] is not None:
-            limit = f"limit {params['page[size]']}"
-        if params['page[size]'] is not None and params['page[offset]'] is not None:
-            offset = f"offset {params['page[offset]']}"
+        limit = '' if params['page[size]'] is None else f"limit {params['page[size]']}"
+        offset = '' if params['page[size]'] is None or params['page[offset]'] is None else f"offset {params['page[offset]']}"
 
         con = sqlite3.connect(db_path)
         cur = con.cursor()
@@ -438,7 +433,7 @@ class DatasourceData(Resource):
         cur.execute(count_query, marks)
         rowcount = cur.fetchone()[0]
 
-        query = ' '.join(['select * from data', where, order, limit, offset])
+        query = ' '.join(['select * from data', where, limit, offset])
         cur.execute(query, marks)
         data = cur.fetchall()
         data = [dict(zip(column_names, x)) for x in data]
