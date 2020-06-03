@@ -7,12 +7,14 @@ import re
 
 import tempfile
 import multipart
+import csv
 
 import mindsdb
 from dateutil.parser import parse
 from flask import request, send_file
 from flask_restx import Resource, abort
 from mindsdb import FileDS
+from mindsdb.libs.constants.mindsdb import DATA_TYPES, DATA_SUBTYPES
 
 from mindsdb_server.namespaces.configs.datasources import ns_conf
 from mindsdb_server.namespaces.entitites.datasources.datasource import (
@@ -66,10 +68,136 @@ def save_datasource_metadata(ds):
         with open(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'metadata.json'), 'w') as fp:
             json.dump(ds, fp)
 
-def create_sqlite_db(path, ds):
+def create_sqlite_db(path, data_frame):
     con = sqlite3.connect(path)
-    ds.to_sql(name='data', con=con, index=False)
+    data_frame.to_sql(name='data', con=con, index=False)
     con.close()
+
+def get_analysis(source):
+    global global_mdb
+    return global_mdb.analyse_dataset(source, sample_margin_of_error=0.025)
+
+def cast_df_columns_types(df):
+    types_map = {
+        DATA_TYPES.NUMERIC: {
+            DATA_SUBTYPES.INT: 'int64',
+            DATA_SUBTYPES.FLOAT: 'float64',
+            DATA_SUBTYPES.BINARY: 'bool'
+        },
+        DATA_TYPES.DATE: {
+            DATA_SUBTYPES.DATE: 'datetime64',       # YYYY-MM-DD
+            DATA_SUBTYPES.TIMESTAMP: 'datetime64'   # YYYY-MM-DD hh:mm:ss or 1852362464
+        },
+        DATA_TYPES.CATEGORICAL: {
+            DATA_SUBTYPES.SINGLE: 'category',
+            DATA_SUBTYPES.MULTIPLE: 'category'
+        },
+        DATA_TYPES.FILE_PATH: {
+            DATA_SUBTYPES.IMAGE: 'object',
+            DATA_SUBTYPES.VIDEO: 'object',
+            DATA_SUBTYPES.AUDIO: 'object'
+        },
+        DATA_TYPES.SEQUENTIAL: {
+            DATA_SUBTYPES.TEXT: 'object',
+            DATA_SUBTYPES.ARRAY: 'object'
+        }
+    }
+
+    analysis = get_analysis(df)
+    columns = [dict(name=x) for x in list(df.keys())]
+
+    for column in columns:
+        try:
+            name = column['name']
+            col_type = analysis['data_analysis_v2'][name]['typing']['data_type']
+            col_subtype = analysis['data_analysis_v2'][name]['typing']['data_subtype']
+            new_type = types_map[col_type][col_subtype]
+            if new_type == 'int64' or new_type == 'float64':
+                df[name] = df[name].apply(lambda x: x.replace(',','.'))
+            if new_type == 'int64':
+                df = df.astype({name: 'float64'})
+            df = df.astype({name: new_type})
+        except Exception as e:
+            print(e)
+            print(f'Error: cant convert type of DS column {name} to {new_type}')
+    
+    return df
+
+def parse_filter(key, value):
+    result = re.search(r'filter(_*.*)\[(.*)\]', key)
+    operator = result.groups()[0].strip('_') or 'like'
+    field = result.groups()[1]
+    operators_map = {
+        'like': 'like',
+        'in': 'in',
+        'nin': 'not in',
+        'gt': '>',
+        'lt': '<',
+        'gte': '>=',
+        'lte': '<=',
+        'eq': '=',
+        'neq': '!='
+    }
+    if operator not in operators_map:
+        return None
+    operator = operators_map[operator]
+    return {'field': field, 'value': value, 'operator': operator}
+
+
+def prepare_sql_where(where):
+    marks = {}
+    if len(where) > 0:
+        for i in range(len(where)):
+            field = where[i]['field'].replace('"', '""')
+            operator = where[i]['operator']
+            value = where[i]['value']
+            var_name = f'var{i}'
+            if ' ' in field:
+                field = f'"{field}"'
+            if operator == 'like':
+                marks[var_name] = '%' + value + '%'
+            else:
+                marks[var_name] = value
+            where[i] = f'{field} {operator} :var{i}'
+        where = 'where ' + ' and '.join(where)
+    else:
+        where = ''
+    return where, marks
+
+def get_sqlite_columns_names(cursor):
+    cursor.execute('pragma table_info(data);')
+    column_name_index = [x[0] for x in cursor.description].index('name')
+    columns = cursor.fetchall()
+    return [x[column_name_index] for x in columns]
+
+def get_sqlite_data(db_path, where=[], limit=None, offset=None):
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+
+    offset = '' if limit is None or offset is None else f'offset {offset}'
+    limit = '' if limit is None else f'limit {limit}'
+
+    columns_names = get_sqlite_columns_names(cur)
+    where = [x for x in where if x['field'] in columns_names]
+    where, marks = prepare_sql_where(where)
+
+    count_query = ' '.join(['select count(1) from data', where])
+    cur.execute(count_query, marks)
+    rowcount = cur.fetchone()[0]
+
+    query = ' '.join(['select * from data', where, limit, offset])
+    cur.execute(query, marks)
+    data = cur.fetchall()
+    data = [dict(zip(columns_names, x)) for x in data]
+
+    cur.close()
+    con.close()
+
+    return {
+        'data': data,
+        'rowcount': rowcount,
+        'columns_names': columns_names
+    }
 
 
 @ns_conf.route('/')
@@ -180,10 +308,12 @@ class Datasource(Resource):
 
         os.rmdir(temp_dir_path)
 
-        columns = [dict(name=x) for x in list(ds.df.keys())]
-        row_count = len(ds.df)
+        df = ds.df
+        columns = [dict(name=x) for x in list(df.keys())]
+        row_count = len(df)
 
-        create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), ds)
+        df_with_types = cast_df_columns_types(df)
+        create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
         new_data_source = {
             'name': datasource_name,
@@ -208,18 +338,59 @@ class Analyze(Resource):
     def get(self, name):
         global global_mdb
         ds = get_datasource(name)
-        if ds['name'] is None:
+        if ds is None:
             print('No valid datasource given')
             abort(400, 'No valid datasource given')
 
         if 'analysis_data' in ds and ds['analysis_data'] is not None:
             return ds['analysis_data'], 200
 
-        analysis = global_mdb.analyse_dataset(ds['source'], sample_margin_of_error=0.025)
+        analysis = get_analysis(ds['source'])
 
         ds['analysis_data'] = analysis
         save_datasource_metadata(ds)
         
+        return analysis, 200
+
+
+@ns_conf.route('/<name>/analyze_subset')
+@ns_conf.param('name', 'Datasource name')
+class AnalyzeSubset(Resource):
+    @ns_conf.doc('analyse_datasubset')
+    def get(self, name):
+        global global_mdb
+        ds = get_datasource(name)
+        if ds is None:
+            print('No valid datasource given')
+            abort(400, 'No valid datasource given')
+
+        ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'datasource')
+        db_path = os.path.join(ds_dir, 'sqlite.db')
+
+        where = []
+        for key, value in request.args.items():
+            if key.startswith('filter'):
+                param = parse_filter(key, value)
+                if param is None:
+                    abort(400, f'Not valid filter "{key}"')
+                where.append(param)
+
+        sqlite_data = get_sqlite_data(db_path, where)
+
+        if sqlite_data['rowcount'] == 0:
+            return abort(400, 'Empty dataset after filters applying')
+
+        temp_file_fd, temp_file_path = tempfile.mkstemp(prefix='mindsdb_data_subset_', suffix='.csv', dir='/tmp')
+        with open(temp_file_path, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=sqlite_data['columns_names'])
+            writer.writeheader()
+            for row in sqlite_data['data']:
+                writer.writerow(row)
+
+        analysis = get_analysis(temp_file_path)
+
+        os.remove(temp_file_path)
+
         return analysis, 200
 
 
@@ -230,75 +401,46 @@ class DatasourceData(Resource):
     @ns_conf.marshal_with(datasource_rows_metadata)
     def get(self, name):
         '''return data rows'''
-        ds_record = ([x for x in get_datasources() if x['name'] == name] or [None])[0]
-        if ds_record:
-            ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds_record['name'], 'datasource')
-            db_path = os.path.join(ds_dir, 'sqlite.db')
-            if os.path.isfile(db_path) is False:
-                path = ds_record['source']
-                if ds_record['source_type'] == 'file':
-                    if not os.path.exists(path):
-                        abort(404, "")
-                ds = FileDS(path)
-                create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), ds)
+        ds = get_datasource(name)
+        if ds is None:
+            print('No valid datasource given')
+            abort(400, 'No valid datasource given')
 
-            limit = ''
-            offset = ''
-            order = ''
-            params = {
-                'page[size]': None,
-                'page[offset]': None
-            }
-            where = []
-            for key, value in request.args.items():
-                if key == 'page[size]':
-                    params['page[size]'] = int(value)
-                if key == 'page[offset]':
-                    params['page[offset]'] = int(value)
-                elif key.startswith('filter'):
-                    result = re.search(r'filter\[(.*)\]', key)
-                    field = result.groups(1)[0]
-                    where.append({'field': field, 'value': value})
-            if params['page[size]'] is not None:
-                limit = f"limit {params['page[size]']}"
-            if params['page[size]'] is not None and params['page[offset]'] is not None:
-                offset = f"offset {params['page[offset]']}"
+        ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'datasource')
+        db_path = os.path.join(ds_dir, 'sqlite.db')
+        if os.path.isfile(db_path) is False:
+            path = ds['source']
+            if ds['source_type'] == 'file':
+                if not os.path.exists(path):
+                    abort(404, "")
+            ds = FileDS(path)
+            
+            df_with_types = cast_df_columns_types(ds.df)
+            create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
-            con = sqlite3.connect(db_path)
-            cur = con.cursor()
-            cur.execute('pragma table_info(data);')
-            column_name_index = [x[0] for x in cur.description].index('name')
-            columns = cur.fetchall()
-            column_names = [x[column_name_index] for x in columns]
-            where = [x for x in where if x['field'] in column_names]
-            marks = {}
-            if len(where) > 0:
-                for i in range(len(where)):
-                    field = where[i]["field"].replace('"', '""')
-                    if ' ' in field:
-                        field = f'"{field}"'
-                    marks['var' + str(i)] = '%' + where[i]['value'] + '%'
-                    where[i] = f'{field} like :var{i}'
-                where = 'where ' + ' and '.join(where)
-            else:
-                where = ''
-            count_query = ' '.join(['select count(1) from data', where])
-            query = ' '.join(['select * from data', where, order, limit, offset])
+        params = {
+            'page[size]': None,
+            'page[offset]': None
+        }
+        where = []
+        for key, value in request.args.items():
+            if key == 'page[size]':
+                params['page[size]'] = int(value)
+            if key == 'page[offset]':
+                params['page[offset]'] = int(value)
+            elif key.startswith('filter'):
+                param = parse_filter(key, value)
+                if param is None:
+                    abort(400, f'Not valid filter "{key}"')
+                where.append(param)
 
-            cur.execute(count_query, marks)
-            rowcount = cur.fetchone()[0]
-            cur.execute(query, marks)
-            data = cur.fetchall()
-            data = [dict(zip(column_names, x)) for x in data]
-            cur.close()
-            con.close()
+        sqlite_data = get_sqlite_data(db_path, where, params['page[size]'], params['page[offset]'])
 
-            response = {
-                'rowcount': rowcount,
-                'data': data
-            }
-            return response, 200
-        abort(404, "")
+        response = {
+            'rowcount': sqlite_data['rowcount'],
+            'data': sqlite_data['data']
+        }
+        return response, 200
 
 
 @ns_conf.route('/<name>/files/<column_name>:<index>')
