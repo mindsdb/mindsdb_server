@@ -1,7 +1,6 @@
 from flask import Flask, url_for
 from flask_restx import Api
 import json
-#from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 initialized = False
@@ -23,11 +22,9 @@ def get_shared():
     global app
     global api
     if initialized is False:
-        print('Initializing shared ressources !')
         initialized = True
         app = Flask(__name__)
 
-        #app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_host=1)
         app.config['SWAGGER_HOST'] = 'http://localhost:8000/mindsdb_server'
         authorizations = {
             'apikey': {
