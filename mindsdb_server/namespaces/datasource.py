@@ -311,9 +311,25 @@ class DatasourceData(Resource):
                 if key == 'page[offset]':
                     params['page[offset]'] = int(value)
                 elif key.startswith('filter'):
-                    result = re.search(r'filter\[(.*)\]', key)
-                    field = result.groups(1)[0]
-                    where.append({'field': field, 'value': value})
+                    result = re.search(r'filter(_*.*)\[(.*)\]', key)
+                    operator = result.groups()[0].strip('_') or 'like'
+                    field = result.groups()[1]
+                    operators_map = {
+                        'like': 'like',
+                        'in': 'in',
+                        'nin': 'not in',
+                        'gt': '>',
+                        'lt': '<',
+                        'gte': '>=',
+                        'lte': '<=',
+                        'eq': '=',
+                        'neq': '!='
+                    }
+                    if operator not in operators_map:
+                        abort(400, f'Not valid filter type "{operator}"')
+                    operator = operators_map[operator]
+                    where.append({'field': field, 'value': value, 'operator': operator})
+
             if params['page[size]'] is not None:
                 limit = f"limit {params['page[size]']}"
             if params['page[size]'] is not None and params['page[offset]'] is not None:
@@ -329,11 +345,16 @@ class DatasourceData(Resource):
             marks = {}
             if len(where) > 0:
                 for i in range(len(where)):
-                    field = where[i]["field"].replace('"', '""')
+                    field = where[i]['field'].replace('"', '""')
+                    operator = where[i]['operator']
+                    value = where[i]['value']
                     if ' ' in field:
                         field = f'"{field}"'
-                    marks['var' + str(i)] = '%' + where[i]['value'] + '%'
-                    where[i] = f'{field} like :var{i}'
+                    if operator == 'like':
+                        marks['var' + str(i)] = '%' + value + '%'
+                    else:
+                        marks['var' + str(i)] = value
+                    where[i] = f'{field} {operator} :var{i}'
                 where = 'where ' + ' and '.join(where)
             else:
                 where = ''
