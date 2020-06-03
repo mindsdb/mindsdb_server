@@ -14,6 +14,7 @@ from dateutil.parser import parse
 from flask import request, send_file
 from flask_restx import Resource, abort
 from mindsdb import FileDS
+from mindsdb.libs.constants.mindsdb import DATA_TYPES, DATA_SUBTYPES
 
 from mindsdb_server.namespaces.configs.datasources import ns_conf
 from mindsdb_server.namespaces.entitites.datasources.datasource import (
@@ -78,28 +79,28 @@ def get_analysis(source):
 
 def cast_df_columns_types(df):
     types_map = {
-        'Numeric': {
-            'Int': 'int64',
-            'Float': 'float64',
-            'Binary': 'bool'
+        DATA_TYPES.NUMERIC: {
+            DATA_SUBTYPES.INT: 'int64',
+            DATA_SUBTYPES.FLOAT: 'float64',
+            DATA_SUBTYPES.BINARY: 'bool'
         },
-        'Date': {
-            'Date': 'datetime64',       # YYYY-MM-DD
-            'Timestamp': 'datetime64'   # YYYY-MM-DD hh:mm:ss or 1852362464
+        DATA_TYPES.DATE: {
+            DATA_SUBTYPES.DATE: 'datetime64',       # YYYY-MM-DD
+            DATA_SUBTYPES.TIMESTAMP: 'datetime64'   # YYYY-MM-DD hh:mm:ss or 1852362464
         },
-        'Categorical': {
-            'Binary Category': 'category',
-            'Category': 'category'
+        DATA_TYPES.CATEGORICAL: {
+            DATA_SUBTYPES.SINGLE: 'category',
+            DATA_SUBTYPES.MULTIPLE: 'category'
         },
-        'File Path': {
-            'Image': 'object',
-            'Video': 'object',
-            'Audio': 'object'
+        DATA_TYPES.FILE_PATH: {
+            DATA_SUBTYPES.IMAGE: 'object',
+            DATA_SUBTYPES.VIDEO: 'object',
+            DATA_SUBTYPES.AUDIO: 'object'
         },
-        'Url': {},
-        'Sequential': {
-            'Text': 'object',
-            'Array': 'object'
+        DATA_TYPES.URL: {},
+        DATA_TYPES.SEQUENTIAL: {
+            DATA_SUBTYPES.TEXT: 'object',
+            DATA_SUBTYPES.ARRAY: 'object'
         }
     }
 
