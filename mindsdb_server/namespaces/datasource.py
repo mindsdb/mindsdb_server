@@ -169,6 +169,7 @@ def get_sqlite_columns_names(cursor):
     columns = cursor.fetchall()
     return [x[column_name_index] for x in columns]
 
+
 @ns_conf.route('/')
 class DatasourcesList(Resource):
     @ns_conf.doc('get_datasources_list')
