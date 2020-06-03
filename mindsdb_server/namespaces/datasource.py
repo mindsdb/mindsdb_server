@@ -152,12 +152,13 @@ def prepare_sql_where(where):
             field = where[i]['field'].replace('"', '""')
             operator = where[i]['operator']
             value = where[i]['value']
+            var_name = f'var{i}'
             if ' ' in field:
                 field = f'"{field}"'
             if operator == 'like':
-                marks['var' + str(i)] = '%' + value + '%'
+                marks[var_name] = '%' + value + '%'
             else:
-                marks['var' + str(i)] = value
+                marks[var_name] = value
             where[i] = f'{field} {operator} :var{i}'
         where = 'where ' + ' and '.join(where)
     else:
