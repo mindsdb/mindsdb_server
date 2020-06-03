@@ -10,12 +10,19 @@ get_datasource_rows_params = OrderedDict([
         'required': False,
         'default': 10
     }),
-    ('page[number]', {
-        'description': 'start page',
+    ('page[offset]', {
+        'description': 'start record',
         'type': 'integer',
         'in': 'path',
         'required': False,
         'default': 0
+    }),
+    ('filter_{type}[{field}]', {
+        'description': 'Filter for field with specified type. Type can be one of [like,in,nin,gt,lt,gte,lte,eq,neq]',
+        'type': 'string',
+        'in': 'path',
+        'required': False,
+        'default': None
     })
 ])
 
