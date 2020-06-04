@@ -3,3 +3,4 @@
 from mindsdb import *
 import lightwood
 #import dataskillet
+print(f'Initialized under name {__name__}')

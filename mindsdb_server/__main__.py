@@ -3,6 +3,8 @@ import importlib
 import atexit
 from multiprocessing import Pool
 
+print(f'Main call under name {__name__}')
+
 def close_api_gracefully(pool):
     print('Shutting down !')
     pool.terminate()
@@ -15,7 +17,7 @@ parser.add_argument('--config', type=str, default='/etc/mindsdb/config.json')
 args = parser.parse_args()
 api_arr = args.api.split(',')
 pool = Pool(processes=len(api_arr))
-print(__name__)
+
 for api in api_arr:
     print(api_arr)
     print(f'\n\n\n{api}\n\n\n')

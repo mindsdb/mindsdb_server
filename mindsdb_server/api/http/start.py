@@ -10,11 +10,8 @@ import sys
 
 
 def start():
-    # Source from config later
-    from_tests=False
-    port=None
-    host=None
-    storage_path=''
+    port=47334
+    host='0.0.0.0'
     debug=True
 
     if not logging.root.handlers:
@@ -28,8 +25,6 @@ def start():
         errStream.addFilter(lambda record: record.levelno > logging.INFO)
         rootLogger.addHandler(errStream)
 
-    if port is None:
-        port = 47334
 
     mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'datasources')
     mindsdb.CONFIG.MINDSDB_TEMP_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'tmp')
@@ -44,8 +39,5 @@ def start():
     api.add_namespace(datasource_ns)
     api.add_namespace(utils_ns)
 
-    # return only app for tests to use test_client
-    if from_tests:
-        return app
 
     app.run(debug=debug, port=port, host=host)
