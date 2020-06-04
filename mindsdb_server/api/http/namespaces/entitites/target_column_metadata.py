@@ -1,7 +1,7 @@
-from mindsdb_server.namespaces.configs.predictors import ns_conf
-from mindsdb_server.namespaces.entitites.histogram_data import histogram_data
-from mindsdb_server.namespaces.entitites.nested_histogram_data import nested_histogram_data
-from mindsdb_server.namespaces.entitites.confusion_matrix_data import confusion_matrix_data
+from mindsdb_server.api.http.namespaces.configs.predictors import ns_conf
+from mindsdb_server.api.http.namespaces.entitites.histogram_data import histogram_data
+from mindsdb_server.api.http.namespaces.entitites.nested_histogram_data import nested_histogram_data
+from mindsdb_server.api.http.namespaces.entitites.confusion_matrix_data import confusion_matrix_data
 
 
 from flask_restx import fields

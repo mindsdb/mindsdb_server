@@ -12,16 +12,16 @@ from dateutil.parser import parse as parse_datetime
 from flask import request, send_file
 from flask_restx import Resource, abort
 
-from mindsdb_server.namespaces.configs.predictors import ns_conf
-from mindsdb_server.namespaces.datasource import get_datasource
-from mindsdb_server.namespaces.entitites.predictor_metadata import (
+from mindsdb_server.api.http.namespaces.configs.predictors import ns_conf
+from mindsdb_server.api.http.namespaces.datasource import get_datasource
+from mindsdb_server.api.http.namespaces.entitites.predictor_metadata import (
     predictor_metadata,
     predictor_query_params,
     upload_predictor_params,
     put_predictor_params
 )
-from mindsdb_server.namespaces.entitites.predictor_status import predictor_status
-from mindsdb_server.shared_ressources import get_shared
+from mindsdb_server.api.http.namespaces.entitites.predictor_status import predictor_status
+from mindsdb_server.api.http.shared_ressources import get_shared
 
 app, api = get_shared()
 global_mdb = mindsdb.Predictor(name='metapredictor')

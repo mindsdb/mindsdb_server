@@ -1,7 +1,7 @@
 from flask_restx import fields
 from collections import OrderedDict
 
-from mindsdb_server.namespaces.configs.datasources import ns_conf
+from mindsdb_server.api.http.namespaces.configs.datasources import ns_conf
 
 get_datasource_missed_files_params = OrderedDict([
     ('page[size]', {

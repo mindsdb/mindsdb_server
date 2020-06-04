@@ -1,5 +1,5 @@
-from mindsdb_server.namespaces.configs.predictors import ns_conf
-from mindsdb_server.namespaces.entitites.quality_metric import quality_metric
+from mindsdb_server.api.http.namespaces.configs.predictors import ns_conf
+from mindsdb_server.api.http.namespaces.entitites.quality_metric import quality_metric
 from flask_restx import fields
 
 quality_dimension = ns_conf.model('QualityDimension', {

@@ -1,7 +1,7 @@
-from mindsdb_server.namespaces.configs.predictors import ns_conf
+from mindsdb_server.api.http.namespaces.configs.predictors import ns_conf
 
-from mindsdb_server.namespaces.entitites.histogram_data import histogram_data
-from mindsdb_server.namespaces.entitites.label_group import label_group
+from mindsdb_server.api.http.namespaces.entitites.histogram_data import histogram_data
+from mindsdb_server.api.http.namespaces.entitites.label_group import label_group
 
 from flask_restx import fields
 

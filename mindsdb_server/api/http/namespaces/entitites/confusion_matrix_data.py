@@ -1,5 +1,5 @@
-from mindsdb_server.namespaces.configs.predictors import ns_conf
-from mindsdb_server.namespaces.entitites.column_metadata import column_metadata
+from mindsdb_server.api.http.namespaces.configs.predictors import ns_conf
+from mindsdb_server.api.http.namespaces.entitites.column_metadata import column_metadata
 
 from flask_restx import fields
 

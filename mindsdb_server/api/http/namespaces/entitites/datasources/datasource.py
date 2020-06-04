@@ -2,7 +2,7 @@ from flask_restx import fields
 from collections import OrderedDict
 import datetime
 
-from mindsdb_server.namespaces.configs.datasources import ns_conf
+from mindsdb_server.api.http.namespaces.configs.datasources import ns_conf
 
 datasource_column_metadata = ns_conf.model('DatasourceColumnMetadata', {
     'name': fields.String(required=False, description='The datasource name'),

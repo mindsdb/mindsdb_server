@@ -1,7 +1,7 @@
 from flask import request
 from flask_restx import Resource, abort
 
-from mindsdb_server.namespaces.configs.util import ns_conf
+from mindsdb_server.api.http.namespaces.configs.util import ns_conf
 
 
 @ns_conf.route('/ping')

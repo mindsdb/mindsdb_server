@@ -16,23 +16,23 @@ from flask_restx import Resource, abort
 from mindsdb import FileDS
 from mindsdb.libs.constants.mindsdb import DATA_TYPES, DATA_SUBTYPES
 
-from mindsdb_server.namespaces.configs.datasources import ns_conf
-from mindsdb_server.namespaces.entitites.datasources.datasource import (
+from mindsdb_server.api.http.namespaces.configs.datasources import ns_conf
+from mindsdb_server.api.http.namespaces.entitites.datasources.datasource import (
     datasource_metadata,
     put_datasource_params
 )
-from mindsdb_server.namespaces.entitites.datasources.datasource_data import (
+from mindsdb_server.api.http.namespaces.entitites.datasources.datasource_data import (
     get_datasource_rows_params,
     datasource_rows_metadata
 )
-from mindsdb_server.namespaces.entitites.datasources.datasource_files import (
+from mindsdb_server.api.http.namespaces.entitites.datasources.datasource_files import (
     put_datasource_file_params
 )
-from mindsdb_server.namespaces.entitites.datasources.datasource_missed_files import (
+from mindsdb_server.api.http.namespaces.entitites.datasources.datasource_missed_files import (
     datasource_missed_files_metadata,
     get_datasource_missed_files_params
 )
-from mindsdb_server.shared_ressources import get_shared
+from mindsdb_server.api.http.shared_ressources import get_shared
 
 app, api = get_shared()
 datasources = []

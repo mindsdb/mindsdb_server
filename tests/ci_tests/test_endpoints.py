@@ -1,5 +1,5 @@
 import unittest
-from mindsdb_server.server import start_server
+from mindsdb_server.api.http.server import start_server
 
 
 class PredictorTest(unittest.TestCase):

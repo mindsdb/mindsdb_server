@@ -1,24 +1,22 @@
-from mindsdb_server.namespaces.predictor import ns_conf as predictor_ns
-from mindsdb_server.namespaces.datasource import ns_conf as datasource_ns
-from mindsdb_server.namespaces.util import ns_conf as utils_ns
-from mindsdb_server.shared_ressources import get_shared
-import argparse
+from mindsdb_server.api.http.namespaces.predictor import ns_conf as predictor_ns
+from mindsdb_server.api.http.namespaces.datasource import ns_conf as datasource_ns
+from mindsdb_server.api.http.namespaces.util import ns_conf as utils_ns
+from mindsdb_server.api.http.shared_ressources import get_shared
 import json
 import os
 import mindsdb
 import logging
 import sys
 
-def start_server(from_tests=False, port=None, storage_path='', debug=True):
 
-    parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
-    parser.add_argument('--port', type=int, default=47334)
-    parser.add_argument('--use_mindsdb_storage_dir', type=bool, default=False)
-    parser.add_argument('--host', type=str, default='0.0.0.0')
+def start():
+    # Source from config later
+    from_tests=False
+    port=None
+    host=None
+    storage_path=''
+    debug=True
 
-    args = parser.parse_args()
-
-    # by default werkzeug send all to stderr. Here is dividing by log-level to stderr and stdout.
     if not logging.root.handlers:
         rootLogger = logging.getLogger()
 
@@ -31,14 +29,11 @@ def start_server(from_tests=False, port=None, storage_path='', debug=True):
         rootLogger.addHandler(errStream)
 
     if port is None:
-        port = args.port
-
-    if not args.use_mindsdb_storage_dir == True:
-        mindsdb.CONFIG.MINDSDB_STORAGE_PATH = os.path.join(os.getcwd(),'storage', storage_path)
+        port = 47334
 
     mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'datasources')
     mindsdb.CONFIG.MINDSDB_TEMP_PATH = os.path.join(mindsdb.CONFIG.MINDSDB_STORAGE_PATH,'tmp')
-    
+
     os.makedirs(mindsdb.CONFIG.MINDSDB_STORAGE_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, exist_ok=True)
     os.makedirs(mindsdb.CONFIG.MINDSDB_TEMP_PATH, exist_ok=True)
@@ -53,7 +48,4 @@ def start_server(from_tests=False, port=None, storage_path='', debug=True):
     if from_tests:
         return app
 
-    app.run(debug=debug, port=port, host=args.host)
-
-if __name__ == '__main__':
-    start_server()
+    app.run(debug=debug, port=port, host=host)
