@@ -4,11 +4,10 @@ import os
 import shutil
 import sqlite3
 import re
-
 import tempfile
-import multipart
-import csv
 
+import multipart
+import pandas
 import mindsdb
 from dateutil.parser import parse
 from flask import request, send_file
@@ -380,16 +379,8 @@ class AnalyzeSubset(Resource):
         if sqlite_data['rowcount'] == 0:
             return abort(400, 'Empty dataset after filters applying')
 
-        temp_file_fd, temp_file_path = tempfile.mkstemp(prefix='mindsdb_data_subset_', suffix='.csv', dir='/tmp')
-        with open(temp_file_path, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=sqlite_data['columns_names'])
-            writer.writeheader()
-            for row in sqlite_data['data']:
-                writer.writerow(row)
-
-        analysis = get_analysis(temp_file_path)
-
-        os.remove(temp_file_path)
+        df = pandas.DataFrame(sqlite_data['data'])
+        analysis = get_analysis(df)
 
         return analysis, 200
 
