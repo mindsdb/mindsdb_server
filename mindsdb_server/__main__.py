@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 api_arr = args.api.split(',')
 
-# placeholder
+# placeholder <-- move config getting to utils
 config = {
     'python_interpreter': '/usr/bin/python3'
 }

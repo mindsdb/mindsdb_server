@@ -10,7 +10,7 @@ import sys
 import random
 
 def start():
-    port=47334 + random.randint(1,100)
+    port=47334
     host='0.0.0.0'
     debug=True
 
