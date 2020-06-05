@@ -1,7 +1,6 @@
 import datetime
 import json
 import os
-import sqlite3
 import re
 
 import tempfile
@@ -124,18 +123,12 @@ class Datasource(Resource):
 class Analyze(Resource):
     @ns_conf.doc('analyse_dataset')
     def get(self, name):
-        ds = get_datasource(name)
+        ds = default_store.get_datasource(name)
         if ds is None:
             print('No valid datasource given')
             abort(400, 'No valid datasource given')
 
-        if 'analysis_data' in ds and ds['analysis_data'] is not None:
-            return ds['analysis_data'], 200
-
-        analysis = get_analysis(ds['source'])
-
-        ds['analysis_data'] = analysis
-        save_datasource_metadata(ds)
+        analysis = default_store.get_analysis(ds['source'])
 
         return analysis, 200
 
@@ -150,9 +143,6 @@ class AnalyzeSubset(Resource):
             print('No valid datasource given')
             abort(400, 'No valid datasource given')
 
-        ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'datasource')
-        db_path = os.path.join(ds_dir, 'sqlite.db')
-
         where = []
         for key, value in request.args.items():
             if key.startswith('filter'):
@@ -161,23 +151,12 @@ class AnalyzeSubset(Resource):
                     abort(400, f'Not valid filter "{key}"')
                 where.append(param)
 
-        sqlite_data = get_sqlite_data(db_path, where)
+        data_dict = default_store.get_data(ds['name'], where)
 
-        if sqlite_data['rowcount'] == 0:
+        if data_dict['rowcount'] == 0:
             return abort(400, 'Empty dataset after filters applying')
 
-        temp_file_fd, temp_file_path = tempfile.mkstemp(prefix='mindsdb_data_subset_', suffix='.csv', dir='/tmp')
-        with open(temp_file_path, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=sqlite_data['columns_names'])
-            writer.writeheader()
-            for row in sqlite_data['data']:
-                writer.writerow(row)
-
-        analysis = get_analysis(temp_file_path)
-
-        os.remove(temp_file_path)
-
-        return analysis, 200
+        return get_analysis(pd.DataFrame(data_dict['data'])), 200
 
 
 @ns_conf.route('/<name>/data/')
@@ -187,22 +166,9 @@ class DatasourceData(Resource):
     @ns_conf.marshal_with(datasource_rows_metadata)
     def get(self, name):
         '''return data rows'''
-        ds = get_datasource(name)
+        ds = default_store.get_datasource(name)
         if ds is None:
-            print('No valid datasource given')
             abort(400, 'No valid datasource given')
-
-        ds_dir = os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, ds['name'], 'datasource')
-        db_path = os.path.join(ds_dir, 'sqlite.db')
-        if os.path.isfile(db_path) is False:
-            path = ds['source']
-            if ds['source_type'] == 'file':
-                if not os.path.exists(path):
-                    abort(404, "")
-            ds = FileDS(path)
-
-            df_with_types = cast_df_columns_types(ds.df)
-            create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
         params = {
             'page[size]': None,
@@ -220,13 +186,9 @@ class DatasourceData(Resource):
                     abort(400, f'Not valid filter "{key}"')
                 where.append(param)
 
-        sqlite_data = get_sqlite_data(db_path, where, params['page[size]'], params['page[offset]'])
+        data_dict = default_store.get_data(db_path, where, params['page[size]'], params['page[offset]'])
 
-        response = {
-            'rowcount': sqlite_data['rowcount'],
-            'data': sqlite_data['data']
-        }
-        return response, 200
+        return data_dict, 200
 
 
 @ns_conf.route('/<name>/download')

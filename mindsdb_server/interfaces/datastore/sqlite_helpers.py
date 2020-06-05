@@ -98,7 +98,9 @@ def get_sqlite_columns_names(cursor):
     columns = cursor.fetchall()
     return [x[column_name_index] for x in columns]
 
-def get_sqlite_data(db_path, where=[], limit=None, offset=None):
+def get_sqlite_data(db_path, where, limit, offset):
+    where = [] if where is None else where
+
     con = sqlite3.connect(db_path)
     cur = con.cursor()
 

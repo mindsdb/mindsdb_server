@@ -30,6 +30,10 @@ class DataStore():
                 print(e)
         return datasource_arr
 
+    def get_data(self, name, where=None, limit=None, offset=None):
+        # @TODO Apply filter directly to postgres/mysql/clickhouse/etc...  when the datasource is of that type
+        return get_sqlite_data(os.path.join(self.dir, name, 'datasource', 'sqlite.db'), where=where, limit=limit, offset=offset)
+
     def get_datasource(self, name):
         for ds in get_datasources():
             if ds['name'] == name:

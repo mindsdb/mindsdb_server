@@ -27,8 +27,9 @@ get_datasource_rows_params = OrderedDict([
 ])
 
 datasource_rows_metadata = ns_conf.model('RowsResponse', {
-    'data': fields.List(fields.Raw, required=False, description='rows of datasource data'),
-    'rowcount': fields.Integer(required=False, description='Count of rows in dataset')
+    'data': fields.List(fields.Raw, required=False, description='Filtered content of the datasource'),
+    'rowcount': fields.Integer(required=False, description='Count of rows in dataset'),
+    'columns_names': fields.List(fields.String, required=False, description='The name of the columns')
 })
 
 EXAMPLES = [{
