@@ -10,6 +10,7 @@ import sys
 
 
 def start():
+    print('\n\n STARTING HTTP INTERFACE !\n\n')
     port=47334
     host='0.0.0.0'
     debug=True
