@@ -32,7 +32,11 @@ proc_arr = []
 
 for api in api_arr:
     try:
-        register(2, print,('aba','raba'))
+
+        import random
+        freq = random.randint(1,10)
+        register(freq, print,('The controller has launched me as a peridoic process.', f'I run every {freq} seconds and am completely useless'))
+
         p = subprocess.Popen([config['python_interpreter'], f'{cdir}/api/{api}/start.py'])
         print(f'Started Mindsdb {api} API!')
         proc_arr.append(p)
