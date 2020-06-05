@@ -4,6 +4,8 @@ import argparse
 import importlib
 import atexit
 import time
+from mindsdb_server.utilities.loop import register
+from threading import Thread
 
 
 def die_gracefully(proc_arr):
@@ -27,8 +29,10 @@ config = {
 cdir = os.path.dirname(os.path.realpath(__file__))
 proc_arr = []
 
+
 for api in api_arr:
     try:
+        register(2, print,('aba','raba'))
         p = subprocess.Popen([config['python_interpreter'], f'{cdir}/api/{api}/start.py'])
         print(f'Started Mindsdb {api} API!')
         proc_arr.append(p)
