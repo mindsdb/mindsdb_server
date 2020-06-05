@@ -1,7 +1,10 @@
 import json
 import datetime
 from dateutil.parser import parse_dt
+import shutil
+
 from mindsdb_server.interfaces.datastore.sqlite_helpers import *
+
 
 class DataStore():
     __init__(self, storage_dir):
@@ -27,12 +30,15 @@ class DataStore():
                 print(e)
         return datasource_arr
 
-
     def get_datasource(self, name):
         for ds in get_datasources():
             if ds['name'] == name:
                 return ds
         return None
+
+    def delete_datasource(self, name):
+        data_sources = self.get_datasource(name)
+        shutil.rmtree(os.path.join(self.dir, data_sources['name']))
 
     def save_datasource(self, name, source_type, source, file_path=None):
         if source_type == 'file' and (file_path is None):

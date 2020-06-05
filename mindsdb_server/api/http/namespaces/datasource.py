@@ -1,7 +1,6 @@
 import datetime
 import json
 import os
-import shutil
 import sqlite3
 import re
 
@@ -55,7 +54,7 @@ class Datasource(Resource):
     @ns_conf.marshal_with(datasource_metadata)
     def get(self, name):
         '''return datasource metadata'''
-        ds = get_datasource(name)
+        ds = default_store.get_datasource(name)
         if ds is not None:
             return ds
         return '', 404
@@ -64,8 +63,7 @@ class Datasource(Resource):
     def delete(self, name):
         '''delete datasource'''
         try:
-            data_sources = get_datasource(name)
-            shutil.rmtree(os.path.join(mindsdb.CONFIG.MINDSDB_DATASOURCES_PATH, data_sources['name']))
+            default_store.delete_datasource(name)
         except Exception as e:
             print(e)
             abort(400, str(e))
