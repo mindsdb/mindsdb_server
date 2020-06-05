@@ -1,12 +1,11 @@
 import unittest
-from mindsdb_server.api.http.server import start_server
+from mindsdb_server import __main__
 
 
 class PredictorTest(unittest.TestCase):
 
     def setUp(self):
-        appl = start_server(from_tests=True)
-        self.app = appl.test_client()
+        __main__()
 
     def test_predictors(self):
         """
@@ -52,9 +51,8 @@ class PredictorTest(unittest.TestCase):
 class DatasourceTest(unittest.TestCase):
 
     def setUp(self):
-        appl = start_server(from_tests=True)
-        self.app = appl.test_client()
-    
+        __main__()
+
     def test_datasources(self):
         """
         Call list datasources endpoint
@@ -75,8 +73,7 @@ class DatasourceTest(unittest.TestCase):
 class UtilTest(unittest.TestCase):
 
     def setUp(self):
-        appl = start_server(from_tests=True)
-        self.app = appl.test_client()
+        __main__()
 
     def test_ping(self):
         """

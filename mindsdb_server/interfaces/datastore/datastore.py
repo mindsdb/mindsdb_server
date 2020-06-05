@@ -1,15 +1,18 @@
 import json
 import datetime
-from dateutil.parser import parse_dt
+from dateutil.parser import parse as parse_dt
 import shutil
+
+import mindsdb
 
 from mindsdb_server.interfaces.datastore.sqlite_helpers import *
 
 
 class DataStore():
-    __init__(self, storage_dir):
-    self.dir = storage_dir
-    self.mdb = mindsdb.Predictor(name=f'Datastore_{self.dir}_metapredictor')
+
+    def __init__(self, storage_dir):
+        self.dir = storage_dir
+        self.mdb = mindsdb.Predictor(name=f'Datastore_{self.dir}_metapredictor')
 
     def get_analysis(self, ds):
         return self.mdb.analyse_dataset(source, sample_margin_of_error=0.025)
