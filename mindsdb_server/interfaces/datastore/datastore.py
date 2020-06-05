@@ -1,11 +1,15 @@
 import json
 import datetime
 from dateutil.parser import parse_dt
-
+from mindsdb_server.interfaces.datastore.sqlite_helpers import *
 
 class DataStore():
     __init__(self, storage_dir):
     self.dir = storage_dir
+    self.mdb = mindsdb.Predictor(name=f'Datastore_{self.dir}_metapredictor')
+
+    def get_analysis(self, ds):
+        return self.mdb.analyse_dataset(source, sample_margin_of_error=0.025)
 
     def get_datasources(self):
         datasource_arr = []
@@ -30,7 +34,7 @@ class DataStore():
                 return ds
         return None
 
-    def save_datasource_metadata(self, name, source_type, source, file_path=None):
+    def save_datasource(self, name, source_type, source, file_path=None):
         if source_type == 'file' and (file_path is None):
             raise Exception('`file_path` argument required when source_type == "file"')
 
@@ -58,7 +62,7 @@ class DataStore():
 
         df = ds.df
 
-        df_with_types = cast_df_columns_types(df)
+        df_with_types = cast_df_columns_types(df, get_analysis(df)['data_analysis_v2'])
         create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
         with open(os.path.join(ds_dir,'metadata.json'), 'w') as fp:
