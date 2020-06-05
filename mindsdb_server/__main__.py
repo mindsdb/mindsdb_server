@@ -1,7 +1,58 @@
+import subprocess
+import os
+import argparse
+import importlib
+import atexit
+import time
+
+
+def die_gracefully(proc_arr):
+    for p in proc_arr:
+        p.kill()
+
+
+parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
+parser.add_argument('--api', type=str, default='http,mysql') # alternative when mysql api is ready: default='http,mysql'
+parser.add_argument('--config', type=str, default='/etc/mindsdb/config.json')
+
+args = parser.parse_args()
+
+api_arr = args.api.split(',')
+
+# placeholder
+config = {
+    'python_interpreter': '/usr/bin/python3'
+}
+
+
+cdir = os.path.dirname(os.path.realpath(__file__))
+proc_arr = []
+
+for api in api_arr:
+    try:
+        p = subprocess.Popen([config['python_interpreter'], f'{cdir}/api/{api}/start.py'])
+        print(f'Started Mindsdb {api} API!')
+        proc_arr.append(p)
+    except Exception as e:
+        print(f'Failed to start {api} API with exception: \n\n"{e}"\n\n')
+        #exit()
+
+print('Everything running !')
+while True:
+    for p in proc_arr:
+        if p.poll() is not None:
+            exit()
+    time.sleep(2)
+
+atexit.register(die_gracefully, proc_arr=proc_arr)
+
+'''
 import argparse
 import importlib
 import atexit
 from multiprocessing import Pool, Process
+import os
+
 
 print(f'Main call under name {__name__}')
 
@@ -54,3 +105,4 @@ if 'STOP' not in txt:
         p.join()
 
     atexit.register(close_api_gracefully, pool=pool)
+'''
