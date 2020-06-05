@@ -1,3 +1,9 @@
 flask-restx>=0.1.1
 flask>=1.0
 python-multipart
+
+# mysql requirements
+moz-sql-parser
+pandas
+pymongo
+ray
