@@ -22,7 +22,7 @@ from mindsdb_server.api.http.namespaces.entitites.predictor_metadata import (
 from mindsdb_server.api.http.namespaces.entitites.predictor_status import predictor_status
 from mindsdb_server.api.http.shared_ressources import get_shared
 from mindsdb_server.interfaces.datastore.datastore import DataStore
-
+from mindsdb_server.interfaces.native.native import get_models
 
 app, api = get_shared()
 global_mdb = mindsdb.Predictor(name='metapredictor')
@@ -71,7 +71,7 @@ class PredictorList(Resource):
     def get(self):
         global global_mdb
         '''List all predictors'''
-        models = global_mdb.get_models()
+        models = get_models()
         good_modles = []
 
         for model in models:
@@ -282,7 +282,7 @@ class PredictorPredictFromDataSource(Resource):
         data = request.json
 
         from_data = default_store.get_datasource_obj(data.get('data_source_name'))
-        
+
         try:
             format_flag = data.get('format_flag')
         except:

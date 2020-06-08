@@ -1,8 +1,9 @@
-import mindsdb
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
 import pandas
 import ray
+import mindsdb
 
+from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
+from mindsdb_server.interfaces.native.native import get_models
 
 @ray.remote
 class MindsDBDataSource(DataSource):
@@ -14,7 +15,7 @@ class MindsDBDataSource(DataSource):
         self.global_mdb = mindsdb.Predictor(name='metapredictor')
 
     def getTables(self):
-        models = self.global_mdb.get_models()
+        models = get_models()
         models = [x['name'] for x in models if x['status'] == 'complete']
         return models
 
