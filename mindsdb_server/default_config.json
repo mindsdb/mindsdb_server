@@ -1,6 +1,6 @@
 {
     "config_version": 1,
-    "python_interpreter": "/home/maxs/dev/mdb/venv/bin/python",
+    "python_interpreter": "/usr/bin/python3",
     "mysql": {
         "port": 3306,
         "host": "localhost",
