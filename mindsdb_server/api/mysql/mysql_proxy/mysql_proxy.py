@@ -68,9 +68,9 @@ connection_id = 0
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-HARDCODED_USER = config['mysql']['user']
-HARDCODED_PASSWORD = config['mysql']['password']
-CERT_PATH = config['mysql']['certificate_path']
+HARDCODED_USER = config['api']['mysql']['user']
+HARDCODED_PASSWORD = config['api']['mysql']['password']
+CERT_PATH = config['api']['mysql']['certificate_path']
 
 
 class MysqlProxy(SocketServer.BaseRequestHandler):
@@ -689,8 +689,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         """
         init_logger()
 
-        host = config['mysql']['host']
-        port = config['mysql']['port']
+        host = config['api']['mysql']['host']
+        port = config['api']['mysql']['port']
 
         log.info(f'Starting MindsDB Mysql proxy server on tcp://{host}:{port}')
 

@@ -6,7 +6,7 @@ from mindsdb_server.api.mysql.mysql_proxy.datasources.csv_datasource import CSVD
 from mindsdb_server.utilities.config import read as read_config
 
 config = read_config()
-all_ds = config['mysql'].get('datasources', [])
+all_ds = config['api']['mysql'].get('datasources', [])
 
 datasources = InformationSchema()
 
