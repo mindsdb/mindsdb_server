@@ -4,7 +4,7 @@
     "mysql": {
         "port": 3306,
         "host": "localhost",
-        "user": "root",
+        "user": "mindsdb",
         "password": "mindsdb",
         "certificate_path": "cert.pem",
         "log": {
@@ -13,6 +13,7 @@
             "file": "mysql.log",
             "file_level": "INFO",
             "console_level": "INFO"
-        }
+        },
+        "datasources": []
     }
 }

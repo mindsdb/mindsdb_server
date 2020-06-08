@@ -13,8 +13,39 @@
 import random
 import socketserver as SocketServer
 import ssl
+import re
+import traceback
 
+from moz_sql_parser import parse
+
+import ray
+ray.init()
+
+from mindsdb_server.utilities.config import read as read_config
 from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packet import Packet
+from mindsdb_server.api.mysql.mysql_proxy.controllers.session_controller import SessionController
+from mindsdb_server.api.mysql.mysql_proxy.controllers.log import init_logger, log
+from mindsdb_server.api.mysql.mysql_proxy.datasources.datasources import datasources
+from mindsdb_server.api.mysql.mysql_proxy.classes.client_capabilities import ClentCapabilities
+
+from mindsdb_server.api.mysql.mysql_proxy.classes.sql_query import (
+    SQLQuery,
+    TableWithoutDatasourceException,
+    UndefinedColumnTableException,
+    DuplicateTableNameException,
+    NotImplementedError,
+    SqlError
+)
+
+from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import (
+    getConstName,
+    CHARSET_NUMBERS,
+    ERR,
+    COMMANDS,
+    TYPES,
+    SERVER_VARIABLES
+)
+
 from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packets import (
     ErrPacket,
     HandshakePacket,
@@ -30,44 +61,8 @@ from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packets import (
     ResultsetRowPacket,
     EofPacket
 )
-from mindsdb_server.api.mysql.mysql_proxy.controllers.session_controller import SessionController
-from mindsdb_server.api.mysql.mysql_proxy.controllers.log import init_logger, log
-from mindsdb_server.api.mysql.mysql_proxy.datasources.fake_datasource import FakeDataSource
-from mindsdb_server.api.mysql.mysql_proxy.datasources.mongo_datasource import MongoDataSource
-from mindsdb_server.api.mysql.mysql_proxy.datasources.csv_datasource import CSVDataSource
-from mindsdb_server.api.mysql.mysql_proxy.datasources.mindsdb_datasource import MindsDBDataSource
-from mindsdb_server.api.mysql.mysql_proxy.datasources import Datasources
-from mindsdb_server.api.mysql.mysql_proxy.datasources.ray_datasource_wrapper import RayDataSourceWrapper
-import re
 
-from mindsdb_server.api.mysql.mysql_proxy.classes.sql_query import (
-    SQLQuery,
-    TableWithoutDatasourceException,
-    UndefinedColumnTableException,
-    DuplicateTableNameException,
-    NotImplementedError,
-    SqlError
-)
-
-from mindsdb_server.api.mysql.mysql_proxy.classes.client_capabilities import ClentCapabilities
-
-from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import (
-    getConstName,
-    CHARSET_NUMBERS,
-    ERR,
-    COMMANDS,
-    TYPES,
-    SERVER_VARIABLES
-)
-
-from moz_sql_parser import parse
-import traceback
-import ray
-
-from mindsdb_server.utilities.config import read as read_config
 config = read_config()
-
-ray.init()
 
 connection_id = 0
 
@@ -76,33 +71,6 @@ ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 HARDCODED_USER = config['mysql']['user']
 HARDCODED_PASSWORD = config['mysql']['password']
 CERT_PATH = config['mysql']['certificate_path']
-
-globalDataSources = Datasources(
-    dict(
-        ds1=FakeDataSource({
-            'rabits': ['id', 'speed'],
-            'turtles': ['id', 'speed']
-        }),
-        ds2=FakeDataSource({
-            'horses': ['id', 'weight', 'speed'],
-            'camels': ['id', 'weight', 'speed'],
-            'rabits': ['id', 'weight', 'speed'],
-        }),
-        mongo_ds=RayDataSourceWrapper(
-            MongoDataSource.remote('localhost', 27017, 'devtest1')
-        ),
-        csv_ds=RayDataSourceWrapper(
-            CSVDataSource.remote([{
-                'name': 'home_rentals',
-                'path': 'home_rentals.csv'
-            }, {
-                'name': 'part',
-                'path': 'part.csv'
-            }])
-        ),
-        minds=RayDataSourceWrapper(MindsDBDataSource.remote())
-    )
-)
 
 
 class MysqlProxy(SocketServer.BaseRequestHandler):
@@ -586,9 +554,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def selectAnswer(self, query):
-        global globalDataSources
         try:
-            query.fetch(globalDataSources)
+            query.fetch(datasources)
         except (TableWithoutDatasourceException,
                 UndefinedColumnTableException,
                 DuplicateTableNameException,
