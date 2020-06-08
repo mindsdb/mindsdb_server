@@ -13,7 +13,6 @@ from flask import request, send_file
 from flask_restx import Resource, abort
 
 from mindsdb_server.api.http.namespaces.configs.predictors import ns_conf
-from mindsdb_server.api.http.namespaces.datasource import get_datasource
 from mindsdb_server.api.http.namespaces.entitites.predictor_metadata import (
     predictor_metadata,
     predictor_query_params,
@@ -22,10 +21,13 @@ from mindsdb_server.api.http.namespaces.entitites.predictor_metadata import (
 )
 from mindsdb_server.api.http.namespaces.entitites.predictor_status import predictor_status
 from mindsdb_server.api.http.shared_ressources import get_shared
+from mindsdb_server.interfaces.datastore.datastore import DataStore
+
 
 app, api = get_shared()
 global_mdb = mindsdb.Predictor(name='metapredictor')
 model_swapping_map = {}
+default_store = DataStore('/home/george/fucking_around/store')
 
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
@@ -64,7 +66,7 @@ def preparse_results(results, format_flag='explain'):
 
 def get_datasource_path(data_source_name):
     if data_source_name:
-        ds = get_datasource(data_source_name)
+        ds = default_store.get_datasource(data_source_name)
         if ds and ds['source']:
             if ds['source_type'] == 'url':
                 return ds['source']
