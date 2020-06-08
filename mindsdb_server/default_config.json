@@ -1,0 +1,19 @@
+{
+    "config_version": 1,
+    "python_interpreter": "/usr/bin/python3",
+    "mysql": {
+        "port": 3306,
+        "host": "localhost",
+        "user": "mindsdb",
+        "password": "mindsdb",
+        "certificate_path": "cert.pem",
+        "log": {
+            "format": "%(asctime)s - %(levelname)s - %(message)s",
+            "folder": "logs/",
+            "file": "mysql.log",
+            "file_level": "INFO",
+            "console_level": "INFO"
+        },
+        "datasources": []
+    }
+}

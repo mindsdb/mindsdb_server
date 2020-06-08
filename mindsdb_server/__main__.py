@@ -4,8 +4,9 @@ import argparse
 import importlib
 import atexit
 import time
-from mindsdb_server.utilities.loop import register
 from threading import Thread
+from mindsdb_server.utilities.loop import register
+from mindsdb_server.utilities.config import read as read_config
 
 
 def die_gracefully(proc_arr):
@@ -21,9 +22,8 @@ args = parser.parse_args()
 api_arr = args.api.split(',')
 
 # placeholder <-- move config getting to utils
-config = {
-    'python_interpreter': '/usr/bin/python3'
-}
+config = read_config(args.config)
+
 
 cdir = os.path.dirname(os.path.realpath(__file__))
 proc_arr = []
