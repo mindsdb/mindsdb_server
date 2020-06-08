@@ -51,7 +51,6 @@ from mindsdb_server.api.mysql.mysql_proxy.classes.sql_query import (
 
 from mindsdb_server.api.mysql.mysql_proxy.classes.client_capabilities import ClentCapabilities
 
-import mindsdb_server.api.mysql.mysql_proxy.config as CONFIG
 from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import (
     getConstName,
     CHARSET_NUMBERS,
@@ -65,14 +64,18 @@ from moz_sql_parser import parse
 import traceback
 import ray
 
+from mindsdb_server.utilities.config import read as read_config
+config = read_config()
+
 ray.init()
 
 connection_id = 0
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-HARDCODED_PASSWORD = 'test1'
-HARDCODED_USER = 'root'
+HARDCODED_USER = config['mysql']['user']
+HARDCODED_PASSWORD = config['mysql']['password']
+CERT_PATH = config['mysql']['certificate_path']
 
 globalDataSources = Datasources(
     dict(
@@ -186,7 +189,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             ssl_socket = ssl.wrap_socket(
                 self.socket,
                 server_side=True,
-                certfile=CONFIG.CERT_PATH,
+                certfile=CERT_PATH,
                 do_handshake_on_connect=True
             )
             self.socket = ssl_socket
@@ -718,11 +721,14 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         Create a server and wait for incoming connections until Ctrl-C
         """
         init_logger()
-        HOST, PORT = CONFIG.PROXY_SERVER_HOST, CONFIG.PROXY_SERVER_PORT
-        log.info('Starting MindsDB Mysql proxy server on tcp://{host}:{port}'.format(host=HOST, port=PORT))
+
+        host = config['mysql']['host']
+        port = config['mysql']['port']
+
+        log.info(f'Starting MindsDB Mysql proxy server on tcp://{host}:{port}')
 
         # Create the server
-        server = SocketServer.ThreadingTCPServer((HOST, PORT), MysqlProxy)
+        server = SocketServer.ThreadingTCPServer((host, port), MysqlProxy)
 
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
