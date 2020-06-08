@@ -35,7 +35,7 @@ from mindsdb_server.interfaces.datastore.datastore import DataStore
 
 app, api = get_shared()
 datasources = []
-default_store = DataStore('/home/george/fucking_around/store')
+default_store = DataStore('/home/george/fucking_around/store', {})
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):

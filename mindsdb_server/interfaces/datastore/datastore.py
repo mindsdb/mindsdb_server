@@ -6,16 +6,17 @@ import shutil
 import mindsdb
 
 from mindsdb_server.interfaces.datastore.sqlite_helpers import *
+from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 
 
 class DataStore():
 
-    def __init__(self, storage_dir):
+    def __init__(self, storage_dir, config):
         self.dir = storage_dir
-        self.mdb = mindsdb.Predictor(name=f'Datastore_{self.dir}_metapredictor')
+        self.mindsdb_native = MindsdbNative(config)
 
     def get_analysis(self, ds):
-        return self.mdb.analyse_dataset(source, sample_margin_of_error=0.025)
+        return self.mindsdb_native.analyse_dataset(ds)
 
     def get_datasources(self):
         datasource_arr = []

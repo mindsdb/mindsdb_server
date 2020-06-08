@@ -1,28 +1,53 @@
 # Mindsdb native interface
 import mindsdb
+import lightwood
+from multiprocessing import Process
 
 
 class MindsdbNative():
     def __init__(self, config):
         self.config = config
+        self.metapredictor = Predictor.name('metapredictor')
 
-    def train():
-        pass
+    def _learn(name, from_data, to_predict, kwargs):
+        '''
+        running at subprocess due to
+        ValueError: signal only works in main thread
 
-    def predict():
-        pass
+        this is work for celery worker here?
+        '''
+        mdb = mindsdb.Predictor(name=name)
+        if sys.platform not in ['win32','cygwin','windows']:
+            lightwood.config.config.CONFIG.HELPER_MIXERS = True
 
-    def analyze():
-        metapredictor = Predictor.name('metapredictor')
-        pass
+        mdb.learn(
+            from_data=from_data,
+            to_predict=to_predict,
+            **kwargs
+        )
 
-    def get_model_data():
-        metapredictor = Predictor.name('metapredictor')
-        pass
+    def learn(self, name, from_data, to_predict, kwargs):
+        p = Process(target=_learn, args=(name, from_data, to_predict, kwargs))
+        p.start()
+
+    def predict(self, name, when=None, when_data=None, kwargs={}):
+        mdb = mindsdb.Predictor(name=name)
+
+        if when is not None:
+            predictions = mdb.predict(when=when, run_confidence_variation_analysis=True, **kwargs)
+        else:
+            predictions = mdb.predict(when_data=when_data, run_confidence_variation_analysis=True, **kwargs)
+
+        return predictions
+
+    def analyse_dataset(self,ds):
+        return self.metapredictor.analyse_dataset(ds, sample_margin_of_error=0.025)
+
+    def get_model_data(self, name):
+        return self.metapredictor.get_model_data(name)
 
     def get_models(status='any'):
-        metapredictor = Predictor.name('metapredictor')
-        models = metapredictor.get_models()
+        models = self.metapredictor.get_models()
         models = [x for x in models if x['name'] != 'metapredictor']
         if status != 'any':
             models = [x for x in models if x['status'] == status]
@@ -35,3 +60,15 @@ class MindsdbNative():
                     except Exception as e:
                         models[i][k] = parse_datetime(str(models[i][k]))
         return models
+
+    def delete_model(self,name):
+        self.metapredictor.delete_model(name)
+
+    def rename_model(self, name, new_name):
+        self.metapredictor.rename_model(name, new_name)
+
+    def load_model(self, fpath):
+        self.metapredictor.load_model(model_archive_path=fpath)
+
+    def export_model(self,name):
+        self.metapredictor.export_model(model_name=name)
