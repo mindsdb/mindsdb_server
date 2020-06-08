@@ -1,17 +1,24 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from mindsdb_server.api.mysql.mysql_proxy.config import PROXY_LOG_CONFIG as config
+from mindsdb_server.utilities.config import read as read_config
 
 def init_logger(nolog=False):
-    if not os.path.exists('./logs'):
-        os.makedirs('./logs')
+    config = read_config()
+    config = config['mysql']['log']
 
-    logger = logging.getLogger('app')
-    logger.setLevel(min(config['console_level'], config['file_level']))
+    if not os.path.exists(config['folder']):
+        os.makedirs(config['folder'])
+
+    logger = logging.getLogger('mindsdb_sql')
+
+    logger.setLevel(min(
+        getattr(logging, config['file_level']),
+        getattr(logging, config['console_level'])
+    ))
 
     fh = RotatingFileHandler(
-        os.path.join('logs', config['filename']),
+        os.path.join(config['folder'], config['file']),
         mode='a',
         encoding=config.get('encoding', 'utf-8'),
         maxBytes=100*1024,
@@ -32,4 +39,4 @@ def init_logger(nolog=False):
     logger.addHandler(fh)
     logger.addHandler(ch)
 
-log = logging.getLogger('app')
+log = logging.getLogger('mindsdb_sql')
