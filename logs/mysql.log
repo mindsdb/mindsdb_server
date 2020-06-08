@@ -1,0 +1,25 @@
+2020-06-08 16:50:26,949 - INFO - Starting MindsDB Mysql proxy server on tcp://localhost:3306
+2020-06-08 16:59:29,098 - INFO - Starting MindsDB Mysql proxy server on tcp://localhost:3306
+2020-06-08 17:00:03,213 - INFO - Starting MindsDB Mysql proxy server on tcp://localhost:3306
+2020-06-08 17:00:34,749 - INFO - Starting MindsDB Mysql proxy server on tcp://localhost:3306
+2020-06-08 17:00:34,750 - INFO - Waiting for incoming connections...
+2020-06-08 17:01:11,620 - INFO - handle new incoming connection
+2020-06-08 17:01:11,621 - INFO - New connection [127.0.0.1:48042]
+2020-06-08 17:01:11,622 - INFO - send HandshakePacket
+2020-06-08 17:01:11,623 - INFO - Sending packet: HandshakePacket
+2020-06-08 17:01:11,623 - INFO - Get packet: HandshakeResponsePacket
+2020-06-08 17:01:11,623 - INFO - Got packet
+2020-06-08 17:01:11,623 - INFO - b'\x05\xa6\xff\x01\x00\x00\x00\x01\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00root\x00 \x11\x00m\xb5\xee\xcb\x93\x98|k\xa8\xeb\x8e3\x841\x08|\r7\xdb\xc4\x1b\x82\xc7\xf8\x1f\xe2\x06\x813\xfecaching_sha2_password\x00u\x04_pid\x0520510\t_platform\x06x86_64\x03_os\x05Linux\x0c_client_name\x08libmysql\x07os_user\x06george\x0f_client_version\x068.0.20\x0cprogram_name\x05mysql'
+2020-06-08 17:01:11,624 - INFO - connected without SSL, unknown method, try switch to mysql_native_password
+2020-06-08 17:01:11,625 - INFO - Sending packet: SwitchOutPacket
+2020-06-08 17:01:11,625 - INFO - Get packet: SwitchOutResponse
+2020-06-08 17:01:11,625 - INFO - Got packet
+2020-06-08 17:01:11,626 - INFO - b'Y\xffhU\xeb\xc6\xb5\xb87\xde\x10\x95\xfb({^\xd5\xa9\x0ci'
+2020-06-08 17:01:11,626 - INFO - check auth, user=root
+2020-06-08 17:01:11,626 - WARNING - check auth: user mismatch
+2020-06-08 17:01:11,626 - INFO - Sending packet: ErrPacket
+2020-06-08 17:01:11,627 - WARNING - AUTH FAIL
+2020-06-08 17:02:27,995 - INFO - Starting MindsDB Mysql proxy server on tcp://localhost:3306
+2020-06-08 17:04:08,592 - INFO - Starting MindsDB Mysql proxy server on tcp://localhost:3306
+2020-06-08 17:05:14,547 - INFO - Starting MindsDB Mysql proxy server on tcp://localhost:3306
+2020-06-08 17:05:14,548 - INFO - Waiting for incoming connections...

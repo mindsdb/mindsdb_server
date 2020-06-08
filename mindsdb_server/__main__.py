@@ -14,7 +14,7 @@ def die_gracefully(proc_arr):
         p.kill()
 
 parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
-parser.add_argument('--api', type=str, default='http') # alternative when mysql api is ready: default='http,mysql'
+parser.add_argument('--api', type=str, default='http,mysql') # alternative when mysql api is ready: default='http,mysql'
 parser.add_argument('--config', type=str, default='/etc/mindsdb/config.json')
 
 args = parser.parse_args()
