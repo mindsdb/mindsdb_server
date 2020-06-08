@@ -71,23 +71,8 @@ class PredictorList(Resource):
     def get(self):
         global global_mdb
         '''List all predictors'''
-        models = get_models()
-        good_modles = []
 
-        for model in models:
-            # model['data_source'] = model['data_source'].split('/')[-1]
-            for k in ['train_end_at', 'updated_at', 'created_at']:
-                if k in model and model[k] is not None:
-                    try:
-                        model[k] = parse_datetime(str(model[k]).split('.')[0])
-                    except Exception as e:
-                        model[k] = parse_datetime(str(model[k]))
-
-            if 'name' in model:
-                if 'metapredictor' not in model['name']:
-                    good_modles.append(model)
-
-        return good_modles
+        return get_models()
 
 
 @ns_conf.route('/<name>')

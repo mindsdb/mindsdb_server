@@ -14,14 +14,9 @@ class MindsDBDataSource(DataSource):
     def __init__(self):
         self.global_mdb = mindsdb.Predictor(name='metapredictor')
 
-    def getTables(self):
-        models = get_models()
-        models = [x['name'] for x in models if x['status'] == 'complete']
-        return models
-
     def hasTable(self, table):
         # in this context - table is predictor
-        models = self.getTables()
+        models = [x['name'] for x in get_models(status='complete')]
         return table in models
 
     def getTableColumns(self, table):
