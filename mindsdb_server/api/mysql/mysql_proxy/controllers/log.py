@@ -5,7 +5,7 @@ from mindsdb_server.utilities.config import read as read_config
 
 def init_logger(nolog=False):
     config = read_config()
-    config = config['mysql']['log']
+    config = config['api']['mysql']['log']
 
     if not os.path.exists(config['folder']):
         os.makedirs(config['folder'])
