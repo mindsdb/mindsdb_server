@@ -78,6 +78,9 @@ class DataStore():
         df_with_types = cast_df_columns_types(df, get_analysis(df)['data_analysis_v2'])
         create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
+        with open(os.path.join(ds_dir,'ds.pickle'), 'w') as fp:
+            pickle.dump(ds, fp)
+
         with open(os.path.join(ds_dir,'metadata.json'), 'w') as fp:
             json.dump({
                 'name': name,
@@ -88,3 +91,12 @@ class DataStore():
                 'row_count': len(df),
                 'columns': [dict(name=x) for x in list(df.keys())]
             }, fp)
+
+    def get_datasource_obj(self, name):
+        ds_dir = os.path.join(ds_meta_dir, 'datasource')
+        try:
+            with open(os.path.join(ds_dir,'ds.pickle'), 'w') as fp:
+                ds = pickle.load(fp)
+            return ds
+        except Exception as e:
+            return None

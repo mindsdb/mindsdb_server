@@ -24,13 +24,15 @@ api_arr = args.api.split(',')
 # placeholder <-- move config getting to utils
 config = read_config(args.config)
 
+
 cdir = os.path.dirname(os.path.realpath(__file__))
 proc_arr = []
 
-
+supported_apis = ['http','mysql']
 for api in api_arr:
+    if api not in supported_apis:
+        raise Exception(f'The {api} is not part of the supported apis: {supported_apis}')
     try:
-
         import random
         freq = random.randint(1,10)
         register(freq, print,('The controller has launched me as a peridoic process.', f'I run every {freq} seconds and am completely useless'))
@@ -94,7 +96,6 @@ if 'STOP' not in txt:
         try:
             start = importlib.import_module(f'mindsdb_server.api.{api}.start')
             p = Process(target=start.start)
-            p.daemon = True
             p.start()
             p_arr.append(p)
             print(f'Started Mindsdb {api} API ! <clap, clap, clap>')
