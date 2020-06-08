@@ -9,15 +9,16 @@ from mindsdb_server.interfaces.native.native import get_models
 class MindsDBDataSource(DataSource):
     type = 'mindsdb'
 
-    global_mdb = None
-
     def __init__(self):
-        self.global_mdb = mindsdb.Predictor(name='metapredictor')
+        self.mindsdb_native = MindsdbNative({})
+
+    def getTables(self):
+        models = self.mindsdb_native.get_models()
+        models = [x['name'] for x in models if x['status'] == 'complete']
+        return models
 
     def hasTable(self, table):
-        # in this context - table is predictor
-        models = [x['name'] for x in get_models(status='complete')]
-        return table in models
+        return table in getTables()
 
     def getTableColumns(self, table):
         model = mindsdb.Predictor(name=table).get_model_data()

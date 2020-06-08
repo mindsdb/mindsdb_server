@@ -22,13 +22,12 @@ from mindsdb_server.api.http.namespaces.entitites.predictor_metadata import (
 from mindsdb_server.api.http.namespaces.entitites.predictor_status import predictor_status
 from mindsdb_server.api.http.shared_ressources import get_shared
 from mindsdb_server.interfaces.datastore.datastore import DataStore
-from mindsdb_server.interfaces.native.native import get_models
+from mindsdb_server.interfaces.native.native import MindsdbNative
 
 app, api = get_shared()
-global_mdb = mindsdb.Predictor(name='metapredictor')
 model_swapping_map = {}
 default_store = DataStore('/home/george/fucking_around/store')
-
+mindsdb_native = MindsdbNative({})
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -69,10 +68,10 @@ class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
     @ns_conf.marshal_list_with(predictor_status, skip_none=True)
     def get(self):
-        global global_mdb
+        global mindsdb_native
         '''List all predictors'''
 
-        return get_models()
+        return mindsdb_native.get_models()
 
 
 @ns_conf.route('/<name>')
