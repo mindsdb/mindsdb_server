@@ -64,17 +64,6 @@ def preparse_results(results, format_flag='explain'):
         abort(400, "")
 
 
-def get_datasource_path(data_source_name):
-    if data_source_name:
-        ds = default_store.get_datasource(data_source_name)
-        if ds and ds['source']:
-            if ds['source_type'] == 'url':
-                return ds['source']
-            if ds['source_type'] == 'file':
-                return os.path.normpath(os.path.abspath(ds['source']))
-    return None
-
-
 @ns_conf.route('/')
 class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
@@ -179,15 +168,8 @@ class Predictor(Resource):
         except:
             retrain = None
 
-        from_data = get_datasource_path(data.get('data_source_name'))
-        if from_data is None:
-            from_data = data.get('from_data')
-        if from_data is None:
-            print('No valid datasource given')
-            abort(400, 'No valid datasource given')
-
-        if name is None or to_predict is None:
-            abort(400, "name, to_predict are required")
+        name = data.get('data_source_name') if data.get('data_source_name') is not None else data.get('from_data')
+        from_data = default_store.get_datasource_obj(name)
 
         if retrain is True:
             original_name = name
@@ -226,23 +208,6 @@ class Predictor(Resource):
                 model_swapping_map[original_name] = False
 
         return '', 200
-
-@ns_conf.route('/<name>/analyse_dataset')
-@ns_conf.param('name', 'The predictor identifier')
-class AnalyseDataset(Resource):
-    @ns_conf.doc('analyse_dataset')
-    def get(self, name):
-        from_data = get_datasource_path(request.args.get('data_source_name'))
-        if from_data is None:
-            from_data = request.args.get('from_data')
-        if from_data is None:
-            print('No valid datasource given')
-            return 'No valid datasource given', 400
-
-        analysis = global_mdb.analyse_dataset(from_data, sample_margin_of_error=0.025)
-
-        return analysis, 200
-
 
 
 @ns_conf.route('/<name>/columns')
@@ -316,7 +281,8 @@ class PredictorPredictFromDataSource(Resource):
 
         data = request.json
 
-        from_data = get_datasource_path(data.get('data_source_name'))
+        from_data = default_store.get_datasource_obj(data.get('data_source_name'))
+        
         try:
             format_flag = data.get('format_flag')
         except:
