@@ -18,9 +18,6 @@ import traceback
 
 from moz_sql_parser import parse
 
-import ray
-ray.init()
-
 from mindsdb_server.utilities import config
 from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packet import Packet
 from mindsdb_server.api.mysql.mysql_proxy.controllers.session_controller import SessionController
