@@ -21,11 +21,12 @@ from mindsdb_server.api.http.namespaces.entitites.predictor_status import predic
 from mindsdb_server.api.http.shared_ressources import get_shared
 from mindsdb_server.interfaces.datastore.datastore import DataStore
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
+from mindsdb_server.utilities import config
 
 app, api = get_shared()
 model_swapping_map = {}
-default_store = DataStore('/home/george/fucking_around/store', {})
-mindsdb_native = MindsdbNative({})
+default_store = DataStore('/home/george/fucking_around/store', config)
+mindsdb_native = MindsdbNative(config)
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:

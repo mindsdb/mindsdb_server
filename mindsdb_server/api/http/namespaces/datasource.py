@@ -31,10 +31,11 @@ from mindsdb_server.api.http.namespaces.entitites.datasources.datasource_missed_
 )
 from mindsdb_server.api.http.shared_ressources import get_shared
 from mindsdb_server.interfaces.datastore.datastore import DataStore
+from mindsdb_server.utilities import config
 
 app, api = get_shared()
 datasources = []
-default_store = DataStore('/home/george/fucking_around/store', {})
+default_store = DataStore('/home/george/fucking_around/store', config)
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
