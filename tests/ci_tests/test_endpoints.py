@@ -5,7 +5,8 @@ from mindsdb_server import __main__
 class PredictorTest(unittest.TestCase):
 
     def setUp(self):
-        __main__()
+        pass
+        #__main__()
 
     def test_predictors(self):
         """
@@ -51,7 +52,8 @@ class PredictorTest(unittest.TestCase):
 class DatasourceTest(unittest.TestCase):
 
     def setUp(self):
-        __main__()
+        pass
+        #__main__()
 
     def test_datasources(self):
         """
@@ -73,7 +75,8 @@ class DatasourceTest(unittest.TestCase):
 class UtilTest(unittest.TestCase):
 
     def setUp(self):
-        __main__()
+        pass
+        #__main__()
 
     def test_ping(self):
         """

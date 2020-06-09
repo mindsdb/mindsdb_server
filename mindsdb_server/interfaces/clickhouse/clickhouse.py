@@ -10,7 +10,7 @@ class Clickhouse():
         self.user = config['interface']['clickhouse']['user']
         self.password = config['interface']['clickhouse']['password']
 
-        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
+        self.setup_clickhouse()
 
 
     def _to_clickhouse_table(self, stats):
@@ -51,7 +51,9 @@ class Clickhouse():
 
         return response
 
-    def create_predictors_table(self):
+    def setup_clickhouse(self):
+        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
+
         msqyl_conn =  self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
         msqyl_user =  self.config['api']['mysql']['user']
         msqyl_pass =  self.config['api']['mysql']['password']
@@ -66,6 +68,7 @@ class Clickhouse():
         """
         print(f'Executing table creation query to create predictors list:\n{q}\n')
         self._query(q)
+
 
 
     def register_predictor(self, name, stats):
