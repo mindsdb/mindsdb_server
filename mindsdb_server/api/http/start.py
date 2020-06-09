@@ -1,3 +1,4 @@
+from mindsdb_server.utilities.config import config
 from mindsdb_server.api.http.namespaces.predictor import ns_conf as predictor_ns
 from mindsdb_server.api.http.namespaces.datasource import ns_conf as datasource_ns
 from mindsdb_server.api.http.namespaces.util import ns_conf as utils_ns
@@ -10,6 +11,11 @@ import sys
 import random
 
 def start():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, default='/etc/mindsdb/config.json')
+    args = parser.parse_args()
+    config.merge(args.config)
+
     port=47334
     host='0.0.0.0'
     debug=True

@@ -6,7 +6,7 @@ import atexit
 import time
 from threading import Thread
 from mindsdb_server.utilities.loop import register
-from mindsdb_server.utilities.config import read as read_config
+from mindsdb_server.utilities import config
 
 
 def die_gracefully(proc_arr):
@@ -22,7 +22,7 @@ args = parser.parse_args()
 api_arr = args.api.split(',')
 
 # placeholder <-- move config getting to utils
-config = read_config(args.config)
+config.merge(args.config)
 
 
 cdir = os.path.dirname(os.path.realpath(__file__))
@@ -37,7 +37,7 @@ for api in api_arr:
         freq = random.randint(1,10)
         register(freq, print,('The controller has launched me as a peridoic process.', f'I run every {freq} seconds and am completely useless'))
 
-        p = subprocess.Popen([config['python_interpreter'], f'{cdir}/api/{api}/start.py'])
+        p = subprocess.Popen([config['python_interpreter'], f'{cdir}/api/{api}/start.py', f'--config={args.config}'])
         print(f'Started Mindsdb {api} API!')
         proc_arr.append(p)
     except Exception as e:

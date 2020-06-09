@@ -3,9 +3,8 @@ from mindsdb_server.api.mysql.mysql_proxy.datasources.information_schema import 
 from mindsdb_server.api.mysql.mysql_proxy.datasources.mindsdb_datasource import MindsDBDataSource
 from mindsdb_server.api.mysql.mysql_proxy.datasources.mongo_datasource import MongoDataSource
 from mindsdb_server.api.mysql.mysql_proxy.datasources.csv_datasource import CSVDataSource
-from mindsdb_server.utilities.config import read as read_config
+from mindsdb_server.utilities import config
 
-config = read_config()
 all_ds = config['api']['mysql'].get('datasources', [])
 
 datasources = InformationSchema()
