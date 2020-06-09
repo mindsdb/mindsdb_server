@@ -12,7 +12,6 @@ from dateutil.parser import parse
 from flask import request, send_file
 from flask_restx import Resource, abort
 from mindsdb import FileDS
-from mindsdb.libs.constants.mindsdb import DATA_TYPES, DATA_SUBTYPES
 
 from mindsdb_server.api.http.namespaces.configs.datasources import ns_conf
 from mindsdb_server.api.http.namespaces.entitites.datasources.datasource import (

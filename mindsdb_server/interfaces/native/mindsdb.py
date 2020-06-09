@@ -8,6 +8,14 @@ class MindsdbNative():
     def __init__(self, config):
         self.config = config
         self.metapredictor = mindsdb.Predictor('metapredictor')
+        self.register_to = []
+
+        try:
+            assert(config['interface']['clickhouse']['enabled'] == True)
+            from mindsdb_server.interfaces.interfaces import Clickhouse
+            self.register_to.append(Clickhouse(self.config))
+        except:
+            pass
 
     def _learn(name, from_data, to_predict, kwargs):
         '''
@@ -25,6 +33,12 @@ class MindsdbNative():
             to_predict=to_predict,
             **kwargs
         )
+
+        stats = mdb.get_model_data()['data_analysis_v2']
+        for entity in self.register_to:
+            register_func = getattr(entity,register_predictor)
+            register_func(name, stats)
+
 
     def learn(self, name, from_data, to_predict, kwargs):
         p = Process(target=_learn, args=(name, from_data, to_predict, kwargs))
