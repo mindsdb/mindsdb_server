@@ -28,6 +28,9 @@ class Config(object):
                 config = json.load(fp)
             self._update_recursive(self._config, config)
 
+    def special(self):
+        self._config['SPECIAL KEY'] = '!!!!!!!!!!!1'
+
     def __getitem__(self, key):
         return self._config[key]
 

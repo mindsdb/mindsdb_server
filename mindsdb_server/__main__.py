@@ -20,6 +20,7 @@ parser.add_argument('--config', type=str, default='/etc/mindsdb/config.json')
 
 args = parser.parse_args()
 config.merge(args.config)
+config.special()
 api_arr = args.api.split(',')
 pool = Pool(processes=len(api_arr))
 
