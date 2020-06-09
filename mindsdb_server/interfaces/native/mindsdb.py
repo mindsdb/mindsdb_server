@@ -2,6 +2,7 @@
 import mindsdb
 import lightwood
 from multiprocessing import Process
+from dateutil.parser import parse as parse_datetime
 
 
 class MindsdbNative():
