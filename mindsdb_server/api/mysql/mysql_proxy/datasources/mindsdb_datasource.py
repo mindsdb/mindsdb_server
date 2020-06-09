@@ -5,7 +5,7 @@ import mindsdb
 from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 
-@ray.remote
+
 class MindsDBDataSource(DataSource):
     type = 'mindsdb'
 

@@ -1,9 +1,7 @@
 from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
 import pandas
-import ray
 
 
-@ray.remote
 class CSVDataSource(DataSource):
     type = 'csv'
 
