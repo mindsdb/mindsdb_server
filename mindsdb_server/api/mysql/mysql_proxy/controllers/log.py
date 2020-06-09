@@ -1,11 +1,10 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from mindsdb_server.utilities.config import read as read_config
+from mindsdb_server.utilities import config as global_config
 
 def init_logger(nolog=False):
-    config = read_config()
-    config = config['api']['mysql']['log']
+    config = global_config['api']['mysql']['log']
 
     if not os.path.exists(config['folder']):
         os.makedirs(config['folder'])

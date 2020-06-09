@@ -5,7 +5,7 @@ import mindsdb
 from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 
-@ray.remote
+
 class MindsDBDataSource(DataSource):
     type = 'mindsdb'
 
@@ -18,7 +18,7 @@ class MindsDBDataSource(DataSource):
         return models
 
     def hasTable(self, table):
-        return table in getTables()
+        return table in self.getTables()
 
     def getTableColumns(self, table):
         model = mindsdb.Predictor(name=table).get_model_data()

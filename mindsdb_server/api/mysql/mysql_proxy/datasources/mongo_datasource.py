@@ -1,10 +1,8 @@
 from pymongo import MongoClient
 from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
 from bson.objectid import ObjectId
-import ray
 
 
-@ray.remote
 class MongoDataSource(DataSource):
     type = 'mongo'
 
