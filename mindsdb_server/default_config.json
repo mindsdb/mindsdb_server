@@ -16,6 +16,19 @@
                 "console_level": "INFO"
             },
             "datasources": []
+        },
+        "http": {
+          "port": 47334
+          ,"host": "0.0.0.0"
         }
+    }
+    ,"interface":{
+      "clickhouse": {
+          "enabled": "False"
+          ,"host": "localhost"
+          ,"port": 8123
+          ,"user": "default"
+          ,"password": null
+      }
     }
 }
