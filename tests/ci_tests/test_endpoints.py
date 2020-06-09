@@ -1,12 +1,81 @@
+import subprocess
 import unittest
-from mindsdb_server import __main__
-
+import requests
+import time
+import MySQLdb
+from mindsdb_server.utilities.config import read
 
 class PredictorTest(unittest.TestCase):
 
     def setUp(self):
         pass
-        #__main__()
+
+    def test_put_ds_put_pred(self):
+        CONFIG = read('./clickhouse_test_config.json')
+
+        PRED_NAME = 'test_predictor_name'
+        DS_NAME = 'test_ds_name'
+        DS_URL = 'https://raw.githubusercontent.com/mindsdb/mindsdb-examples/master/benchmarks/pulsar_stars/dataset/train.csv'
+
+        # PUT datasource
+        params = {
+            'name': DS_NAME,
+            'source_type': 'url',
+            'source': DS_URL
+        }
+        url = 'http://{}:{}/datasources/put_datasource'.format('localhost', CONFIG['api']['http']['port'])
+        res = requests.put(url, params=params)
+        assert res.status_code == 200
+
+        # PUT predictor
+        params = {
+            'name': PRED_NAME,
+            'data_source_name': DS_NAME,
+            'to_predict': 'target_class'
+        }
+        url = 'http://{}:{}/predictors/put_predictor'.format('localhost', CONFIG['api']['http']['port'])
+        res = requests.put(url, params=params)
+        assert res.status_code == 200
+
+        # MySQL interface: check if table for the predictor exists
+        DBNAME = 'mysql'
+
+        con = MySQLdb.connect(
+            host=CONFIG['api']['mysql']['host'],
+            user=CONFIG['api']['mysql']['user'],
+            passwd=CONFIG['api']['mysql']['password'],
+            db=DBNAME
+        )
+
+        cur = con.cursor()
+        cur.execute("SELECT * FROM information_schema.tables WHERE table_schema = '{}' AND table_name = '{}' LIMIT 1;".format(DBNAME, PRED_NAME))
+        assert cur.fetchall() == 1
+
+        # HTTP clickhouse interface: try to make a prediction
+        where = {
+            'Mean_integrated': 140.5625,
+            'Standard_integrated': 55.68378214,
+            'Excess_kurtosis': -0.23457141199999998,
+            'Skewness': -0.699648398,
+            'Mean_DM-SNR': 3.199832776,
+            'Standard_DM-SNR': 19.11042633,
+            'kurtosis_DM-SNR': 7.975531794,
+            'Skewness_DM-SNR': 74.24222492
+        }
+
+        query = "SELECT target_class FROM {} WHERE {} FORMAT JSON".format(
+            PRED_NAME,
+            'AND'.join('{} = {}'.format(k, v) for k, v in where.items())
+        )
+
+        res = requests.post('https://{}:{}'.format(
+            CONFIG['api']['clickhouse']['host'],
+            CONFIG['api']['clickhouse']['port']
+        ), data=query)
+        assert res.status_code == 200
+
+        data = res.json()['data']
+        assert 'target_class' in data and data['target_class'] is not None
 
     def test_predictors(self):
         """
@@ -53,7 +122,6 @@ class DatasourceTest(unittest.TestCase):
 
     def setUp(self):
         pass
-        #__main__()
 
     def test_datasources(self):
         """
@@ -76,7 +144,6 @@ class UtilTest(unittest.TestCase):
 
     def setUp(self):
         pass
-        #__main__()
 
     def test_ping(self):
         """
@@ -96,4 +163,23 @@ class UtilTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    config = read()
+
+    HOST = 'localhost'
+    PORT = 47334
+    sp = subprocess.Popen([config['python_interpreter'], '-m', 'mindsdb_server', '--api', 'http,mysql', '--config', './clickhouse_test_config.json'])
+
+    t_0 = time.time()
+    while True:
+        try:
+            res = requests.get('http://{}:{}/util/ping'.format(HOST, PORT), timeout=0.1)
+            res.raise_for_status()
+            unittest.main()
+            break
+        except requests.exceptions.ConnectionError:
+            if (time.time() - t_0) > 15:
+                print('Failed to connect to server')
+                break
+            time.sleep(1)
+
+    sp.terminate()
