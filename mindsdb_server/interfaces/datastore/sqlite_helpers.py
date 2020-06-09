@@ -1,4 +1,5 @@
 import sqlite3
+from mindsdb.libs.constants.mindsdb import DATA_TYPES, DATA_SUBTYPES
 
 
 def create_sqlite_db(path, data_frame):

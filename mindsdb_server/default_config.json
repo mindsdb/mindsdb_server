@@ -24,7 +24,7 @@
     }
     ,"interface":{
       "clickhouse": {
-          "enabled": "False"
+          "enabled": true
           ,"host": "localhost"
           ,"port": 8123
           ,"user": "default"
