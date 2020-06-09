@@ -54,13 +54,13 @@ class MindsdbNative():
 
         return predictions
 
-    def analyse_dataset(self,ds):
+    def analyse_dataset(self, ds):
         return self.metapredictor.analyse_dataset(ds, sample_margin_of_error=0.025)
 
     def get_model_data(self, name):
         return self.metapredictor.get_model_data(name)
 
-    def get_models(status='any'):
+    def get_models(self, status='any'):
         models = self.metapredictor.get_models()
         models = [x for x in models if x['name'] != 'metapredictor']
         if status != 'any':
@@ -75,7 +75,7 @@ class MindsdbNative():
                         models[i][k] = parse_datetime(str(models[i][k]))
         return models
 
-    def delete_model(self,name):
+    def delete_model(self, name):
         self.metapredictor.delete_model(name)
 
     def rename_model(self, name, new_name):
