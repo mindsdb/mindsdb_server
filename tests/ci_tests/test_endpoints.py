@@ -2,11 +2,8 @@ import subprocess
 import unittest
 import requests
 import time
-import sys
-import mindsdb_server
-from mindsdb_server.utilities.config import read
-
 import MySQLdb
+from mindsdb_server.utilities.config import read
 
 class PredictorTest(unittest.TestCase):
 
@@ -78,7 +75,7 @@ class PredictorTest(unittest.TestCase):
         assert res.status_code == 200
         
         data = res.json()['data']
-        assert 'target_class' in data['target_class'] is not None
+        assert 'target_class' in data and data['target_class'] is not None
 
     def test_predictors(self):
         """
