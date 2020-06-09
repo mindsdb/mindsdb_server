@@ -11,7 +11,6 @@ import mindsdb
 from dateutil.parser import parse
 from flask import request, send_file
 from flask_restx import Resource, abort
-from mindsdb import FileDS
 
 from mindsdb_server.api.http.namespaces.configs.datasources import ns_conf
 from mindsdb_server.api.http.namespaces.entitites.datasources.datasource import (
@@ -35,7 +34,7 @@ from mindsdb_server.utilities import config
 
 app, api = get_shared()
 datasources = []
-default_store = DataStore('/home/george/fucking_around/store', config)
+default_store = DataStore('/etc/mindsdb/store', config)
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
@@ -74,6 +73,7 @@ class Datasource(Resource):
         '''add new datasource'''
         data = {}
         def on_field(field):
+            print(f'\n\n{field}\n\n')
             name = field.field_name.decode()
             value = field.value.decode()
             data[name] = value
@@ -107,7 +107,7 @@ class Datasource(Resource):
         source = data['source'] if 'source' in data else name
         source_type = data['source_type']
 
-        if datasource_type == 'file':
+        if source_type == 'file':
             file_path = os.path.join(temp_dir_path, data['file'])
         else:
             file_path = None

@@ -2,11 +2,13 @@ import json
 import datetime
 from dateutil.parser import parse as parse_dt
 import shutil
+import os
 
 import mindsdb
 
 from mindsdb_server.interfaces.datastore.sqlite_helpers import *
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
+from mindsdb import FileDS
 
 
 class DataStore():
@@ -53,7 +55,7 @@ class DataStore():
             raise Exception('`file_path` argument required when source_type == "file"')
 
         for i in range(1, 1000):
-            if name in [x['name'] for x in get_datasources()]:
+            if name in [x['name'] for x in self.get_datasources()]:
                 previous_index = i - 1
                 name = name.replace(f'__{previous_index}__', '')
                 name = f'{name}__{i}__'
@@ -66,7 +68,7 @@ class DataStore():
         ds_dir = os.path.join(ds_meta_dir, 'datasource')
         os.mkdir(ds_dir)
 
-        if datasource_type == 'file':
+        if source_type == 'file':
             source = os.path.join(ds_dir, datasource_source)
             os.replace(file_path, source)
             ds = FileDS(source)
