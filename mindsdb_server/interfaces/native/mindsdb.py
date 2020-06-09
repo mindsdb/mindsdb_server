@@ -7,7 +7,7 @@ from multiprocessing import Process
 class MindsdbNative():
     def __init__(self, config):
         self.config = config
-        self.metapredictor = Predictor.name('metapredictor')
+        self.metapredictor = mindsdb.Predictor('metapredictor')
 
     def _learn(name, from_data, to_predict, kwargs):
         '''

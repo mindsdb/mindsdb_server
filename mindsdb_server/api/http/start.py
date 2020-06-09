@@ -18,7 +18,7 @@ def start():
 
     port=47334
     host='0.0.0.0'
-    debug=True
+    debug=False
 
     if not logging.root.handlers:
         rootLogger = logging.getLogger()

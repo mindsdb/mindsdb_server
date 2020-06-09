@@ -1,14 +1,6 @@
-import asyncio
 import time
 from multiprocessing import Process
 
-
-'''
-async def periodic_executor(freq, func, args):
-    while True:
-        func(*args)
-        await asyncio.sleep(freq)
-'''
 
 def periodic_executor(freq, func, args):
     while True:
