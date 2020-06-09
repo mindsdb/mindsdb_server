@@ -10,7 +10,7 @@ class Clickhouse():
         self.user = config['interface']['clickhouse']['user']
         self.password = config['interface']['clickhouse']['password']
 
-        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
+        self.create_predictors_table()
 
 
     def _to_clickhouse_table(self, stats):
@@ -24,7 +24,7 @@ class Clickhouse():
             DATA_SUBTYPES.MULTIPLE: 'String',
             DATA_SUBTYPES.IMAGE: 'String',
             DATA_SUBTYPES.VIDEO: 'String',
-            DATA_SUBTYPES.AUDIO: 'String'
+            DATA_SUBTYPES.AUDIO: 'String',
             DATA_SUBTYPES.TEXT: 'String',
             DATA_SUBTYPES.ARRAY: 'Array(Float64)'
         }
@@ -43,15 +43,27 @@ class Clickhouse():
         return column_declaration
 
     def _query(self, query):
-        params = {'user': user}
-        if password is not None:
-            params['password'] = password
+        params = {'user': 'default'}
+        try:
+            params['user'] = self.config['interface']['clickhouse']['user']
+        except:
+            pass
 
-        response = requests.post(f'{host}:{port}', data=query, params=params)
+        try:
+            params['password'] = self.config['interface']['clickhouse']['password']
+        except:
+            pass
+
+        host = self.config['interface']['clickhouse']['host']
+        port = self.config['interface']['clickhouse']['port']
+
+        response = requests.post(f'http://{host}:{port}', data=query, params=params)
 
         return response
 
     def create_predictors_table(self):
+        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
+
         msqyl_conn =  self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
         msqyl_user =  self.config['api']['mysql']['user']
         msqyl_pass =  self.config['api']['mysql']['password']
@@ -62,7 +74,7 @@ class Clickhouse():
                 predict_cols String,
                 select_data_query String,
                 training_options String
-                ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', '{name}', '{msqyl_user}', '{msqyl_pass}')
+                ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', 'predictors', '{msqyl_user}', '{msqyl_pass}')
         """
         print(f'Executing table creation query to create predictors list:\n{q}\n')
         self._query(q)

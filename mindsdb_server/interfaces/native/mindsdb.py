@@ -14,7 +14,7 @@ class MindsdbNative():
 
         try:
             assert(config['interface']['clickhouse']['enabled'] == True)
-            from mindsdb_server.interfaces.interfaces import Clickhouse
+            from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
             self.register_to.append(Clickhouse(self.config))
         except:
             pass
