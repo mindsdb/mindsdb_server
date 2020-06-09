@@ -1,4 +1,5 @@
 # Mindsdb native interface
+import sys
 import mindsdb
 import lightwood
 from multiprocessing import Process
@@ -18,7 +19,7 @@ class MindsdbNative():
         except:
             pass
 
-    def _learn(name, from_data, to_predict, kwargs):
+    def _learn(self, name, from_data, to_predict, kwargs):
         '''
         running at subprocess due to
         ValueError: signal only works in main thread
@@ -41,8 +42,8 @@ class MindsdbNative():
             register_func(name, stats)
 
 
-    def learn(self, name, from_data, to_predict, kwargs):
-        p = Process(target=_learn, args=(name, from_data, to_predict, kwargs))
+    def learn(self, name, from_data, to_predict, kwargs={}):
+        p = Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
         p.start()
 
     def predict(self, name, when=None, when_data=None, kwargs={}):
