@@ -10,9 +10,7 @@ class Clickhouse():
         self.user = config['interface']['clickhouse']['user']
         self.password = config['interface']['clickhouse']['password']
 
-        self.type_mapping = {
-
-        }
+        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
 
 
     def _to_clickhouse_table(self, stats):
@@ -53,6 +51,23 @@ class Clickhouse():
 
         return response
 
+    def create_predictors_table(self):
+        msqyl_conn =  self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
+        msqyl_user =  self.config['api']['mysql']['user']
+        msqyl_pass =  self.config['api']['mysql']['password']
+
+        q = f"""
+                CREATE TABLE IF NOT EXISTS mindsdb.predictors
+                (name String,
+                predict_cols String,
+                select_data_query String,
+                training_options String
+                ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', '{name}', '{msqyl_user}', '{msqyl_pass}')
+        """
+        print(f'Executing table creation query to create predictors list:\n{q}\n')
+        self._query(q)
+
+
     def register_predictor(self, name, stats):
         columns_sql = '\n'.join(self._to_clickhouse_table(stats))
 
@@ -61,9 +76,9 @@ class Clickhouse():
         msqyl_pass =  self.config['api']['mysql']['password']
 
         q = f"""
-                CREATE TABLE {name}
+                CREATE TABLE mindsdb.{name}
                 ({columns_sql}
-                ) ENGINE=MySQL('{msqyl_conn}', 'minds', '{name}', '{msqyl_user}', '{msqyl_pass}')
+                ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', '{name}', '{msqyl_user}', '{msqyl_pass}')
         """
         print(f'Executing table creation query to sync predictor:\n{q}\n')
         self._query(q)
