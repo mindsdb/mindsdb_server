@@ -30,9 +30,8 @@ class Clickhouse():
         }
 
         column_declaration = []
-        for column in stats:
+        for name, column in stats.items():
             try:
-                name = column['name']
                 col_subtype = stats[name]['typing']['data_subtype']
                 new_type = subtype_map[col_subtype]
                 column_declaration.append(f' {name} {col_subtype} ')

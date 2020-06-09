@@ -38,7 +38,7 @@ class MindsdbNative():
 
         stats = mdb.get_model_data()['data_analysis_v2']
         for entity in self.register_to:
-            register_func = getattr(entity,register_predictor)
+            register_func = getattr(entity, 'register_predictor')
             register_func(name, stats)
 
 
