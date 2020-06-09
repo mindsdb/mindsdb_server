@@ -18,7 +18,7 @@ class MindsDBDataSource(DataSource):
         return models
 
     def hasTable(self, table):
-        return table in getTables()
+        return table in self.getTables()
 
     def getTableColumns(self, table):
         model = mindsdb.Predictor(name=table).get_model_data()
