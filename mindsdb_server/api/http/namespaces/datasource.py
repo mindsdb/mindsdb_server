@@ -83,25 +83,28 @@ class Datasource(Resource):
 
         temp_dir_path = tempfile.mkdtemp(prefix='datasource_file_')
 
-        parser = multipart.create_form_parser(
-            headers=request.headers,
-            on_field=on_field,
-            on_file=on_file,
-            config={
-                'UPLOAD_DIR': temp_dir_path.encode(),    # bytes required
-                'UPLOAD_KEEP_FILENAME': True,
-                'UPLOAD_KEEP_EXTENSIONS': True,
-                'MAX_MEMORY_FILE_SIZE': 0
-            }
-        )
+        if request.headers['Content-Type'].startswith('multipart/form-data'):
+            parser = multipart.create_form_parser(
+                headers=request.headers,
+                on_field=on_field,
+                on_file=on_file,
+                config={
+                    'UPLOAD_DIR': temp_dir_path.encode(),    # bytes required
+                    'UPLOAD_KEEP_FILENAME': True,
+                    'UPLOAD_KEEP_EXTENSIONS': True,
+                    'MAX_MEMORY_FILE_SIZE': 0
+                }
+            )
 
-        while True:
-            chunk = request.stream.read(8192)
-            if not chunk:
-                break
-            parser.write(chunk)
-        parser.finalize()
-        parser.close()
+            while True:
+                chunk = request.stream.read(8192)
+                if not chunk:
+                    break
+                parser.write(chunk)
+            parser.finalize()
+            parser.close()
+        else:
+            data = request.json
 
         ds_name = data['name'] if 'name' in data else name
         source = data['source'] if 'source' in data else name
