@@ -166,12 +166,19 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             handshake_resp.get()
             client_auth_plugin = handshake_resp.client_auth_plugin.value.decode()
             
-            # if methods mismatch - neet to switch them
             if DEFAULT_AUTH_METHOD not in client_auth_plugin:
-                password = switch_auth(
-                    'caching_sha2_password' if 'caching_sha2_password' in client_auth_plugin else 'mysql_native_password'
-                )
-                orig_password = orig_password_hash
+                # if methods mismatch - need to switch them
+                new_method = 'caching_sha2_password' if 'caching_sha2_password' in client_auth_plugin else 'mysql_native_password'
+                password = switch_auth(new_method)
+
+                if new_method == 'caching_sha2_password':
+                    self.packet(FastAuthFail).send()
+                    password_answer = self.packet(PasswordAnswer)
+                    password_answer.get()
+                    password = password_answer.password.value.decode()
+                else:
+                    orig_password = orig_password_hash
+
             elif 'caching_sha2_password' in client_auth_plugin:
                 self.packet(FastAuthFail).send()
                 log.info('connected with SSL, caching_sha2_password method')
@@ -185,16 +192,24 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 orig_password = orig_password_hash
             else:
                 log.info('connected with SSL, unknown method, try switch to mysql_native_password')
-                password = switch_auth()
+                password = switch_auth('mysql_native_password')
                 orig_password = orig_password_hash
         else:
-            if 'mysql_native_password' in client_auth_plugin:
+            if DEFAULT_AUTH_METHOD not in client_auth_plugin:
+                new_method = 'caching_sha2_password' if 'caching_sha2_password' in client_auth_plugin else 'mysql_native_password'
+                if new_method == 'caching_sha2_password':
+                    self.packet(ErrPacket, err_code=ERR.ER_PASSWORD_NO_MATCH, msg=f'caching_sha2_password without SSL not supported').send()
+                    return False
+                password = switch_auth(new_method)
+                orig_password = orig_password_hash
+
+            elif 'mysql_native_password' in client_auth_plugin:
                 log.info('connected without SSL, default method')
                 password = handshake_resp.enc_password.value
                 orig_password = orig_password_hash
             else:
                 log.info('connected without SSL, unknown method, try switch to mysql_native_password')
-                password = switch_auth()
+                password = switch_auth('mysql_native_password')
                 orig_password = orig_password_hash
 
         username = handshake_resp.username.value.decode()

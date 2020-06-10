@@ -51,6 +51,7 @@ class MindsdbNative():
         #self._learn(name, from_data, to_predict, kwargs)
         #p.daemon = True
         p.start()
+        p.join()
 
     def predict(self, name, when=None, when_data=None, kwargs={}):
         mdb = mindsdb.Predictor(name=name)
