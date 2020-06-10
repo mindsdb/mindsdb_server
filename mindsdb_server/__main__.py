@@ -1,7 +1,7 @@
 import argparse
 import importlib
 import atexit
-from multiprocessing import Pool, Process
+from multiprocessing import Process
 import os
 import traceback
 
@@ -9,20 +9,21 @@ from mindsdb_server.utilities import config
 
 print(f'Main call under name {__name__}')
 
-def close_api_gracefully(pool):
-    print('Shutting down !')
-    pool.terminate()
-    pool.join()
+def close_api_gracefully(p_arr):
+    for p in p_arr:
+        p.terminate()
+        p.join()
+
+#set_start_method('spawn')
 
 parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
-parser.add_argument('--api', type=str, default='http,mysql') # alternative when mysql api is ready: default='http,mysql'
+parser.add_argument('--api', type=str, default='http,mysql')
 parser.add_argument('--config', type=str, default='/etc/mindsdb/config.json')
 
 args = parser.parse_args()
 config.merge(args.config)
 config.special()
 api_arr = args.api.split(',')
-pool = Pool(processes=len(api_arr))
 
 p_arr = []
 
@@ -37,15 +38,9 @@ for api in api_arr:
         p_arr.append(p)
         print(f'Started Mindsdb {api} API ! <clap, clap, clap>')
     except Exception as e:
-        #close_api_gracefully(pool)
+        close_api_gracefully(p_arr)
         print(f'Failed to start {api} API with exception {e}')
         print(traceback.format_exc())
-        #exit()
+        exit()
 
-for p in p_arr:
-    print(p)
-    import time
-    time.sleep(40)
-    p.join()
-
-atexit.register(close_api_gracefully, pool=pool)
+atexit.register(close_api_gracefully, p_arr=p_arr)

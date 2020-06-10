@@ -153,7 +153,7 @@ DEFAULT_CAPABILITIES = sum([
     CAPABILITIES.CLIENT_DEPRECATE_EOF,
 ])
 
-DEFAULT_AUTH_METHOD = 'mysql_native_password'   # [mysql_native_password|caching_sha2_password]
+DEFAULT_AUTH_METHOD = 'caching_sha2_password'   # [mysql_native_password|caching_sha2_password]
 
 FILLER_FOR_WIRESHARK_DUMP = 21
 
@@ -924,10 +924,10 @@ SERVER_VARIABLES = {
 
     '@@GLOBAL.character_set_server': ('latin1', TYPES.MYSQL_TYPE_VAR_STRING, CHARSET_NUMBERS['utf8_general_ci']),
     '@@character_set_server': ('latin1', TYPES.MYSQL_TYPE_VAR_STRING, CHARSET_NUMBERS['utf8_general_ci']),
-    
+
     '@@GLOBAL.collation_server': ('latin1_swedish_ci', TYPES.MYSQL_TYPE_VAR_STRING, CHARSET_NUMBERS['utf8_general_ci']),
     '@@collation_server': ('latin1_swedish_ci', TYPES.MYSQL_TYPE_VAR_STRING, CHARSET_NUMBERS['utf8_general_ci']),
-    
+
     '@@init_connect': ('', TYPES.MYSQL_TYPE_VAR_STRING, CHARSET_NUMBERS['utf8_general_ci']),  # None or '' ?
     '@@interactive_timeout': (28800, TYPES.MYSQL_TYPE_LONGLONG, CHARSET_NUMBERS['binary']),
     '@@license': ('GPL', TYPES.MYSQL_TYPE_VAR_STRING, CHARSET_NUMBERS['utf8_general_ci']),
