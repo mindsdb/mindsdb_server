@@ -94,3 +94,10 @@ class Clickhouse():
         """
         print(f'Executing table creation query to sync predictor:\n{q}\n')
         self._query(q)
+
+    def unregister_predictor(self, name):
+        q = f"""
+            drop table if exists mindsdb.{name};
+        """
+        print(f'Executing table creation query to sync predictor:\n{q}\n')
+        self._query(q)
