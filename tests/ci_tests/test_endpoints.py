@@ -21,7 +21,7 @@ class PredictorTest(unittest.TestCase):
             'source': DS_URL
         }
         url = 'http://{}:{}/datasources/put_datasource'.format('localhost', 47334)
-        res = requests.put(url, data=params)
+        res = requests.put(url, json=params)
         assert res.status_code == 200
 
         # PUT predictor
@@ -164,7 +164,7 @@ class UtilTest(unittest.TestCase):
 if __name__ == "__main__":
     HOST = 'localhost'
     PORT = 47334
-    sp = subprocess.Popen(['python3', '-m', 'mindsdb_server', '--api', 'http,mysql', '--config', './clickhouse_test_config.json'])
+    sp = subprocess.Popen(['python3', '-m', 'mindsdb_server', '--api', 'http,mysql', '--config', 'mindsdb_server/default_config.json'])
 
     t_0 = time.time()
     while True:
