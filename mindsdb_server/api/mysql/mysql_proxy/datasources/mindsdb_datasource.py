@@ -15,19 +15,34 @@ class MindsDBDataSource(DataSource):
     def getTables(self):
         models = self.mindsdb_native.get_models()
         models = [x['name'] for x in models if x['status'] == 'complete']
+        models += ['predictors']
         return models
 
     def hasTable(self, table):
         return table in self.getTables()
 
     def getTableColumns(self, table):
+        if table == 'predictors':
+            return ['name', 'predict_cols', 'select_data_query', 'training_options']
         model = mindsdb.Predictor(name=table).get_model_data()
         columns = []
         columns += [x['column_name'] for x in model['data_analysis']['input_columns_metadata']]
         columns += [x['column_name'] for x in model['data_analysis']['target_columns_metadata']]
         return columns
 
+    def _select_predictors(self):
+        models = self.mindsdb_native.get_models()
+        return [{
+            'name': x['name'],
+            'predict_cols': ', '.join(x['predict']),
+            'select_data_query': x['data_source'],
+            'training_options': ''
+        } for x in models]
+
     def select(self, table, columns=None, where=None, where_data=None, order_by=None, group_by=None):
+        if table == 'predictors':
+            return self._select_predictors()
+
         # NOTE WHERE statements can be just $eq joined with 'and'
         new_where = {}
         for key, value in where.items():
