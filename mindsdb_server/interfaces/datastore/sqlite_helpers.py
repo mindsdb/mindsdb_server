@@ -42,7 +42,7 @@ def cast_df_columns_types(df, stats):
             col_subtype = stats[name]['typing']['data_subtype']
             new_type = types_map[col_type][col_subtype]
             if new_type == 'int64' or new_type == 'float64':
-                df[name] = df[name].apply(lambda x: x.replace(',','.'))
+                df[name] = df[name].apply(lambda x: x.replace(',','.') if isinstance(x, str) else x)
             if new_type == 'int64':
                 df = df.astype({name: 'float64'})
             df = df.astype({name: new_type})

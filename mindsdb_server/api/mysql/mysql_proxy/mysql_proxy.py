@@ -67,6 +67,11 @@ HARDCODED_USER = config['api']['mysql']['user']
 HARDCODED_PASSWORD = config['api']['mysql']['password']
 CERT_PATH = config['api']['mysql']['certificate_path']
 
+from mindsdb_server.interfaces.datastore.datastore import DataStore
+default_store = DataStore('/etc/mindsdb/store', config)
+
+from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
+mdb = MindsdbNative(config)
 
 class MysqlProxy(SocketServer.BaseRequestHandler):
     """
@@ -236,6 +241,23 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         packages.append(self.packet(OkPacket, eof=True))
         self.sendPackageGroup(packages)
 
+    def insert_predictor_answer(self, sql):
+        # "INSERT INTO mindsdb.predictors (name, predict_cols, select_data_query, training_options) VALUES ('test','','','')"
+        search = re.search(r'(\(.*\)).*(\(.*\))', sql)
+        columns = search.groups()[0].split(',')
+        columns = [x.strip('( )') for x in columns]
+        p = re.compile( '.*'.join(["('.*')"]*len(columns)) )
+        values = re.search(p, search.groups()[1])
+        values = [x.strip("( ')") for x in values.groups()]
+
+        insert = dict(zip(columns, values))
+
+        default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
+        ds = default_store.get_datasource_obj(insert['name'])
+        mdb.learn(insert['name'], ds, insert['predict_cols'])
+
+        self.packet(OkPacket).send()
+
     def queryAnswer(self, sql):
         sql_lower = sql.lower()
 
@@ -249,7 +271,11 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         keyword = sql_lower.split(' ')[0]
 
-        if keyword == 'set':
+        if keyword == 'start':
+            # start transaction
+            self.packet(OkPacket).send()
+            return
+        elif keyword == 'set':
             if 'autocommit' in sql_lower:
                 self.packet(OkPacket).send()
                 return
@@ -286,6 +312,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             return
         elif 'show collation' in sql_lower:
             self.answerShowCollation()
+            return
+        elif keyword == 'insert' and 'mindsdb.predictors' in sql_lower:
+            self.insert_predictor_answer(sql)
             return
         elif keyword in ('update', 'insert'):
             raise NotImplementedError('Update and Insert not implemented')
