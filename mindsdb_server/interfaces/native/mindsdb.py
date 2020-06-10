@@ -36,6 +36,7 @@ class MindsdbNative():
         mdb.learn(
             from_data=from_data,
             to_predict=to_predict,
+            use_gpu=False,
             **kwargs
         )
 
@@ -47,6 +48,8 @@ class MindsdbNative():
 
     def learn(self, name, from_data, to_predict, kwargs={}):
         p = Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
+        #self._learn(name, from_data, to_predict, kwargs)
+        #p.daemon = True
         p.start()
 
     def predict(self, name, when=None, when_data=None, kwargs={}):

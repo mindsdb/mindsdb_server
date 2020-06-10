@@ -34,7 +34,7 @@ class Clickhouse():
             try:
                 col_subtype = stats[name]['typing']['data_subtype']
                 new_type = subtype_map[col_subtype]
-                column_declaration.append(f' {name} {new_type} ')
+                column_declaration.append(f' `{name}` {new_type} ')
             except Exception as e:
                 print(e)
                 print(f'Error: cant convert type {col_subtype} of column {name} to clickhouse tpye')

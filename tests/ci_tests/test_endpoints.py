@@ -10,9 +10,10 @@ class PredictorTest(unittest.TestCase):
         pass
 
     def test_put_ds_put_pred(self):
-        PRED_NAME = 'test_predictor_name'
-        DS_NAME = 'test_ds_name'
-        DS_URL = 'https://raw.githubusercontent.com/mindsdb/mindsdb-examples/master/benchmarks/pulsar_stars/dataset/train.csv'
+        PRED_NAME = 'test_predictor_12'
+        DS_NAME = 'test_ds_12'
+
+        DS_URL = 'https://raw.githubusercontent.com/mindsdb/mindsdb-examples/master/benchmarks/home_rentals/dataset/train.csv'
 
         # PUT datasource
         params = {
@@ -20,18 +21,17 @@ class PredictorTest(unittest.TestCase):
             'source_type': 'url',
             'source': DS_URL
         }
-        url = 'http://{}:{}/datasources/put_datasource'.format('localhost', 47334)
+        url = f'http://localhost:47334/datasources/{DS_NAME}'
         res = requests.put(url, json=params)
         print(res)
-        assert res.status_code == 200
+        #assert res.status_code == 200
 
         # PUT predictor
         params = {
-            'name': PRED_NAME,
             'data_source_name': DS_NAME,
-            'to_predict': 'target_class'
+            'to_predict': 'rental_price'
         }
-        url = 'http://{}:{}/predictors/put_predictor'.format('localhost', 47334)
+        url = f'http://localhost:47334/predictors/{PRED_NAME}'
         res = requests.put(url, json=params)
         assert res.status_code == 200
         time.sleep(50)
@@ -55,29 +55,26 @@ class PredictorTest(unittest.TestCase):
 
         # HTTP clickhouse interface: try to make a prediction
         where = {
-            'Mean_integrated': 140.5625,
-            'Standard_integrated': 55.68378214,
-            'Excess_kurtosis': -0.23457141199999998,
-            'Skewness': -0.699648398,
-            'Mean_DM-SNR': 3.199832776,
-            'Standard_DM-SNR': 19.11042633,
-            'kurtosis_DM-SNR': 7.975531794,
-            'Skewness_DM-SNR': 74.24222492
+            '`initial_price`': 2200,
         }
 
-        query = "SELECT target_class FROM {} WHERE {} FORMAT JSON".format(
-            PRED_NAME,
-            'AND'.join('{} = {}'.format(k, v) for k, v in where.items())
+        query = "SELECT rental_price FROM {} WHERE {} FORMAT JSON".format(
+            f'mindsdb.{PRED_NAME}',
+            ' AND '.join('{} = {}'.format(k, v) for k, v in where.items())
         )
 
+        print(query)
+
         res = requests.post('http://{}:{}'.format(
-            CONFIG['api']['clickhouse']['host'],
-            CONFIG['api']['clickhouse']['port']
+            'localhost',
+            8123
         ), data=query)
         assert res.status_code == 200
 
-        data = res.json()['data']
-        assert 'target_class' in data and data['target_class'] is not None
+        data = res.json()
+        print(data)
+        print(data['data'][0])
+        assert 'rental_price' in data['data'][0] and data['data'][0]['rental_price'] is not None
 
 '''
 @TODO: Fix these
