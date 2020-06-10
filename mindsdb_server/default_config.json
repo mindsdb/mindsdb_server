@@ -4,7 +4,7 @@
     "api": {
         "mysql": {
             "port": 3306,
-            "host": "localhost",
+            "host": "127.0.0.1",
             "user": "mindsdb",
             "password": "mindsdb",
             "certificate_path": "cert.pem",
