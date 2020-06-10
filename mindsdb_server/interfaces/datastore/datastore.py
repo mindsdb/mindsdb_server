@@ -17,6 +17,7 @@ from mindsdb_server.interfaces.datastore.sqlite_helpers import create_sqlite_db
 
 class DataStore():
     def __init__(self, config, storage_dir=None):
+        self.config = config
         self.dir = storage_dir if isinstance(storage_dir, str) else config['data_store_path']
         self.mindsdb_native = MindsdbNative(config)
 
@@ -81,11 +82,13 @@ class DataStore():
                 ,'kwargs': {}
             }
         elif source_type == 'clickhouse':
-            ds = ClickhouseDS(source, user='default', password='201287')
+            user = self.config['interface']['clickhouse']['user']
+            password = self.config['interface']['clickhouse']['password']
+            ds = ClickhouseDS(source, user=user, password=password)
             picklable = {
                 'class': FileDS
                 ,'args': [source]
-                ,'kwargs': {'user':'default','password':'201287'}
+                ,'kwargs': {'user': user,'password': password}
             }
         else:
             # This probably only happens for urls
