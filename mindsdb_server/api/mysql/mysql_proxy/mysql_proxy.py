@@ -67,6 +67,11 @@ HARDCODED_USER = config['api']['mysql']['user']
 HARDCODED_PASSWORD = config['api']['mysql']['password']
 CERT_PATH = config['api']['mysql']['certificate_path']
 
+from mindsdb_server.interfaces.datastore.datastore import DataStore
+default_store = DataStore()
+
+from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
+mdb = MindsdbNative(config)
 
 class MysqlProxy(SocketServer.BaseRequestHandler):
     """
@@ -236,6 +241,26 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         packages.append(self.packet(OkPacket, eof=True))
         self.sendPackageGroup(packages)
 
+    def insert_predictor_answer(self, sql):
+        search = re.search(r'(\(.*\)).*(\(.*\))', sql)
+        columns = search.groups()[0].split(',')
+        columns = [x.strip('( )') for x in columns]
+        p = re.compile( '.*'.join(["('.*')"]*len(columns)) )
+        values = re.search(p, search.groups()[1])
+        values = [x.strip("( ')") for x in values.groups()]
+
+        insert = dict(zip(columns, values))
+
+        datasources = default_store.get_datasources()
+        if insert['name'] in [x['name'] for x in datasources]:
+            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='predictor name should be unique').send()
+            return
+
+        ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
+        mdb.learn(insert['name'], ds, insert['predict_cols'])
+
+        self.packet(OkPacket).send()
+
     def queryAnswer(self, sql):
         sql_lower = sql.lower()
 
@@ -249,7 +274,11 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         keyword = sql_lower.split(' ')[0]
 
-        if keyword == 'set':
+        if keyword == 'start':
+            # start transaction
+            self.packet(OkPacket).send()
+            return
+        elif keyword == 'set':
             if 'autocommit' in sql_lower:
                 self.packet(OkPacket).send()
                 return
@@ -287,6 +316,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         elif 'show collation' in sql_lower:
             self.answerShowCollation()
             return
+        elif keyword == 'insert' and 'mindsdb.predictors' in sql_lower:
+            self.insert_predictor_answer(sql)
+            return
         elif keyword in ('update', 'insert'):
             raise NotImplementedError('Update and Insert not implemented')
             return
@@ -302,6 +334,12 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 return
             query = SQLQuery(sql)
             return self.selectAnswer(query)
+        elif keyword == 'rollback':
+            self.packet(OkPacket).send()
+            return
+        elif keyword == 'commit':
+            self.packet(OkPacket).send()
+            return
         else:
             raise NotImplementedError('Action not implemented')
             return

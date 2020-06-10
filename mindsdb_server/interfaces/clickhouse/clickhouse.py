@@ -34,7 +34,7 @@ class Clickhouse():
             try:
                 col_subtype = stats[name]['typing']['data_subtype']
                 new_type = subtype_map[col_subtype]
-                column_declaration.append(f' {name} {col_subtype} ')
+                column_declaration.append(f' {name} {new_type} ')
             except Exception as e:
                 print(e)
                 print(f'Error: cant convert type {col_subtype} of column {name} to clickhouse tpye')
@@ -81,7 +81,7 @@ class Clickhouse():
 
 
     def register_predictor(self, name, stats):
-        columns_sql = '\n'.join(self._to_clickhouse_table(stats))
+        columns_sql = ','.join(self._to_clickhouse_table(stats))
 
         msqyl_conn =  self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
         msqyl_user =  self.config['api']['mysql']['user']
@@ -91,6 +91,13 @@ class Clickhouse():
                 CREATE TABLE mindsdb.{name}
                 ({columns_sql}
                 ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', '{name}', '{msqyl_user}', '{msqyl_pass}')
+        """
+        print(f'Executing table creation query to sync predictor:\n{q}\n')
+        self._query(q)
+
+    def unregister_predictor(self, name):
+        q = f"""
+            drop table if exists mindsdb.{name};
         """
         print(f'Executing table creation query to sync predictor:\n{q}\n')
         self._query(q)

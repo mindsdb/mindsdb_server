@@ -11,11 +11,13 @@ class MindsdbNative():
         self.config = config
         self.metapredictor = mindsdb.Predictor('metapredictor')
         self.register_to = []
+        self.unregister_from = []
 
         try:
             assert(config['interface']['clickhouse']['enabled'] == True)
             from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
             self.register_to.append(Clickhouse(self.config))
+            self.unregister_from.append(Clickhouse(self.config))
         except:
             pass
 
@@ -79,6 +81,9 @@ class MindsdbNative():
 
     def delete_model(self, name):
         self.metapredictor.delete_model(name)
+        for entity in self.unregister_from:
+            unregister_func = getattr(entity, 'unregister_predictor')
+            unregister_func(name)
 
     def rename_model(self, name, new_name):
         self.metapredictor.rename_model(name, new_name)

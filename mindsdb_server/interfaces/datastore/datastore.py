@@ -3,19 +3,21 @@ import datetime
 from dateutil.parser import parse as parse_dt
 import shutil
 import os
+import pickle
 
 import mindsdb
 
 from mindsdb_server.interfaces.datastore.sqlite_helpers import *
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
-from mindsdb import FileDS
+from mindsdb import FileDS, ClickhouseDS
+from mindsdb_server.utilities import config as global_config
+from mindsdb_server.interfaces.datastore.sqlite_helpers import create_sqlite_db
 
 
 class DataStore():
-
-    def __init__(self, storage_dir, config):
-        self.dir = storage_dir
-        self.mindsdb_native = MindsdbNative(config)
+    def __init__(self, config=None, storage_dir=None):
+        self.dir = storage_dir if isinstance(storage_dir, str) else config['data_store_path']
+        self.mindsdb_native = MindsdbNative(config if config else global_config)
 
     def get_analysis(self, ds):
         return self.mindsdb_native.analyse_dataset(ds)
@@ -24,7 +26,7 @@ class DataStore():
         datasource_arr = []
         for ds_name in os.listdir(self.dir):
             try:
-                with open(os.path.join(self.dir, ds_name, 'metadata.json'), 'r') as fp:
+                with open(os.path.join(self.dir, ds_name, 'datasource', 'metadata.json'), 'r') as fp:
                     try:
                         datasource = json.load(fp)
                         datasource['created_at'] = parse_dt(datasource['created_at'].split('.')[0])
@@ -41,7 +43,7 @@ class DataStore():
         return get_sqlite_data(os.path.join(self.dir, name, 'datasource', 'sqlite.db'), where=where, limit=limit, offset=offset)
 
     def get_datasource(self, name):
-        for ds in get_datasources():
+        for ds in self.get_datasources():
             if ds['name'] == name:
                 return ds
         return None
@@ -72,16 +74,18 @@ class DataStore():
             source = os.path.join(ds_dir, datasource_source)
             os.replace(file_path, source)
             ds = FileDS(source)
+        elif source_type == 'clickhouse':
+            ds = ClickhouseDS(source, user='default', password='201287')
         else:
             # This probably only happens for urls
             ds = FileDS(source)
 
         df = ds.df
 
-        df_with_types = cast_df_columns_types(df, get_analysis(df)['data_analysis_v2'])
+        df_with_types = cast_df_columns_types(df, self.get_analysis(df)['data_analysis_v2'])
         create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
-        with open(os.path.join(ds_dir,'ds.pickle'), 'w') as fp:
+        with open(os.path.join(ds_dir,'ds.pickle'), 'wb') as fp:
             pickle.dump(ds, fp)
 
         with open(os.path.join(ds_dir,'metadata.json'), 'w') as fp:
@@ -94,11 +98,14 @@ class DataStore():
                 'row_count': len(df),
                 'columns': [dict(name=x) for x in list(df.keys())]
             }, fp)
+        
+        return ds
 
     def get_datasource_obj(self, name):
+        ds_meta_dir = os.path.join(self.dir, name)
         ds_dir = os.path.join(ds_meta_dir, 'datasource')
         try:
-            with open(os.path.join(ds_dir,'ds.pickle'), 'w') as fp:
+            with open(os.path.join(ds_dir,'ds.pickle'), 'rb') as fp:
                 ds = pickle.load(fp)
             return ds
         except Exception as e:
