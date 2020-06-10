@@ -252,8 +252,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         insert = dict(zip(columns, values))
 
-        default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
-        ds = default_store.get_datasource_obj(insert['name'])
+        ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
         mdb.learn(insert['name'], ds, insert['predict_cols'])
 
         self.packet(OkPacket).send()
@@ -331,6 +330,12 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 return
             query = SQLQuery(sql)
             return self.selectAnswer(query)
+        elif keyword == 'rollback':
+            self.packet(OkPacket).send()
+            return
+        elif keyword == 'commit':
+            self.packet(OkPacket).send()
+            return
         else:
             raise NotImplementedError('Action not implemented')
             return

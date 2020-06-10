@@ -99,6 +99,8 @@ class DataStore():
                 'row_count': len(df),
                 'columns': [dict(name=x) for x in list(df.keys())]
             }, fp)
+        
+        return ds
 
     def get_datasource_obj(self, name):
         ds_meta_dir = os.path.join(self.dir, name)
