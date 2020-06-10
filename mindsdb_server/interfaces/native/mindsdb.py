@@ -52,9 +52,8 @@ class MindsdbNative():
     def learn(self, name, from_data, to_predict, kwargs={}):
         print(name, from_data, to_predict, kwargs)
         p = mp.get_context('spawn').Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
+        p.daemon = True
         p.start()
-        p.join()
-        #self._learn(name, from_data, to_predict, kwargs)
 
     def predict(self, name, when=None, when_data=None, kwargs={}):
         mdb = mindsdb.Predictor(name=name)

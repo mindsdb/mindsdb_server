@@ -108,6 +108,9 @@ class ClickhouseTest(unittest.TestCase):
         """
         result = query_ch(q)
 
+        # Here we should pool the status using mindsdb native or the http interface but whatever, for now sleep
+        time.sleep(80)
+
         result = query_ch(f"select name from mindsdb.predictors where name='{test_predictor_name}'")
         self.assertTrue(len(result) == 1)
 
