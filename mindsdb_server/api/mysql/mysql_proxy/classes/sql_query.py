@@ -369,8 +369,8 @@ class SQLQuery():
         return False
 
     def _resolveTableData(self, table_name):
-        if isinstance(self.table_data[table_name], ObjectID):
-            self.table_data[table_name] = list(ray.get(self.table_data[table_name]))
+        # if isinstance(self.table_data[table_name], ObjectID):
+        #     self.table_data[table_name] = list(ray.get(self.table_data[table_name]))
         self.table_data[table_name] = list(self.table_data[table_name])
         return self.table_data[table_name]
 
