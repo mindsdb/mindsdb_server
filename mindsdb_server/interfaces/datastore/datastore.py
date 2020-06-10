@@ -74,7 +74,7 @@ class DataStore():
 
         print(source_type)
         if source_type == 'file':
-            source = os.path.join(ds_dir, datasource_source)
+            source = os.path.join(ds_dir, source)
             os.replace(file_path, source)
             ds = FileDS(source)
             picklable = {
