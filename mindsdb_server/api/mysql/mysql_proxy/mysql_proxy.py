@@ -68,7 +68,7 @@ HARDCODED_PASSWORD = config['api']['mysql']['password']
 CERT_PATH = config['api']['mysql']['certificate_path']
 
 from mindsdb_server.interfaces.datastore.datastore import DataStore
-default_store = DataStore('/etc/mindsdb/store', config)
+default_store = DataStore()
 
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 mdb = MindsdbNative(config)

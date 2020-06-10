@@ -25,7 +25,8 @@ from mindsdb_server.utilities import config
 
 app, api = get_shared()
 model_swapping_map = {}
-default_store = DataStore('/etc/mindsdb/store', config)
+
+default_store = DataStore()
 mindsdb_native = MindsdbNative(config)
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):

@@ -7,7 +7,9 @@ def wizard():
     pass
 
 class Config(object):
-    _config = {}
+    _config = {
+        'data_store_path': '/etc/mindsdb/store'
+    }
 
     def __init__(self, file_path='mindsdb_server/default_config.json'):
         self.merge(file_path)

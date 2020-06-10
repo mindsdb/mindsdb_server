@@ -34,7 +34,7 @@ from mindsdb_server.utilities import config
 
 app, api = get_shared()
 datasources = []
-default_store = DataStore('/etc/mindsdb/store', config)
+default_store = DataStore()
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
