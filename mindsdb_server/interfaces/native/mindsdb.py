@@ -28,15 +28,19 @@ class MindsdbNative():
 
         this is work for celery worker here?
         '''
+        import importlib
 
         mdb = mindsdb.Predictor(name=name)
         if sys.platform not in ['win32','cygwin','windows']:
             lightwood.config.config.CONFIG.HELPER_MIXERS = True
 
+        data_source = getattr(mindsdb,from_data['class'])(*from_data['args'],**from_data['kwargs'])
+
         mdb.learn(
-            from_data=from_data,
+            from_data=data_source,
             to_predict=to_predict,
-            use_gpu=False,
+            #Needs to be fixed
+            use_gpu=True,
             **kwargs
         )
 
@@ -45,13 +49,12 @@ class MindsdbNative():
             register_func = getattr(entity, 'register_predictor')
             register_func(name, stats)
 
-
     def learn(self, name, from_data, to_predict, kwargs={}):
-        p = mp.get_context('fork').Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
-        #self._learn(name, from_data, to_predict, kwargs)
-        #p.daemon = True
+        print(name, from_data, to_predict, kwargs)
+        p = mp.get_context('spawn').Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
         p.start()
         p.join()
+        #self._learn(name, from_data, to_predict, kwargs)
 
     def predict(self, name, when=None, when_data=None, kwargs={}):
         mdb = mindsdb.Predictor(name=name)

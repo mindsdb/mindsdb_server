@@ -2,20 +2,32 @@ import unittest
 import requests
 import os
 import csv
-from clickhouse_driver import Client as ClickHouseClient
+import time
 
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 from mindsdb_server.utilities import config
 
+
 test_csv = 'tests/home_rentals.csv'
+test_data_table = 'home_rentals_400'
+test_predictor_name = 'test_predictor_400'
 
-test_data_table = 'home_rentals'
-test_predictor_name = 'test_predictor_2'
+#ch_host = config['interface']['clickhouse']['host']
+#ch_password = config['interface']['clickhouse']['password']
 
-ch_host = config['interface']['clickhouse']['host']
-ch_password = config['interface']['clickhouse']['password']
+def query_ch(query):
+    if 'CREATE ' not in query.upper() and 'INSERT ' not in query.upper():
+        query += ' FORMAT JSON'
 
-ch_client = ClickHouseClient(ch_host, password=ch_password)
+    res = requests.post('http://{}:{}'.format(
+        'localhost',
+        8123
+    ), data=query)
+
+    if ' FORMAT JSON' in query:
+        res = res.json()['data']
+
+    return res
 
 class ClickhouseTest(unittest.TestCase):
     @classmethod
@@ -32,11 +44,11 @@ class ClickhouseTest(unittest.TestCase):
         if test_predictor_name in models:
             cls.mdb.delete_model(test_predictor_name)
 
-        ch_client.execute('create database if not exists test;')
-        test_tables = ch_client.execute('show tables from test;')
-        test_tables = [x[0] for x in test_tables]
+        query_ch('create database if not exists test')
+        test_tables = query_ch('show tables from test')
+        test_tables = [x['name'] for x in test_tables]
         if test_data_table not in test_tables:
-            ch_client.execute(f'''
+            query_ch(f'''
                 CREATE TABLE test.{test_data_table} (
                 number_of_rooms Int8,
                 number_of_bathrooms Int8,
@@ -61,7 +73,7 @@ class ClickhouseTest(unittest.TestCase):
                         initial_price = int(row[5])
                         neighborhood = str(row[6])
                         rental_price = int(float(row[7]))
-                        client.execute(f'''INSERT INTO test.{test_data_table} VALUES (
+                        query_ch(f'''INSERT INTO test.{test_data_table} VALUES (
                             {number_of_rooms},
                             {number_of_bathrooms},
                             {sqft},
@@ -75,35 +87,38 @@ class ClickhouseTest(unittest.TestCase):
 
     def test_1_predictor_record_not_exists(self):
         print('Executing test 1')
-        result = ch_client.execute(f"select name from mindsdb.predictors where name='{test_predictor_name}';")
+        result = query_ch(f"select name from mindsdb.predictors where name='{test_predictor_name}'")
         self.assertTrue(len(result) == 0)
+        print('Passed')
 
     def test_2_predictor_table_not_exists(self):
         print('Executing test 2')
-        result = ch_client.execute(f"show tables from mindsdb;")
-        result = [x[0] for x in result]
+        result = query_ch(f"show tables from mindsdb")
+        result = [x['name'] for x in result]
         self.assertTrue(test_predictor_name not in result)
+        print('Passed')
 
     def test_3_learn_predictor(self):
         print('Executing test 3')
-        result = ch_client.execute(f"""
+        q = f"""
             insert into mindsdb.predictors
                 (name, predict_cols, select_data_query)
             values
-                ('{test_predictor_name}', 'rental_price', 'select * from test.{test_data_table} limit 100');
-        """)
-        
-        result = ch_client.execute(f"select name from mindsdb.predictors where name='{test_predictor_name}';")
+                ('{test_predictor_name}', 'rental_price', 'select * from test.{test_data_table} limit 100')
+        """
+        result = query_ch(q)
+
+        result = query_ch(f"select name from mindsdb.predictors where name='{test_predictor_name}'")
         self.assertTrue(len(result) == 1)
 
-        result = ch_client.execute(f"show tables from mindsdb;")
-        result = [x[0] for x in result]
+        result = query_ch(f"show tables from mindsdb")
+        result = [x['name'] for x in result]
         self.assertTrue(test_predictor_name in result)
 
     def test_4_query(self):
         print('Executing test 4')
-        result = ch_client.execute(f"select rental_price from mindsdb.{test_predictor_name} where sqft=1000 and location='good';")
-        self.assertTrue(len(result) == 1 and len(result[0]) == 1)
+        result = query_ch(f"select rental_price from mindsdb.{test_predictor_name} where sqft=1000 and location='good'")
+        self.assertTrue(len(result) == 1 and 'rental_price' in result[0])
 
 
 if __name__ == "__main__":

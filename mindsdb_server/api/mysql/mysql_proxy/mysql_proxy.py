@@ -165,7 +165,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             handshake_resp = self.packet(HandshakeResponsePacket)
             handshake_resp.get()
             client_auth_plugin = handshake_resp.client_auth_plugin.value.decode()
-            
+
             if DEFAULT_AUTH_METHOD not in client_auth_plugin:
                 # if methods mismatch - need to switch them
                 new_method = 'caching_sha2_password' if 'caching_sha2_password' in client_auth_plugin else 'mysql_native_password'
@@ -757,6 +757,12 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         # interrupt the program with Ctrl-C
         log.info('Waiting for incoming connections...')
         server.serve_forever()
+
+        def close_ttcps(srv):
+            srv.server_close()
+        import atexit
+
+        atexit.regsiter(close_ttcps, srv=server)
 
 
 if __name__ == "__main__":

@@ -79,7 +79,7 @@ class DataStore():
             os.replace(file_path, source)
             ds = FileDS(source)
             picklable = {
-                'class': FileDS
+                'class': 'FileDS'
                 ,'args': [source]
                 ,'kwargs': {}
             }
@@ -88,7 +88,7 @@ class DataStore():
             password = self.config['interface']['clickhouse']['password']
             ds = ClickhouseDS(source, user=user, password=password)
             picklable = {
-                'class': FileDS
+                'class': 'ClickhouseDS'
                 ,'args': [source]
                 ,'kwargs': {'user': user,'password': password}
             }
@@ -97,7 +97,7 @@ class DataStore():
             print('Create URL data source !')
             ds = FileDS(source)
             picklable = {
-                'class': FileDS
+                'class': 'FileDS'
                 ,'args': [source]
                 ,'kwargs': {}
             }
@@ -122,7 +122,7 @@ class DataStore():
                 'columns': [dict(name=x) for x in list(df.keys())]
             }, fp)
 
-        return ds
+        return self.get_datasource_obj(name)
 
     def get_datasource_obj(self, name):
         ds_meta_dir = os.path.join(self.dir, name)
@@ -132,9 +132,9 @@ class DataStore():
             #sys.setrecursionlimit(0x100000)
             with open(os.path.join(ds_dir,'ds.pickle'), 'rb') as fp:
                 picklable = pickle.load(fp)
-                ds = picklable['class'](*picklable['args'],**picklable['kwargs'])
+                #ds = picklable['class'](*picklable['args'],**picklable['kwargs'])
 
-            return ds
+            return picklable
         except Exception as e:
             print('\n\n\n')
             print(e)
