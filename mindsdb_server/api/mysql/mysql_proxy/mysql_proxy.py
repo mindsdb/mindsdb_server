@@ -253,7 +253,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         datasources = default_store.get_datasources()
         if insert['name'] in [x['name'] for x in datasources]:
-            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='name shold be unique').send()
+            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='predictor name should be unique').send()
             return
 
         ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])

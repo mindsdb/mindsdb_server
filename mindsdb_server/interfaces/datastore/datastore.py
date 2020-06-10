@@ -15,7 +15,6 @@ from mindsdb_server.interfaces.datastore.sqlite_helpers import create_sqlite_db
 
 
 class DataStore():
-
     def __init__(self, storage_dir, config):
         self.dir = storage_dir
         self.mindsdb_native = MindsdbNative(config)
@@ -27,7 +26,7 @@ class DataStore():
         datasource_arr = []
         for ds_name in os.listdir(self.dir):
             try:
-                with open(os.path.join(self.dir, ds_name, 'metadata.json'), 'r') as fp:
+                with open(os.path.join(self.dir, ds_name, 'datasource', 'metadata.json'), 'r') as fp:
                     try:
                         datasource = json.load(fp)
                         datasource['created_at'] = parse_dt(datasource['created_at'].split('.')[0])
@@ -44,7 +43,7 @@ class DataStore():
         return get_sqlite_data(os.path.join(self.dir, name, 'datasource', 'sqlite.db'), where=where, limit=limit, offset=offset)
 
     def get_datasource(self, name):
-        for ds in get_datasources():
+        for ds in self.get_datasources():
             if ds['name'] == name:
                 return ds
         return None
