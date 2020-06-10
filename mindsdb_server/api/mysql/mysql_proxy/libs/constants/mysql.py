@@ -154,6 +154,7 @@ DEFAULT_CAPABILITIES = sum([
 ])
 
 DEFAULT_AUTH_METHOD = 'mysql_native_password'   # [mysql_native_password|caching_sha2_password]
+# DEFAULT_AUTH_METHOD = 'caching_sha2_password'
 
 FILLER_FOR_WIRESHARK_DUMP = 21
 

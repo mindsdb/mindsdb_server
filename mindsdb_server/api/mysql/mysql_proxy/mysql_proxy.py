@@ -40,7 +40,8 @@ from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import (
     ERR,
     COMMANDS,
     TYPES,
-    SERVER_VARIABLES
+    SERVER_VARIABLES,
+    DEFAULT_AUTH_METHOD
 )
 
 from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packets import (
@@ -126,8 +127,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
     def handshake(self):
         global HARDCODED_PASSWORD, HARDCODED_USER
 
-        def switch_auth():
-            self.packet(SwitchOutPacket, seed=self.salt).send()
+        def switch_auth(method='mysql_native_password'):
+            self.packet(SwitchOutPacket, seed=self.salt, method=method).send()
             switch_out_answer = self.packet(SwitchOutResponse)
             switch_out_answer.get()
             return switch_out_answer.enc_password.value
@@ -145,7 +146,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             return False
         self.client_capabilities = ClentCapabilities(handshake_resp.capabilities.value)
 
-        client_auth_plugin = handshake_resp.client_auth_plugin.value
+        client_auth_plugin = handshake_resp.client_auth_plugin.value.decode()
 
         orig_username = HARDCODED_USER
         orig_password = HARDCODED_PASSWORD
@@ -163,15 +164,22 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             self.socket = ssl_socket
             handshake_resp = self.packet(HandshakeResponsePacket)
             handshake_resp.get()
-            client_auth_plugin = handshake_resp.client_auth_plugin.value
-            if b'caching_sha2_password' in client_auth_plugin:
+            client_auth_plugin = handshake_resp.client_auth_plugin.value.decode()
+            
+            # if methods mismatch - neet to switch them
+            if DEFAULT_AUTH_METHOD not in client_auth_plugin:
+                password = switch_auth(
+                    'caching_sha2_password' if 'caching_sha2_password' in client_auth_plugin else 'mysql_native_password'
+                )
+                orig_password = orig_password_hash
+            elif 'caching_sha2_password' in client_auth_plugin:
                 self.packet(FastAuthFail).send()
                 log.info('connected with SSL, caching_sha2_password method')
                 password_answer = self.packet(PasswordAnswer)
                 password_answer.get()
                 password = password_answer.password.value.decode()
                 orig_password = HARDCODED_PASSWORD
-            elif b'mysql_native_password' in client_auth_plugin:
+            elif 'mysql_native_password' in client_auth_plugin:
                 log.info('connected with SSL, mysql_native_password method')
                 password = handshake_resp.enc_password.value
                 orig_password = orig_password_hash
@@ -180,7 +188,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 password = switch_auth()
                 orig_password = orig_password_hash
         else:
-            if b'mysql_native_password' in client_auth_plugin:
+            if 'mysql_native_password' in client_auth_plugin:
                 log.info('connected without SSL, default method')
                 password = handshake_resp.enc_password.value
                 orig_password = orig_password_hash
