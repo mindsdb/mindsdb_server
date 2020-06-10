@@ -65,3 +65,4 @@ results
 mlp_img
 
 logs/
+tests/*.csv

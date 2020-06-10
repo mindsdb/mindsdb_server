@@ -4,17 +4,17 @@ import os
 import csv
 from clickhouse_driver import Client as ClickHouseClient
 
-
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 from mindsdb_server.utilities import config
 
-test_csv = 'test/home_rentals.csv'
+test_csv = 'tests/home_rentals.csv'
 
 test_data_table = 'home_rentals'
 test_predictor_name = 'test_predictor_2'
 
 ch_host = config['interface']['clickhouse']['host']
 ch_password = config['interface']['clickhouse']['password']
+
 ch_client = ClickHouseClient(ch_host, password=ch_password)
 
 class ClickhouseTest(unittest.TestCase):
@@ -24,7 +24,7 @@ class ClickhouseTest(unittest.TestCase):
 
         if os.path.isfile(test_csv) is False:
             r = requests.get("https://s3.eu-west-2.amazonaws.com/mindsdb-example-data/home_rentals.csv")
-            with open('tests/home_rentals.csv', 'wb') as f:
+            with open(test_csv, 'wb') as f:
                 f.write(r.content)
 
         models = cls.mdb.get_models()
@@ -45,7 +45,7 @@ class ClickhouseTest(unittest.TestCase):
                 days_on_market Int16,
                 initial_price Int32,
                 neighborhood String,
-                rental_price Int32 
+                rental_price Int32
                 ) ENGINE = TinyLog()
             ''')
             with open(test_csv) as f:
@@ -74,24 +74,25 @@ class ClickhouseTest(unittest.TestCase):
                     i += 1
 
     def test_1_predictor_record_not_exists(self):
+        print('Executing test 1')
         result = ch_client.execute(f"select name from mindsdb.predictors where name='{test_predictor_name}';")
         self.assertTrue(len(result) == 0)
 
     def test_2_predictor_table_not_exists(self):
+        print('Executing test 2')
         result = ch_client.execute(f"show tables from mindsdb;")
         result = [x[0] for x in result]
         self.assertTrue(test_predictor_name not in result)
 
     def test_3_learn_predictor(self):
+        print('Executing test 3')
         result = ch_client.execute(f"""
             insert into mindsdb.predictors
                 (name, predict_cols, select_data_query)
             values
                 ('{test_predictor_name}', 'rental_price', 'select * from test.{test_data_table} limit 100');
         """)
-
-        # time.sleep(60)  # <==== FIXME
-
+        
         result = ch_client.execute(f"select name from mindsdb.predictors where name='{test_predictor_name}';")
         self.assertTrue(len(result) == 1)
 
@@ -100,6 +101,7 @@ class ClickhouseTest(unittest.TestCase):
         self.assertTrue(test_predictor_name in result)
 
     def test_4_query(self):
+        print('Executing test 4')
         result = ch_client.execute(f"select rental_price from mindsdb.{test_predictor_name} where sqft=1000 and location='good';")
         self.assertTrue(len(result) == 1 and len(result[0]) == 1)
 
