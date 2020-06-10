@@ -4,6 +4,8 @@ from dateutil.parser import parse as parse_dt
 import shutil
 import os
 import pickle
+import sys
+import resource
 
 import mindsdb
 
@@ -78,6 +80,7 @@ class DataStore():
             ds = ClickhouseDS(source, user='default', password='201287')
         else:
             # This probably only happens for urls
+            print('Create URL data source !')
             ds = FileDS(source)
 
         df = ds.df
@@ -105,8 +108,12 @@ class DataStore():
         ds_meta_dir = os.path.join(self.dir, name)
         ds_dir = os.path.join(ds_meta_dir, 'datasource')
         try:
+            #resource.setrlimit(resource.RLIMIT_STACK, [0x10000000, resource.RLIM_INFINITY])
+            #sys.setrecursionlimit(0x100000)
             with open(os.path.join(ds_dir,'ds.pickle'), 'rb') as fp:
                 ds = pickle.load(fp)
+            print(ds)
             return ds
         except Exception as e:
+            print(e)
             return None

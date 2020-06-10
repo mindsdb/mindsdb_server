@@ -31,14 +31,16 @@ class PredictorTest(unittest.TestCase):
             'to_predict': 'target_class'
         }
         url = 'http://{}:{}/predictors/put_predictor'.format('localhost', 47334)
-        res = requests.put(url, params=params)
+        res = requests.put(url, json=params)
         assert res.status_code == 200
-
+        time.sleep(50)
+        #time.sleep(20)
         # MySQL interface: check if table for the predictor exists
         DBNAME = 'mysql'
 
         con = MySQLdb.connect(
-            host='localhost',
+            host='127.0.0.1',
+            port=3306,
             user='mindsdb',
             passwd='mindsdb',
             db='mindsdb'
@@ -65,7 +67,7 @@ class PredictorTest(unittest.TestCase):
             'AND'.join('{} = {}'.format(k, v) for k, v in where.items())
         )
 
-        res = requests.post('https://{}:{}'.format(
+        res = requests.post('http://{}:{}'.format(
             CONFIG['api']['clickhouse']['host'],
             CONFIG['api']['clickhouse']['port']
         ), data=query)
@@ -164,7 +166,7 @@ class UtilTest(unittest.TestCase):
 if __name__ == "__main__":
     HOST = 'localhost'
     PORT = 47334
-    sp = subprocess.Popen(['python3', '-m', 'mindsdb_server', '--api', 'http,mysql', '--config', 'mindsdb_server/default_config.json'])
+    sp = subprocess.Popen(['python3', '-m', 'mindsdb_server', '--api', 'mysql,http', '--config', 'mindsdb_server/default_config.json'])
 
     t_0 = time.time()
     while True:
