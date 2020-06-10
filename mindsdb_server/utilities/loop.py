@@ -1,5 +1,5 @@
 import time
-from multiprocessing import Process
+from torch.multiprocessing import Process
 
 
 def periodic_executor(freq, func, args):

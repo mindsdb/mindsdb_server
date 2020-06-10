@@ -2,7 +2,7 @@
 import sys
 import mindsdb
 import lightwood
-from multiprocessing import Process
+import torch.multiprocessing as mp
 from dateutil.parser import parse as parse_datetime
 
 
@@ -47,7 +47,7 @@ class MindsdbNative():
 
 
     def learn(self, name, from_data, to_predict, kwargs={}):
-        p = Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
+        p = mp.get_context('fork').Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
         #self._learn(name, from_data, to_predict, kwargs)
         #p.daemon = True
         p.start()

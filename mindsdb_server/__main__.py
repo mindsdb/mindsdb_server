@@ -1,7 +1,7 @@
 import argparse
 import importlib
 import atexit
-from multiprocessing import Process, get_start_method, set_start_method
+from torch.multiprocessing import Process, get_start_method, set_start_method
 import os
 import traceback
 import time
@@ -31,7 +31,7 @@ def close_api_gracefully(p_arr):
 
 
 #set_start_method('spawn')
-print('Launching multiprocessing: ' + str(get_start_method()))
+print('Launching torch.multiprocessing: ' + str(get_start_method()))
 #exit()
 parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
 parser.add_argument('--api', type=str, default='http,mysql')
