@@ -242,7 +242,6 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def insert_predictor_answer(self, sql):
-        # "INSERT INTO mindsdb.predictors (name, predict_cols, select_data_query, training_options) VALUES ('test','','','')"
         search = re.search(r'(\(.*\)).*(\(.*\))', sql)
         columns = search.groups()[0].split(',')
         columns = [x.strip('( )') for x in columns]
@@ -251,6 +250,11 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         values = [x.strip("( ')") for x in values.groups()]
 
         insert = dict(zip(columns, values))
+
+        datasources = default_store.get_datasources()
+        if insert['name'] in [x['name'] for x in datasources]:
+            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='name shold be unique').send()
+            return
 
         ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
         mdb.learn(insert['name'], ds, insert['predict_cols'])
