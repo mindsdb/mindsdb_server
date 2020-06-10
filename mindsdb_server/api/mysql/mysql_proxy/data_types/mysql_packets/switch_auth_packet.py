@@ -23,8 +23,9 @@ class SwitchOutPacket(Packet):
     def setup(self):
         status = 0 if 'status' not in self._kwargs else self._kwargs['status']
         seed = self._kwargs['seed']
+        method = self._kwargs['method']
         self.eof_header = Datum('int<1>', int('0xfe',0))
-        self.authentication_plugin_name = Datum('string<NUL>', 'mysql_native_password')
+        self.authentication_plugin_name = Datum('string<NUL>', method)
         self.seed = Datum('string<NUL>', seed)
 
     @property
@@ -50,6 +51,5 @@ class SwitchOutPacket(Packet):
         pprint.pprint(str(SwitchOutPacket().getPacketString()))
 
 
-# only run the test if this file is called from debugger
 if __name__ == "__main__":
     SwitchOutPacket.test()
