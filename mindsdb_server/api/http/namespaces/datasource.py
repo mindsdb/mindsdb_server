@@ -71,6 +71,7 @@ class Datasource(Resource):
     @ns_conf.marshal_with(datasource_metadata)
     def put(self, name):
         '''add new datasource'''
+        print(f'HERE WITH DATA: {data}')
         data = {}
         def on_field(field):
             print(f'\n\n{field}\n\n')

@@ -55,6 +55,7 @@ class DataStore():
         shutil.rmtree(os.path.join(self.dir, data_sources['name']))
 
     def save_datasource(self, name, source_type, source, file_path=None):
+        print(name, source_type, source)
         if source_type == 'file' and (file_path is None):
             raise Exception('`file_path` argument required when source_type == "file"')
 
@@ -72,6 +73,7 @@ class DataStore():
         ds_dir = os.path.join(ds_meta_dir, 'datasource')
         os.mkdir(ds_dir)
 
+        print(source_type)
         if source_type == 'file':
             source = os.path.join(ds_dir, datasource_source)
             os.replace(file_path, source)
@@ -103,6 +105,7 @@ class DataStore():
         df_with_types = cast_df_columns_types(df, self.get_analysis(df)['data_analysis_v2'])
         create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
+        print(picklable)
         with open(os.path.join(ds_dir,'ds.pickle'), 'wb') as fp:
             pickle.dump(picklable, fp)
 

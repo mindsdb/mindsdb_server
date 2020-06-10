@@ -4,6 +4,7 @@ import atexit
 from multiprocessing import Process, get_start_method, set_start_method
 import os
 import traceback
+import time
 
 from mindsdb_server.utilities import config
 
@@ -11,8 +12,10 @@ print(f'Main call under name {__name__}')
 
 def close_api_gracefully(p_arr):
     for p in p_arr:
+        sys.stdout.flush()
         p.terminate()
         p.join()
+        sys.stdout.flush()
 
 set_start_method('spawn')
 print(get_start_method())
@@ -43,6 +46,10 @@ for api in api_arr:
         print(f'Failed to start {api} API with exception {e}')
         print(traceback.format_exc())
         exit()
+
+while True:
+    time.sleep(1)
+    sys.stdout.flush()
 
 #for p in p_arr:
 #    print(p)

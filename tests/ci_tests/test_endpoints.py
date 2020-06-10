@@ -196,4 +196,5 @@ if __name__ == "__main__":
         pass
     finally:
         print('Shutting Down Server !')
+        time.sleep(2)
         sp.terminate()
