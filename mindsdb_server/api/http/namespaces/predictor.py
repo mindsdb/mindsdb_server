@@ -142,8 +142,8 @@ class Predictor(Resource):
         except:
             retrain = None
 
-        name = data.get('data_source_name') if data.get('data_source_name') is not None else data.get('from_data')
-        from_data = default_store.get_datasource_obj(name)
+        ds_name = data.get('data_source_name') if data.get('data_source_name') is not None else data.get('from_data')
+        from_data = default_store.get_datasource_obj(ds_name)
 
         if retrain is True:
             original_name = name
