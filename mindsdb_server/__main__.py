@@ -1,7 +1,7 @@
 import argparse
 import importlib
 import atexit
-from multiprocessing import Process
+from multiprocessing import Process, get_start_method, set_start_method
 import os
 import traceback
 
@@ -14,8 +14,9 @@ def close_api_gracefully(p_arr):
         p.terminate()
         p.join()
 
-#set_start_method('spawn')
-
+set_start_method('spawn')
+print(get_start_method())
+#exit()
 parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
 parser.add_argument('--api', type=str, default='http,mysql')
 parser.add_argument('--config', type=str, default='/etc/mindsdb/config.json')
@@ -42,5 +43,11 @@ for api in api_arr:
         print(f'Failed to start {api} API with exception {e}')
         print(traceback.format_exc())
         exit()
+
+#for p in p_arr:
+#    print(p)
+#    import time
+#    time.sleep(40)
+#    p.join()
 
 atexit.register(close_api_gracefully, p_arr=p_arr)

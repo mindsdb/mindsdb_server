@@ -12,7 +12,6 @@
 from pprint import pprint
 from moz_sql_parser import parse
 import re
-import ray
 from ray._raylet import ObjectID
 
 from mindsdb_server.api.mysql.mysql_proxy.classes.com_operators import join_keywords, binary_ops, unary_ops, operator_map
