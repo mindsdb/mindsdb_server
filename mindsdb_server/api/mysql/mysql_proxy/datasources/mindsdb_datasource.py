@@ -1,5 +1,4 @@
 import pandas
-import ray
 import mindsdb
 
 from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource

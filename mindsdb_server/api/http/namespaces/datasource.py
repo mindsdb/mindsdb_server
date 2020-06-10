@@ -34,7 +34,7 @@ from mindsdb_server.utilities import config
 
 app, api = get_shared()
 datasources = []
-default_store = DataStore()
+default_store = DataStore(config)
 
 @ns_conf.route('/')
 class DatasourcesList(Resource):
@@ -42,7 +42,7 @@ class DatasourcesList(Resource):
     @ns_conf.marshal_list_with(datasource_metadata)
     def get(self):
         '''List all datasources'''
-        return get_datasources()
+        return default_store.get_datasources()
 
 
 @ns_conf.route('/<name>')
@@ -118,7 +118,7 @@ class Datasource(Resource):
         default_store.save_datasource(ds_name, source_type, source, file_path)
         os.rmdir(temp_dir_path)
 
-        return get_datasource(datasource_name)
+        return default_store.get_datasource(ds_name)
 
 
 @ns_conf.route('/<name>/analyze')

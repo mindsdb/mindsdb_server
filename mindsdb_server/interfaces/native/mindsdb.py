@@ -28,6 +28,7 @@ class MindsdbNative():
 
         this is work for celery worker here?
         '''
+
         mdb = mindsdb.Predictor(name=name)
         if sys.platform not in ['win32','cygwin','windows']:
             lightwood.config.config.CONFIG.HELPER_MIXERS = True

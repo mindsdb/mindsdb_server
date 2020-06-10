@@ -4,13 +4,14 @@ from dateutil.parser import parse as parse_dt
 import shutil
 import os
 import pickle
+import sys
+import resource
 
 import mindsdb
 
 from mindsdb_server.interfaces.datastore.sqlite_helpers import *
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 from mindsdb import FileDS, ClickhouseDS
-from mindsdb_server.utilities import config as global_config
 from mindsdb_server.interfaces.datastore.sqlite_helpers import create_sqlite_db
 
 
@@ -74,11 +75,27 @@ class DataStore():
             source = os.path.join(ds_dir, datasource_source)
             os.replace(file_path, source)
             ds = FileDS(source)
+            picklable = {
+                'class': FileDS
+                ,'args': [source]
+                ,'kwargs': {}
+            }
         elif source_type == 'clickhouse':
             ds = ClickhouseDS(source, user='default', password='201287')
+            picklable = {
+                'class': FileDS
+                ,'args': [source]
+                ,'kwargs': {'user':'default','password':'201287'}
+            }
         else:
             # This probably only happens for urls
+            print('Create URL data source !')
             ds = FileDS(source)
+            picklable = {
+                'class': FileDS
+                ,'args': [source]
+                ,'kwargs': {}
+            }
 
         df = ds.df
 
@@ -86,7 +103,7 @@ class DataStore():
         create_sqlite_db(os.path.join(ds_dir, 'sqlite.db'), df_with_types)
 
         with open(os.path.join(ds_dir,'ds.pickle'), 'wb') as fp:
-            pickle.dump(ds, fp)
+            pickle.dump(picklable, fp)
 
         with open(os.path.join(ds_dir,'metadata.json'), 'w') as fp:
             json.dump({
@@ -98,15 +115,22 @@ class DataStore():
                 'row_count': len(df),
                 'columns': [dict(name=x) for x in list(df.keys())]
             }, fp)
-        
+
         return ds
 
     def get_datasource_obj(self, name):
         ds_meta_dir = os.path.join(self.dir, name)
         ds_dir = os.path.join(ds_meta_dir, 'datasource')
         try:
+            #resource.setrlimit(resource.RLIMIT_STACK, [0x10000000, resource.RLIM_INFINITY])
+            #sys.setrecursionlimit(0x100000)
             with open(os.path.join(ds_dir,'ds.pickle'), 'rb') as fp:
-                ds = pickle.load(fp)
+                picklable = pickle.load(fp)
+                ds = picklable['class'](*picklable['args'],**picklable['kwargs'])
+
             return ds
         except Exception as e:
+            print('\n\n\n')
+            print(e)
+            print('\n\n\n')
             return None
