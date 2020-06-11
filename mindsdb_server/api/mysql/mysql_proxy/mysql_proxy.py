@@ -268,7 +268,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         search = re.search(r'(\(.*\)).*(\(.*\))', sql)
         columns = search.groups()[0].split(',')
         columns = [x.strip('( )') for x in columns]
-        p = re.compile( '.*'.join(["('.*')"]*len(columns)) )
+        p = re.compile( '\s*,\s*'.join(["('.*')"]*len(columns)) )
         values = re.search(p, search.groups()[1])
         values = [x.strip("( ')") for x in values.groups()]
 
@@ -278,6 +278,10 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         if insert['name'] in [x['name'] for x in datasources]:
             self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='predictor name should be unique').send()
             return
+
+        # TODO clickhouse with any type of used escaping sends escaped quotes as \'.
+        # Need to check other clients, they behaviour can be differ
+        insert['select_data_query'] = insert['select_data_query'].replace(r"\'", "'")
 
         ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
         mdb.learn(insert['name'], ds, insert['predict_cols'])
