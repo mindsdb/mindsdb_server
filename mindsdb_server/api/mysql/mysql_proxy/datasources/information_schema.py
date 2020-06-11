@@ -18,6 +18,9 @@ class InformationSchema(datasource.DataSource):
         if isinstance(dsObject, dict):
             self.add(dsObject)
 
+    def __getitem__(self, key):
+        return self.get(key)
+
     def add(self, dsObject):
         for key, val in dsObject.items():
             self.index[key.upper()] = val

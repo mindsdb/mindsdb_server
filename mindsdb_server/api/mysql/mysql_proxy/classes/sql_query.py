@@ -9,13 +9,16 @@
  *******************************************************
 """
 
+import re
+import traceback
+
 from pprint import pprint
 from moz_sql_parser import parse
-import re
 
 from mindsdb_server.api.mysql.mysql_proxy.classes.com_operators import join_keywords, binary_ops, unary_ops, operator_map
 from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import TYPES
-
+from mindsdb_server.api.mysql.mysql_proxy.controllers.log import log
+from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import ERR
 
 class TableWithoutDatasourceException(Exception):
     def __init__(self, tableName='?'):
@@ -56,19 +59,33 @@ class SQLQuery():
         self._prepareQuery()
 
     def fetch(self, datasources):
-        # datasources
-        self.datasources = datasources
+        try:
+            self.datasources = datasources
+            self._fetchData()
+            data = self._processData()
+            self.result = self._makeResultVeiw(data)
+        except (TableWithoutDatasourceException,
+                UndefinedColumnTableException,
+                DuplicateTableNameException,
+                NotImplementedError,
+                SqlError,
+                Exception) as e:
+            # TODO determine different codes for errors types
+            log.error(
+                f'ERROR while fetching data for query: {self.raw}\n'
+                f'{traceback.format_exc()}\n'
+                f'{e}'
+            )
+            return {
+                'success': False,
+                'error_code': ERR.ER_SYNTAX_ERROR,
+                'msg': str(e)
+            }
 
-        # fetch
-        self._fetchData()
-
-        # process data
-        data = self._processData()
-
-        # make view
-        self.result = self._makeResultVeiw(data)
-
-        return self.result
+        return {
+            'success': True,
+            'result': self.result
+        }
 
     def _parseQuery(self, sql):
         self.struct = parse(sql)

@@ -284,6 +284,31 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         self.packet(OkPacket).send()
 
+    def delete_predictor_answer(self, sql):
+        fake_sql = sql.strip(' ')
+        fake_sql = 'select name ' + fake_sql[len('delete '):]
+        query = SQLQuery(fake_sql)
+
+        result = query.fetch(datasources)
+
+        if result['success'] is False:
+            self.packet(
+                ErrPacket,
+                err_code=result['error_code'],
+                msg=result['msg']
+            ).send()
+            return
+
+        predictors_names = [x[0] for x in result['result']]
+
+        if len(predictors_names) == 0:
+            raise NotImplementedError('nothing to delete')
+
+        for predictor_name in predictors_names:
+            datasources['mindsdb'].delete_predictor(predictor_name)
+
+        self.packet(OkPacket).send()
+
     def queryAnswer(self, sql):
         sql_lower = sql.lower()
 
@@ -338,6 +363,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             return
         elif 'show collation' in sql_lower:
             self.answerShowCollation()
+            return
+        elif keyword == 'delete' and 'mindsdb.predictors' in sql_lower:
+            self.delete_predictor_answer(sql)
             return
         elif keyword == 'insert' and 'mindsdb.predictors' in sql_lower:
             self.insert_predictor_answer(sql)
@@ -610,23 +638,14 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def selectAnswer(self, query):
-        try:
-            query.fetch(datasources)
-        except (TableWithoutDatasourceException,
-                UndefinedColumnTableException,
-                DuplicateTableNameException,
-                NotImplementedError,
-                SqlError) as e:
-            log.error(f'ERROR while fetching data for: {query.raw}')
-            log.error(traceback.format_exc())
-            log.error(str(e))
-            self.packet(ErrPacket, err_code=ERR.ER_SYNTAX_ERROR, msg=str(e)).send()
-            return
-        except Exception as e:
-            log.error(f'ERROR while fetching data for: {query.raw}')
-            log.error(traceback.format_exc())
-            log.error(str(e))
-            self.packet(ErrPacket, err_code=ERR.ER_SYNTAX_ERROR, msg=str(e)).send()
+        result = query.fetch(datasources)
+
+        if result['success'] is False:
+            self.packet(
+                ErrPacket,
+                err_code=result['error_code'],
+                msg=result['msg']
+            ).send()
             return
 
         self.answerTableQuery(query)
@@ -708,7 +727,20 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 self.current_transaction = self.session.newTransaction(sql_query=sql)
 
                 sql = sql.replace('`', '')  # ClickHouse put it other every statement
-                self.queryAnswer(sql)
+
+                try:
+                    self.queryAnswer(sql)
+                except Exception as e:
+                    log.error(
+                        f'ERROR while executing query: {sql}\n'
+                        f'{traceback.format_exc()}\n'
+                        f'{e}'
+                    )
+                    self.packet(
+                        ErrPacket,
+                        err_code=ERR.ER_SYNTAX_ERROR,
+                        msg=str(e)
+                    ).send()
 
                 # if self.current_transaction.output_data_array is None:
                 #     self.packet(OkPacket).send()

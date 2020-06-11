@@ -38,6 +38,9 @@ class MindsDBDataSource(DataSource):
             'training_options': ''
         } for x in models]
 
+    def delete_predictor(self, name):
+        self.mindsdb_native.delete_model(name)
+
     def select(self, table, columns=None, where=None, where_data=None, order_by=None, group_by=None):
         if table == 'predictors':
             return self._select_predictors()
