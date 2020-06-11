@@ -15,6 +15,7 @@ import socketserver as SocketServer
 import ssl
 import re
 import traceback
+import json
 
 from moz_sql_parser import parse
 
@@ -279,8 +280,21 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='predictor name should be unique').send()
             return
 
+        kwargs = {}
+        if isinstance(insert['training_options'], str) \
+            and len(insert['training_options']) > 0:
+            try:
+                kwargs = josn.loads(insert['training_options'])
+            except Exception as e:
+                self.packet(
+                    ErrPacket,
+                    err_code=ERR.ER_WRONG_ARGUMENTS,
+                    msg='training_options should be in valid JSON string'
+                ).send()
+                return
+
         ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
-        mdb.learn(insert['name'], ds, insert['predict_cols'])
+        mdb.learn(insert['name'], ds, insert['predict_cols'], kwargs)
 
         self.packet(OkPacket).send()
 
