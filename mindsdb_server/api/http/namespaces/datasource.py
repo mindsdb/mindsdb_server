@@ -189,7 +189,7 @@ class DatasourceData(Resource):
                     abort(400, f'Not valid filter "{key}"')
                 where.append(param)
 
-        data_dict = default_store.get_data(db_path, where, params['page[size]'], params['page[offset]'])
+        data_dict = default_store.get_data(name, where, params['page[size]'], params['page[offset]'])
 
         return data_dict, 200
 
