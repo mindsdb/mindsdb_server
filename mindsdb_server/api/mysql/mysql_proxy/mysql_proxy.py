@@ -751,6 +751,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         log.info(f'Starting MindsDB Mysql proxy server on tcp://{host}:{port}')
 
         # Create the server
+        if config['debug'] is True:
+            SocketServer.TCPServer.allow_reuse_address = True
         server = SocketServer.ThreadingTCPServer((host, port), MysqlProxy)
 
         # Activate the server; this will keep running until you
