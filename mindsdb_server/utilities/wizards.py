@@ -90,6 +90,6 @@ def daemon_creator(python_path,config_path):
         print(f'Failed to create daemon, error: {e}')
 
     try:
-        os.ystem('systemctl daemon-reload')
+        os.system('systemctl daemon-reload')
     except Exception as e:
         print(f'Failed to load daemon, error: {e}')
