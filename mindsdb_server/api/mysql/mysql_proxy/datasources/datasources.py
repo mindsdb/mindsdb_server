@@ -2,25 +2,26 @@ from mindsdb_server.api.mysql.mysql_proxy.datasources.information_schema import 
 from mindsdb_server.api.mysql.mysql_proxy.datasources.mindsdb_datasource import MindsDBDataSource
 from mindsdb_server.api.mysql.mysql_proxy.datasources.mongo_datasource import MongoDataSource
 from mindsdb_server.api.mysql.mysql_proxy.datasources.csv_datasource import CSVDataSource
-from mindsdb_server.utilities import config
 
-all_ds = config['api']['mysql'].get('datasources', [])
 
-datasources = InformationSchema()
+def init_datasources(config):
+    all_ds = config['api']['mysql'].get('datasources', [])
 
-datasources.add({
-    'mindsdb': MindsDBDataSource()
-})
+    datasources = InformationSchema()
 
-csv_ds = [x for x in all_ds if x['type'].lower() == 'csv']
-for ds in csv_ds:
     datasources.add({
-        ds['name']: CSVDataSource(ds['files'])
+        'mindsdb': MindsDBDataSource()
     })
 
-mongo_ds = [x for x in all_ds if x['type'].lower() == 'mongo']
-for ds in mongo_ds:
-    datasources.add({
-        ds['name']: MongoDataSource(ds['host'], ds['port'], ds['database'])
-    })
+    csv_ds = [x for x in all_ds if x['type'].lower() == 'csv']
+    for ds in csv_ds:
+        datasources.add({
+            ds['name']: CSVDataSource(ds['files'])
+        })
 
+    mongo_ds = [x for x in all_ds if x['type'].lower() == 'mongo']
+    for ds in mongo_ds:
+        datasources.add({
+            ds['name']: MongoDataSource(ds['host'], ds['port'], ds['database'])
+        })
+    return datasources

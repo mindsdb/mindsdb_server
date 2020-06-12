@@ -9,6 +9,7 @@ import mindsdb
 from dateutil.parser import parse as parse_datetime
 from flask import request, send_file
 from flask_restx import Resource, abort
+from flask import g
 
 from mindsdb_server.api.http.namespaces.configs.predictors import ns_conf
 from mindsdb_server.api.http.namespaces.entitites.predictor_metadata import (
@@ -18,16 +19,9 @@ from mindsdb_server.api.http.namespaces.entitites.predictor_metadata import (
     put_predictor_params
 )
 from mindsdb_server.api.http.namespaces.entitites.predictor_status import predictor_status
-from mindsdb_server.api.http.shared_ressources import get_shared
-from mindsdb_server.interfaces.datastore.datastore import DataStore
-from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
-from mindsdb_server.utilities import config
 
-app, api = get_shared()
+
 model_swapping_map = {}
-
-default_store = DataStore(config)
-mindsdb_native = MindsdbNative(config)
 
 def debug_pkey_type(model, keys=None, reset_keyes=True, type_to_check=list, append_key=True):
     if type(model) != dict:
@@ -68,10 +62,9 @@ class PredictorList(Resource):
     @ns_conf.doc('list_predictors')
     @ns_conf.marshal_list_with(predictor_status, skip_none=True)
     def get(self):
-        global mindsdb_native
         '''List all predictors'''
 
-        return mindsdb_native.get_models()
+        return g.mindsdb_native.get_models()
 
 
 @ns_conf.route('/<name>')
@@ -81,10 +74,8 @@ class Predictor(Resource):
     @ns_conf.doc('get_predictor')
     @ns_conf.marshal_with(predictor_metadata, skip_none=True)
     def get(self, name):
-        global mindsdb_native
-
         try:
-            model = mindsdb_native.get_model_data(name)
+            model = g.mindsdb_native.get_model_data(name)
         except Exception as e:
             abort(404, "")
 
@@ -97,15 +88,13 @@ class Predictor(Resource):
     @ns_conf.doc('delete_predictor')
     def delete(self, name):
         '''Remove predictor'''
-        global mindsdb_native
-        mindsdb_native.delete_model(name)
+        g.mindsdb_native.delete_model(name)
         return '', 200
 
     @ns_conf.doc('put_predictor', params=put_predictor_params)
     def put(self, name):
         '''Learning new predictor'''
         global model_swapping_map
-        global mindsdb_native
 
         data = request.json
         to_predict = data.get('to_predict')
@@ -143,19 +132,19 @@ class Predictor(Resource):
             retrain = None
 
         ds_name = data.get('data_source_name') if data.get('data_source_name') is not None else data.get('from_data')
-        from_data = default_store.get_datasource_obj(ds_name)
+        from_data = g.default_store.get_datasource_obj(ds_name)
 
         if retrain is True:
             original_name = name
             name = name + '_retrained'
 
-        mindsdb_native.learn(name, from_data, to_predict, kwargs)
+        g.mindsdb_native.learn(name, from_data, to_predict, kwargs)
 
         if retrain is True:
             try:
                 model_swapping_map[original_name] = True
-                mindsdb_native.delete_model(original_name)
-                mindsdb_native.rename_model(name, original_name)
+                g.mindsdb_native.delete_model(original_name)
+                g.mindsdb_native.rename_model(name, original_name)
                 model_swapping_map[original_name] = False
             except:
                 model_swapping_map[original_name] = False
@@ -169,9 +158,8 @@ class PredictorColumns(Resource):
     @ns_conf.doc('get_predictor_columns')
     def get(self, name):
         '''List of predictors colums'''
-        global mindsdb_native
         try:
-            model = mindsdb_native.get_model_data(name)
+            model = g.mindsdb_native.get_model_data(name)
         except Exception:
             abort(404, 'Invalid predictor name')
 
@@ -198,7 +186,6 @@ class PredictorPredict(Resource):
     def post(self, name):
         '''Queries predictor'''
         global model_swapping_map
-        global mindsdb_native
 
         data = request.json
 
@@ -220,7 +207,7 @@ class PredictorPredict(Resource):
         while name in model_swapping_map and model_swapping_map[name] is True:
             time.sleep(1)
 
-        results = mindsdb_native.predict(name, when=when, **kwargs)
+        results = g.mindsdb_native.predict(name, when=when, **kwargs)
         # return '', 500
         return preparse_results(results, format_flag)
 
@@ -231,11 +218,9 @@ class PredictorPredictFromDataSource(Resource):
     @ns_conf.doc('post_predictor_predict', params=predictor_query_params)
     def post(self, name):
         global model_swapping_map
-        global mindsdb_native
-
         data = request.json
 
-        from_data = default_store.get_datasource_obj(data.get('data_source_name'))
+        from_data = g.default_store.get_datasource_obj(data.get('data_source_name'))
 
         try:
             format_flag = data.get('format_flag')
@@ -261,7 +246,7 @@ class PredictorPredictFromDataSource(Resource):
         while name in model_swapping_map and model_swapping_map[name] is True:
             time.sleep(1)
 
-        results = mindsdb_native.predict(name, when_data=from_data, **kwargs)
+        results = g.mindsdb_native.predict(name, when_data=from_data, **kwargs)
         return preparse_results(results, format_flag)
 
 
@@ -270,14 +255,13 @@ class PredictorUpload(Resource):
     @ns_conf.doc('predictor_query', params=upload_predictor_params)
     def post(self):
         '''Upload existing predictor'''
-        global mindsdb_native
         predictor_file = request.files['file']
         # @TODO: Figure out how to remove
         fpath = os.path.join(mindsdb.CONFIG.MINDSDB_TEMP_PATH, 'new.zip')
         with open(fpath, 'wb') as f:
             f.write(predictor_file.read())
 
-        mindsdb_native.load_model(fpath)
+        g.mindsdb_native.load_model(fpath)
         try:
             os.remove(fpath)
         except Exception:
@@ -292,8 +276,7 @@ class PredictorDownload(Resource):
     @ns_conf.doc('get_predictor_download')
     def get(self, name):
         '''Export predictor to file'''
-        global mindsdb_native
-        mindsdb_native.export_model(name)
+        g.mindsdb_native.export_model(name)
         fname = name + '.zip'
         original_file = os.path.join(fname)
         # @TODO: Figure out how to remove
@@ -321,11 +304,9 @@ class PredictorDownload(Resource):
     @ns_conf.doc('get_predictor_download')
     def get(self, name):
         '''Export predictor to file'''
-        global mindsdb_native
-
         try:
             new_name = request.args.get('new_name')
-            mindsdb_native.rename_model(name, new_name)
+            g.mindsdb_native.rename_model(name, new_name)
         except Exception as e:
             return str(e), 400
 

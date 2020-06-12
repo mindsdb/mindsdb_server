@@ -66,3 +66,5 @@ mlp_img
 
 logs/
 tests/*.csv
+
+data

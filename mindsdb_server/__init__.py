@@ -5,3 +5,4 @@ from mindsdb import *
 import lightwood
 #import dataskillet
 print(f'Initialized under name {__name__}')
+import mindsdb_server.utilities.wizards as wizards

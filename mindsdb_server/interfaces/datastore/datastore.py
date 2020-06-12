@@ -18,7 +18,7 @@ from mindsdb_server.interfaces.datastore.sqlite_helpers import create_sqlite_db
 class DataStore():
     def __init__(self, config, storage_dir=None):
         self.config = config
-        self.dir = storage_dir if isinstance(storage_dir, str) else config['data_store_path']
+        self.dir = storage_dir if isinstance(storage_dir, str) else config['interface']['datastore']['storage_dir']
         self.mindsdb_native = MindsdbNative(config)
 
     def get_analysis(self, ds):
