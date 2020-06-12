@@ -45,7 +45,7 @@ dataskillet_source = None
 lightwood_source = f'git+https://github.com/mindsdb/lightwood.git@{branch}'
 mindsdb_source = f'git+https://github.com/mindsdb/mindsdb.git@{branch}'
 
-for source in []: #[dataskillet_source,lightwood_source,mindsdb_source]:
+for source in [dataskillet_source,lightwood_source,mindsdb_source]:
     if isinstance(source,str):
         if install_as == 'user':
             os.system(f'{pip_path} install --user {source} --upgrade --force-reinstall')
