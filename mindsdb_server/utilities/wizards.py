@@ -64,7 +64,7 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir):
         config['interface']['clickhouse']['password'] = _in('Clickhouse password: ','')
 
     config_path = os.path.join(config_dir,'config.json')
-    with oepn(config_path, 'w') as fp:
+    with open(config_path, 'w') as fp:
         json.dump(config, fp)
 
     return config_path
