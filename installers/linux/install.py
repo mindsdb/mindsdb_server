@@ -33,12 +33,12 @@ os.makedirs(predictor_dir,exist_ok=True)
 print(f'\nInstalling some large dependencies via pip ({pip_path}), this might take a while\n')
 time.sleep(3)
 
-
+# Consider adding:  --force-reinstall
 # How it installs itself (maybe instead of github just use local download if user has cloned everything ?)
 if install_as == 'user':
-    os.system(f'{pip_path} install --user git+https://github.com/mindsdb/mindsdb_server.git@split --upgrade --force-reinstall')
+    os.system(f'{pip_path} install --user git+https://github.com/mindsdb/mindsdb_server.git@split --upgrade')
 else:
-    os.system(f'sudo {pip_path} install git+https://github.com/mindsdb/mindsdb_server.git@split --upgrade --force-reinstall')
+    os.system(f'sudo {pip_path} install git+https://github.com/mindsdb/mindsdb_server.git@split --upgrade')
 
 branch = 'master' # In the future this will be `stable`
 dataskillet_source = None
@@ -48,9 +48,9 @@ mindsdb_source = f'git+https://github.com/mindsdb/mindsdb.git@{branch}'
 for source in [dataskillet_source,lightwood_source,mindsdb_source]:
     if isinstance(source,str):
         if install_as == 'user':
-            os.system(f'{pip_path} install --user {source} --upgrade --force-reinstall')
+            os.system(f'{pip_path} install --user {source} --upgrade')
         else:
-            os.system(f'sudo {pip_path} install {source} --upgrade --force-reinstall')
+            os.system(f'sudo {pip_path} install {source} --upgrade')
 time.sleep(1)
 print('Done installing dependencies')
 print('\nLast step: Configure Mindsdb\n')

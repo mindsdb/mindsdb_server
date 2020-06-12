@@ -34,6 +34,8 @@ def auto_config(python_path,pip_path,predictor_dir,datasource_dir):
           }
         }
     }
+    
+    return config
 
 def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir):
     config = auto_config(python_path,pip_path,predictor_dir,datasource_dir)
