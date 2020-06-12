@@ -1,4 +1,5 @@
 {
+    "debug": true,
     "config_version": 1,
     "python_interpreter": "/usr/bin/python3",
     "api": {

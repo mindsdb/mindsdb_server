@@ -8,10 +8,11 @@ def _in(ask,default):
 
 def auto_config(python_path,pip_path,predictor_dir,datasource_dir):
     config = {
-        "config_version": 1,
-        "python_interpreter": python_path,
-        "pip_path": pip_path,
-        "api": {
+        "debug": False
+        ,"config_version": 1
+        ,"python_interpreter": python_path
+        ,"pip_path": pip_path
+        ,"api": {
         }
         ,"interface":{
           "clickhouse": {
