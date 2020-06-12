@@ -67,8 +67,7 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir):
 
 
 def daemon_creator(python_path,config_path):
-    service_txt =
-    f"""
+    service_txt = f"""
     [Unit]
     Description=Mindsdb
 

@@ -3,7 +3,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 def init_logger(config, nolog=False):
-    config = global_config['api']['mysql']['log']
+    config = config['api']['mysql']['log']
 
     if not os.path.exists(config['folder']):
         os.makedirs(config['folder'])

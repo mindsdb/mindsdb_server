@@ -37,7 +37,8 @@ parser.add_argument('--config', type=str, default='mindsdb_server/default_config
 
 args = parser.parse_args()
 
-config = Config(args.config)
+config_path = args.config
+config = Config(config_path)
 
 if args.api is None:
     api_arr = [api for api in config['api']]
@@ -64,7 +65,7 @@ for api in api_arr:
     print(f'Starting Mindsdb {api} API !')
     try:
         start = importlib.import_module(f'mindsdb_server.api.{api}.start')
-        p = Process(target=start.start, args=(args.config))
+        p = Process(target=start.start, args=(config_path,))
         p.start()
         p_arr.append(p)
         print(f'Started Mindsdb {api} API !')
