@@ -19,11 +19,10 @@ import json
 
 from moz_sql_parser import parse
 
-from mindsdb_server.utilities import config
 from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packet import Packet
 from mindsdb_server.api.mysql.mysql_proxy.controllers.session_controller import SessionController
 from mindsdb_server.api.mysql.mysql_proxy.controllers.log import init_logger, log
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasources import datasources
+from mindsdb_server.api.mysql.mysql_proxy.datasources.datasources import init_datasources
 from mindsdb_server.api.mysql.mysql_proxy.classes.client_capabilities import ClentCapabilities
 
 from mindsdb_server.api.mysql.mysql_proxy.classes.sql_query import (
@@ -61,19 +60,20 @@ from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packets import (
     EofPacket
 )
 
+from mindsdb_server.interfaces.datastore.datastore import DataStore
+from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
+
+
 connection_id = 0
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-HARDCODED_USER = config['api']['mysql']['user']
-HARDCODED_PASSWORD = config['api']['mysql']['password']
-CERT_PATH = config['api']['mysql']['certificate_path']
-
-from mindsdb_server.interfaces.datastore.datastore import DataStore
-default_store = DataStore(config)
-
-from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
-mdb = MindsdbNative(config)
+HARDCODED_USER = None
+HARDCODED_PASSWORD = None
+CERT_PATH = None
+default_store = None
+mdb = None
+datasources = None
 
 class MysqlProxy(SocketServer.BaseRequestHandler):
     """
@@ -266,6 +266,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def insert_predictor_answer(self, sql):
+        global datasources
+
         search = re.search(r'(\(.*\)).*(\(.*\))', sql)
         columns = search.groups()[0].split(',')
         columns = [x.strip('( )') for x in columns]
@@ -789,11 +791,24 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         return p
 
     @staticmethod
-    def startProxy():
+    def startProxy(config):
+        global HARDCODED_USER
+        global HARDCODED_PASSWORD
+        global CERT_PATH
+        global default_store
+        global mdb
+        global datasources
         """
         Create a server and wait for incoming connections until Ctrl-C
         """
-        init_logger()
+        init_logger(config)
+
+        HARDCODED_USER = config['api']['mysql']['user']
+        HARDCODED_PASSWORD = config['api']['mysql']['password']
+        CERT_PATH = config['api']['mysql']['certificate_path']
+        default_store = DataStore(config)
+        mdb = MindsdbNative(config)
+        datasources = init_datasources(config)
 
         host = config['api']['mysql']['host']
         port = config['api']['mysql']['port']

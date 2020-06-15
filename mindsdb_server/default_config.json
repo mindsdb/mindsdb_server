@@ -1,4 +1,5 @@
 {
+    "debug": true,
     "config_version": 1,
     "python_interpreter": "/usr/bin/python3",
     "api": {
@@ -29,6 +30,20 @@
           ,"port": 8123
           ,"user": "default"
           ,"password": ""
+      }
+      ,"mindsdb_native": {
+          "enabled": true
+          ,"storage_dir": "/var/lib/mindsdb/predictors/"
+      }
+      ,"lightwood": {
+           "enabled": true
+      }
+      ,"datastore": {
+           "enabled": true
+           ,"storage_dir": "/var/lib/mindsdb/datasources/"
+      }
+      ,"dataskillet": {
+           "enabled": false
       }
     }
 }

@@ -50,7 +50,6 @@ class MindsdbNative():
             register_func(name, stats)
 
     def learn(self, name, from_data, to_predict, kwargs={}):
-        print(name, from_data, to_predict, kwargs)
         p = mp.get_context('spawn').Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
         p.daemon = True
         p.start()
@@ -59,9 +58,9 @@ class MindsdbNative():
         mdb = mindsdb.Predictor(name=name)
 
         if when is not None:
-            predictions = mdb.predict(when=when, run_confidence_variation_analysis=True, **kwargs)
+            predictions = mdb.predict(when=when, run_confidence_variation_analysis=True, use_gpu=False, **kwargs)
         else:
-            predictions = mdb.predict(when_data=when_data, run_confidence_variation_analysis=True, **kwargs)
+            predictions = mdb.predict(when_data=when_data, run_confidence_variation_analysis=True, use_gpu=False,**kwargs)
 
         return predictions
 
