@@ -16,6 +16,7 @@ import ssl
 import re
 import traceback
 import json
+import atexit
 
 from moz_sql_parser import parse
 
@@ -75,6 +76,7 @@ default_store = None
 mdb = None
 datasources = None
 
+
 class MysqlProxy(SocketServer.BaseRequestHandler):
     """
     The Main Server controller class
@@ -87,6 +89,10 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
     session = None
 
     client_capabilities = None
+
+    @staticmethod
+    def server_close(srv):
+        srv.server_close()
 
     def initSession(self):
         global connection_id, ALPHABET
@@ -820,16 +826,12 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             SocketServer.TCPServer.allow_reuse_address = True
         server = SocketServer.ThreadingTCPServer((host, port), MysqlProxy)
 
+        atexit.register(MysqlProxy.server_close, srv=server)
+
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
         log.info('Waiting for incoming connections...')
         server.serve_forever()
-
-        def close_ttcps(srv):
-            srv.server_close()
-        import atexit
-
-        atexit.regsiter(close_ttcps, srv=server)
 
 
 if __name__ == "__main__":
