@@ -1,0 +1,1 @@
+from mindsdb_server.api.mysql.mysql_proxy.datahub.datahub import init_datahub

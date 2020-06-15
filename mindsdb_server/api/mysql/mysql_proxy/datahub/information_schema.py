@@ -1,6 +1,6 @@
-from . import datasource
+from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 
-class InformationSchema(datasource.DataSource):
+class InformationSchema(DataNode):
     type = 'INFORMATION_SCHEMA'
 
     index = {}

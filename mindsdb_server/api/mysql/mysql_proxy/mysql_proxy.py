@@ -23,7 +23,7 @@ from moz_sql_parser import parse
 from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packet import Packet
 from mindsdb_server.api.mysql.mysql_proxy.controllers.session_controller import SessionController
 from mindsdb_server.api.mysql.mysql_proxy.controllers.log import init_logger, log
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasources import init_datasources
+from mindsdb_server.api.mysql.mysql_proxy.datahub import init_datahub
 from mindsdb_server.api.mysql.mysql_proxy.classes.client_capabilities import ClentCapabilities
 
 from mindsdb_server.api.mysql.mysql_proxy.classes.sql_query import (
@@ -74,7 +74,7 @@ HARDCODED_PASSWORD = None
 CERT_PATH = None
 default_store = None
 mdb = None
-datasources = None
+datahub = None
 
 
 class MysqlProxy(SocketServer.BaseRequestHandler):
@@ -272,8 +272,6 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def insert_predictor_answer(self, sql):
-        global datasources
-
         search = re.search(r'(\(.*\)).*(\(.*\))', sql)
         columns = search.groups()[0].split(',')
         columns = [x.strip('( )') for x in columns]
@@ -311,11 +309,13 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.packet(OkPacket).send()
 
     def delete_predictor_answer(self, sql):
+        global datahub
+
         fake_sql = sql.strip(' ')
         fake_sql = 'select name ' + fake_sql[len('delete '):]
         query = SQLQuery(fake_sql)
 
-        result = query.fetch(datasources)
+        result = query.fetch(datahub)
 
         if result['success'] is False:
             self.packet(
@@ -331,7 +331,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             raise NotImplementedError('nothing to delete')
 
         for predictor_name in predictors_names:
-            datasources['mindsdb'].delete_predictor(predictor_name)
+            datahub['mindsdb'].delete_predictor(predictor_name)
 
         self.packet(OkPacket).send()
 
@@ -664,7 +664,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def selectAnswer(self, query):
-        result = query.fetch(datasources)
+        global datahub
+        result = query.fetch(datahub)
 
         if result['success'] is False:
             self.packet(
@@ -803,7 +804,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         global CERT_PATH
         global default_store
         global mdb
-        global datasources
+        global datahub
         """
         Create a server and wait for incoming connections until Ctrl-C
         """
@@ -814,7 +815,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         CERT_PATH = config['api']['mysql']['certificate_path']
         default_store = DataStore(config)
         mdb = MindsdbNative(config)
-        datasources = init_datasources(config)
+        datahub = init_datahub(config)
 
         host = config['api']['mysql']['host']
         port = config['api']['mysql']['port']

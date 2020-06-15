@@ -1,9 +1,9 @@
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
+from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import TYPES
 import random
 
 
-class FakeDataSource(DataSource):
+class FakeDataNode(DataNode):
     ''' datasource for test
         returns randome data
     '''

@@ -1,8 +1,9 @@
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
 import pandas
 
+from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 
-class CSVDataSource(DataSource):
+
+class CSVDataNode(DataNode):
     type = 'csv'
 
     frames = {}

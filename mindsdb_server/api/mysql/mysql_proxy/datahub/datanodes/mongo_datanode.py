@@ -1,9 +1,9 @@
 from pymongo import MongoClient
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
+from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 from bson.objectid import ObjectId
 
 
-class MongoDataSource(DataSource):
+class MongoDataNode(DataNode):
     type = 'mongo'
 
     def __init__(self, host, port, db_name):

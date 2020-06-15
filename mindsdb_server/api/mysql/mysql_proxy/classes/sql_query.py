@@ -58,9 +58,9 @@ class SQLQuery():
         # prepare
         self._prepareQuery()
 
-    def fetch(self, datasources):
+    def fetch(self, datahub):
         try:
-            self.datasources = datasources
+            self.datahub = datahub
             self._fetchData()
             data = self._processData()
             self.result = self._makeResultVeiw(data)
@@ -311,18 +311,18 @@ class SQLQuery():
             if len(parts) < 2:
                 raise SqlError('table without datasource %s ' % full_table_name)
 
-            ds_name = parts[0]
+            dn_name = parts[0]
             table_name = '.'.join(parts[1:])
 
-            ds = self.datasources.get(ds_name)
+            dn = self.datahub.get(dn_name)
 
-            if ds is None:
-                raise SqlError('unknown datasource %s ' % ds_name)
+            if dn is None:
+                raise SqlError('unknown datasource %s ' % dn_name)
 
-            if not ds.hasTable(table_name):
+            if not dn.hasTable(table_name):
                 raise SqlError('table not found in datasource %s ' % full_table_name)
 
-            table_columns = ds.getTableColumns(table_name)
+            table_columns = dn.getTableColumns(table_name)
 
             table_info = self.tables_index[full_table_name]
             fields = table_info['fields']
@@ -358,16 +358,16 @@ class SQLQuery():
             if tablenum > 0 \
                and isinstance(table['join'], dict) \
                and table['join']['type'] == 'left join' \
-               and ds.type == 'mindsdb':
+               and dn.type == 'mindsdb':
                 # here is we send data to mindsdb
-                data = ds.select(
+                data = dn.select(
                     table=table_name,
                     columns=fields,
                     where=condition,
                     where_data=self.table_data[prev_table_name]
                 )
             else:
-                data = ds.select(
+                data = dn.select(
                     table=table_name,
                     columns=fields,
                     where=condition
@@ -727,9 +727,9 @@ class SQLQuery():
     def columns(self):
         result = []
         for column in self.select_columns:
-            ds_name, table_name = column['table'].split('.')
+            dn_name, table_name = column['table'].split('.')
             result.append({
-                'database': ds_name,
+                'database': dn_name,
                 'table_name': table_name,
                 'name': column['field'],
                 'alias': column['caption'],

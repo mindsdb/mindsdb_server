@@ -1,11 +1,11 @@
 import pandas
 import mindsdb
 
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasource import DataSource
+from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 
 
-class MindsDBDataSource(DataSource):
+class MindsDBDataNode(DataNode):
     type = 'mindsdb'
 
     def __init__(self):
