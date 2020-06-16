@@ -15,11 +15,13 @@ def auto_config(python_path,pip_path,predictor_dir,datasource_dir):
         ,"pip_path": pip_path
         ,"api": {
         }
-        ,"interface":{
+        ,"integrations": {
           "clickhouse": {
               "enabled": False
           }
-          ,"mindsdb_native": {
+        }
+        ,"interface":{
+          "mindsdb_native": {
               "enabled": True
               ,"storage_dir": predictor_dir
           }
@@ -35,7 +37,7 @@ def auto_config(python_path,pip_path,predictor_dir,datasource_dir):
           }
         }
     }
-    
+
     return config
 
 def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir):
@@ -57,11 +59,11 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir):
 
     clickhouse = _in('Connect to clickhouse ? [Y/N]','N')
     if clickhouse in ['Y','y']:
-        config['interface']['clickhouse']['enabled'] = True
-        config['interface']['clickhouse']['host'] = _in('Clickhouse host: ','localhost')
-        config['interface']['clickhouse']['port'] = _in('Clickhouse port: ','8123')
-        config['interface']['clickhouse']['user'] = _in('Clickhouse user: ','default')
-        config['interface']['clickhouse']['password'] = _in('Clickhouse password: ','')
+        config['integrations']['clickhouse']['enabled'] = True
+        config['integrations']['clickhouse']['host'] = _in('Clickhouse host: ','localhost')
+        config['integrations']['clickhouse']['port'] = _in('Clickhouse port: ','8123')
+        config['integrations']['clickhouse']['user'] = _in('Clickhouse user: ','default')
+        config['integrations']['clickhouse']['password'] = _in('Clickhouse password: ','')
 
     config_path = os.path.join(config_dir,'config.json')
     with open(config_path, 'w') as fp:

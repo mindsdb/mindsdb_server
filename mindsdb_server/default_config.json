@@ -23,7 +23,7 @@
           ,"host": "0.0.0.0"
         }
     }
-    ,"interface":{
+    ,"integrations": {
       "clickhouse": {
           "enabled": true
           ,"host": "localhost"
@@ -31,7 +31,9 @@
           ,"user": "default"
           ,"password": ""
       }
-      ,"mindsdb_native": {
+    }
+    ,"interface":{
+      "mindsdb_native": {
           "enabled": true
           ,"storage_dir": "/var/lib/mindsdb/predictors/"
       }

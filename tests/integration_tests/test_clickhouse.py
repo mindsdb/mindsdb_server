@@ -12,8 +12,8 @@ test_csv = 'tests/home_rentals.csv'
 test_data_table = 'home_rentals_400'
 test_predictor_name = 'test_predictor_400'
 
-#ch_host = config['interface']['clickhouse']['host']
-#ch_password = config['interface']['clickhouse']['password']
+#ch_host = config['integrations']['clickhouse']['host']
+#ch_password = config['integrations']['clickhouse']['password']
 
 def query_ch(query):
     if 'CREATE ' not in query.upper() and 'INSERT ' not in query.upper():

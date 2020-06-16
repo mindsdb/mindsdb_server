@@ -84,8 +84,8 @@ class DataStore():
                 ,'kwargs': {}
             }
         elif source_type == 'clickhouse':
-            user = self.config['interface']['clickhouse']['user']
-            password = self.config['interface']['clickhouse']['password']
+            user = self.config['integrations']['clickhouse']['user']
+            password = self.config['integrations']['clickhouse']['password']
             ds = ClickhouseDS(source, user=user, password=password)
             picklable = {
                 'class': 'ClickhouseDS'

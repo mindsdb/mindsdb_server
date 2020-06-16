@@ -1,45 +1,4 @@
 #!/bin/bash
-
-echo """ _______________________
-        < It looks like you are >
-        < trying to install     >
-        < Mindsdb  [Y/N]        >
-         -----------------------
-         |
-          _
-            |
-             __
-            /  \\
-            |  |
-            @  @
-            |  |
-            || |/
-            || ||
-            |\_/|
-            \___/
-    """
-read approve
-
-if [ "$approve" = "N" ] || [ "$approve" = "n" ]; then
-  echo """ _______________________
-          < Well too late sucker, >
-          < we're doing this now  >
-           -----------------------
-           |
-            _
-              |
-               __
-              /  \\
-              |  |
-              @  @
-              |  |
-              || |/
-              || ||
-              |\_/|
-              \___/
-      """
-fi
-
 echo "Please enter the path to your python (3.6+) interpreter:"
 read python_path
 export MDB_INSTALL_PYTHONPATH="$python_path"
