@@ -2,12 +2,15 @@ import sys
 import os
 from pathlib import Path
 import time
+from os.path import expanduser
+
 
 install_as  = sys.argv[1]
 python_path = sys.argv[2]
 pip_path    = sys.argv[3]
 default_install = sys.argv[4]
 make_exec = sys.argv[5]
+home = expanduser("~")
 
 default_install = False if default_install.lower() == 'n' else True
 make_exec = False if make_exec.lower() == 'n' else True
@@ -61,13 +64,13 @@ print('Done installing dependencies')
 print('\nLast step: Configure Mindsdb\n')
 
 from mindsdb_server.utilities.wizards import cli_config,daemon_creator
-config_path = cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir)
+config_path = cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_default=default_install)
 daemon_creator(python_path,config_path)
 
+if make_exec:
+    if install_as == 'user':
+        exec_dir = home
+    else:
+        exec_dir = '/usr/bin'
 
-if install_as == 'user':
-    config_dir = os.path.join(root_dir,'data', 'config')
-    storage_dir = os.path.join(root_dir,'data', 'storage')
-else:
-    config_dir = os.path.join('/etc/mindsdb/')
-    storage_dir = os.path.join('/var/lib/mindsdb/')
+    make_executable(python_path,config_path,exec_dir)
