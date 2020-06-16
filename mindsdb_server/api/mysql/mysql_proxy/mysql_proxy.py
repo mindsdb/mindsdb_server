@@ -274,7 +274,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
     def insert_predictor_answer(self, sql):
         search = re.search(r'(\(.*\)).*(\(.*\))', sql)
         columns = search.groups()[0].split(',')
-        columns = [x.strip('( )') for x in columns]
+        columns = [x.strip('(` )') for x in columns]
         p = re.compile( '\s*,\s*'.join(["('.*')"]*len(columns)) )
         values = re.search(p, search.groups()[1])
         values = [x.strip("( ')") for x in values.groups()]
@@ -283,14 +283,14 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         datasources = default_store.get_datasources()
         if insert['name'] in [x['name'] for x in datasources]:
-            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='predictor name should be unique').send()
+            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg=f"datasource with name '{insert['name']}'' already exists").send()
             return
 
         kwargs = {}
         if isinstance(insert['training_options'], str) \
             and len(insert['training_options']) > 0:
             try:
-                kwargs = josn.loads(insert['training_options'])
+                kwargs = json.loads(insert['training_options'])
             except Exception as e:
                 self.packet(
                     ErrPacket,
@@ -337,12 +337,13 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
     def queryAnswer(self, sql):
         sql_lower = sql.lower()
+        sql_lower = sql_lower.replace('`', '')
 
         if 'show databases' in sql_lower:
             sql = 'select schema_name as Database from information_schema.SCHEMATA;'
             sql_lower = sql.lower()
         if 'show full tables from' in sql_lower:
-            schema = re.findall(r'show\s+full\s+tables\sfrom\s+(\S*)', sql_lower)[0]
+            schema = re.findall(r'show\s+full\s+tables\s+from\s+(\S*)', sql_lower)[0]
             sql = f"select table_name as Tables_in_{schema} from INFORMATION_SCHEMA.TABLES WHERE table_schema = '{schema.upper()}' and table_type = 'BASE TABLE'"
             sql_lower = sql.lower()
 
@@ -752,8 +753,6 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                     continue
                 log.info(f'COM_QUERY: {sql}')
                 self.current_transaction = self.session.newTransaction(sql_query=sql)
-
-                sql = sql.replace('`', '')  # ClickHouse put it other every statement
 
                 try:
                     self.queryAnswer(sql)
