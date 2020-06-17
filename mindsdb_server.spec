@@ -1,3 +1,4 @@
+from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
 import sysconfig
 site_packages_path = sysconfig.get_paths()["purelib"]
 
@@ -9,7 +10,9 @@ a = Analysis(['entrypoint.py'],
              datas=[(f'{site_packages_path}/sacremoses/data/perluniprops',
                      'sacremoses/data/perluniprops'),
                     (f'{site_packages_path}/imagehash/VERSION',
-                     'imagehash')
+                     'imagehash'),
+                    (f'{site_packages_path}/flask_restx/templates',
+                     'flask_restx/templates')
                     ],
              hiddenimports=['torch',
                             'torchvision',
