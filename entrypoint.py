@@ -28,17 +28,6 @@ def close_api_gracefully(p_arr):
         p.terminate()
         p.join()
         sys.stdout.flush()
-        try:
-            os.system('fuser -k 3306/tcp')
-        except:
-            pass
-
-        try:
-            os.system('fuser -k 47334/tcp')
-            sys.stdout.flush()
-        except:
-            pass
-        sys.stdout.flush()
 
 
 parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
@@ -58,17 +47,6 @@ else:
 
 p_arr = []
 
-try:
-    os.system('fuser -k 3306/tcp')
-except Exception:
-    pass
-
-try:
-    os.system('fuser -k 47334/tcp')
-    sys.stdout.flush()
-except Exception:
-    pass
-
 start_functions = {
     'http': start_http,
     'mysql': start_mysql
@@ -82,10 +60,9 @@ for api in api_arr:
         p_arr.append(p)
         print(f'Started Mindsdb {api} API !')
     except BaseException as e:
+        close_api_gracefully(p_arr)
         print(f'Failed to start {api} API with exception {e}')
         raise
-    finally:
-        close_api_gracefully(p_arr)
 
 atexit.register(close_api_gracefully, p_arr=p_arr)
 
