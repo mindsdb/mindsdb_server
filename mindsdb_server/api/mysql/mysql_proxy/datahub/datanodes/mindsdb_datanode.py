@@ -8,8 +8,8 @@ from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 class MindsDBDataNode(DataNode):
     type = 'mindsdb'
 
-    def __init__(self):
-        self.mindsdb_native = MindsdbNative({})
+    def __init__(self, config):
+        self.mindsdb_native = MindsdbNative(config)
 
     def getTables(self):
         models = self.mindsdb_native.get_models()

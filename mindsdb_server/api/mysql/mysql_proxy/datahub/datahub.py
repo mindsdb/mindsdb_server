@@ -10,7 +10,7 @@ def init_datahub(config):
     datahub = InformationSchema()
 
     datahub.add({
-        'mindsdb': MindsDBDataNode()
+        'mindsdb': MindsDBDataNode(config)
     })
 
     csv_ds = [x for x in all_ds if x['type'].lower() == 'csv']
