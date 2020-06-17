@@ -73,8 +73,8 @@ else:
 
 if make_exec:
     if install_as == 'user':
-        exec_dir = home
+        path = home.rstrip('/') + '/run_mindsdb'
     else:
-        exec_dir = '/usr/bin'
+        path = '/usr/bin/mindsdb'
 
-    make_executable(python_path,config_path,exec_dir)
+    make_executable(python_path,config_path,path)

@@ -106,13 +106,11 @@ def daemon_creator(python_path,config_path):
     except Exception as e:
         print(f'Failed to load daemon, error: {e}')
 
-def make_executable(python_path,config_path,put_in_dir):
+def make_executable(python_path,config_path,path):
     text = f"""#!/bin/bash
 {python_path} -m mindsdb_server --config={config_path}"""
 
-    put_in_dir = put_in_dir.rstrip('/')
-    fn = f'{put_in_dir}/mindsdb'
-    with open(fn, 'w') as fp:
+    with open(path, 'w') as fp:
         fp.write(text)
 
-    os.system(f'chmod +x {fn}')
+    os.system(f'chmod +x {path}')
