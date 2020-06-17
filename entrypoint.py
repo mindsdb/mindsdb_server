@@ -1,3 +1,18 @@
+print('loading entrypoint')
+import torch
+def script_method(fn, _rcb=None):
+    return fn
+def script(obj, optimize=True, _frames_up=0, _rcb=None):
+    return obj
+import torch.jit
+torch.jit.script_method = script_method
+torch.jit.script = script
+
+
+import mindsdb
+from mindsdb import libs
+
+print('running main')
 import argparse
 import importlib
 import atexit
@@ -8,9 +23,10 @@ import time
 import sys
 
 from mindsdb_server.utilities.config import Config
+from mindsdb_server.api.http.start import start as start_http
+from mindsdb_server.api.mysql.start import start as start_mysql
 
-
-print(f'Main call under name {__name__}')
+print(f'Entrypoint call under name {__name__}')
 
 def close_api_gracefully(p_arr):
     for p in p_arr:
@@ -20,13 +36,13 @@ def close_api_gracefully(p_arr):
         sys.stdout.flush()
         try:
             os.system('fuser -k 3306/tcp')
-        except:
+        except Exception:
             pass
 
         try:
             os.system('fuser -k 47334/tcp')
             sys.stdout.flush()
-        except:
+        except Exception:
             pass
         sys.stdout.flush()
 
@@ -59,21 +75,27 @@ try:
 except Exception:
     pass
 
+start_functions = {
+    'http': start_http,
+    'mysql': start_mysql
+}
+
 for api in api_arr:
     print(api_arr)
     print(f'\n\n\n{api}\n\n\n')
     print(f'Starting Mindsdb {api} API !')
     try:
-        start = importlib.import_module(f'mindsdb_server.api.{api}.start')
-        p = Process(target=start.start, args=(config_path,))
+        p = Process(target=start_functions[api], args=(config_path,))
         p.start()
         p_arr.append(p)
         print(f'Started Mindsdb {api} API !')
-    except Exception as e:
+    except BaseException:
         close_api_gracefully(p_arr)
         print(f'Failed to start {api} API with exception {e}')
         print(traceback.format_exc())
         exit()
+    finally:
+        close_api_gracefully(p_arr)
 
 atexit.register(close_api_gracefully, p_arr=p_arr)
 
