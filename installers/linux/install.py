@@ -78,4 +78,9 @@ if make_exec:
 
     make_executable(python_path,config_path,path)
 
-    print(f'You can run Mindsdb by running {path}')
+print('Installation complete !')
+
+if make_exec:
+    print(f'You can use Mindsdb by running {path}. Or by importing it as the `mindsdb` library from within python. <Some message about mindsdb Scout @Richie opinions on how we install this bit ?>')
+else:
+    print(f'You can use Mindsdb by running {python_path} -m mindsdb_server --config={config_path}. Or by importing it as the `mindsdb` library from within python. <Some message about mindsdb Scout @Richie opinions on how we install this bit ?>')
