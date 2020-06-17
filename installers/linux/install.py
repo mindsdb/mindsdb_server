@@ -63,9 +63,13 @@ time.sleep(1)
 print('Done installing dependencies')
 print('\nLast step: Configure Mindsdb\n')
 
-from mindsdb_server.utilities.wizards import cli_config,daemon_creator
+from mindsdb_server.utilities.wizards import cli_config,daemon_creator,make_executable
 config_path = cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_default=default_install)
-daemon_creator(python_path,config_path)
+
+if install_as == 'user':
+    pass
+else:
+    daemon_creator(python_path,config_path)
 
 if make_exec:
     if install_as == 'user':

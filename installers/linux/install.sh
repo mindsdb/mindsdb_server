@@ -12,6 +12,11 @@ read default_install
 export MDB_DEFAULT_INSTALL="$default_install"
 
 export MDB_MAKE_EXEC="Y"
+if [ "$EUID" -ne 0 ]; then
+    install_as="user"
+else
+  install_as="global"
+fi
 
 if [ "$default_install" = "N" ] || [ "$default_install" = "n" ]; then
   if [ "$EUID" -ne 0 ]; then

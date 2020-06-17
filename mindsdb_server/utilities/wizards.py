@@ -4,7 +4,7 @@ import os
 def _in(ask, default, use_default):
     if use_default:
         return default
-    
+
     user_input = input(f'{ask} (Default: {default})')
     if user_input is None or user_input == '':
         user_input = default
@@ -59,6 +59,13 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
         config['api']['mysql']['port'] = _in('MYSQL interface port','3306',use_default)
         config['api']['mysql']['user'] = _in('MYSQL interface user','mindsdb',use_default)
         config['api']['mysql']['password'] = _in('MYSQL interface password','',use_default)
+        config['api']['mysql']['log'] = {
+            "format": "%(asctime)s - %(levelname)s - %(message)s",
+            "folder": "logs/",
+            "file": "mysql.log",
+            "file_level": "INFO",
+            "console_level": "INFO"
+        }
 
     clickhouse = _in('Connect to clickhouse ? [Y/N]','N',use_default)
     if clickhouse in ['Y','y']:
@@ -100,13 +107,12 @@ def daemon_creator(python_path,config_path):
         print(f'Failed to load daemon, error: {e}')
 
 def make_executable(python_path,config_path,put_in_dir):
-    text = f"""
-#!/bin/bash
-{python_path} -m mindsdb_server --config={config_path}
-             """
+    text = f"""#!/bin/bash
+{python_path} -m mindsdb_server --config={config_path}"""
+
     put_in_dir = put_in_dir.rstrip('/')
-    fb = f'{put_in_dir}/mindsdb'
-    with open(fn, 'r') as fp:
+    fn = f'{put_in_dir}/mindsdb'
+    with open(fn, 'w') as fp:
         fp.write(text)
 
     os.system(f'chmod +x {fn}')
