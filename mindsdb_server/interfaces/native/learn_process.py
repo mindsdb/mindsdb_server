@@ -25,8 +25,6 @@ class LearnProcess(ctx.Process):
         config = Config(config)
 
         mdb = mindsdb.Predictor(name=name)
-        if sys.platform not in ['win32','cygwin','windows']:
-            lightwood.config.config.CONFIG.HELPER_MIXERS = True
 
         data_source = getattr(mindsdb, from_data['class'])(*from_data['args'], **from_data['kwargs'])
 
