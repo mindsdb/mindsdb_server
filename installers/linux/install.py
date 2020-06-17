@@ -11,16 +11,15 @@ pip_path    = sys.argv[3]
 default_install = sys.argv[4]
 make_exec = sys.argv[5]
 home = expanduser("~")
+mdb_home = os.path.join(home, 'mindsdb1')
 
 default_install = False if default_install.lower() == 'n' else True
 make_exec = False if make_exec.lower() == 'n' else True
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-root_dir = Path(current_dir).parents[1]
 
 if install_as == 'user':
-    config_dir = os.path.join(root_dir,'data', 'config')
-    storage_dir = os.path.join(root_dir,'data', 'storage')
+    config_dir = os.path.join(mdb_home,'data', 'config')
+    storage_dir = os.path.join(mdb_home,'data', 'storage')
 else:
     config_dir = os.path.join('/etc/mindsdb/')
     storage_dir = os.path.join('/var/lib/mindsdb/')
@@ -73,7 +72,7 @@ else:
 
 if make_exec:
     if install_as == 'user':
-        path = home.rstrip('/') + '/run_mindsdb'
+        path = str(os.path.join(mdb_home,'run'))
     else:
         path = '/usr/bin/mindsdb'
 
