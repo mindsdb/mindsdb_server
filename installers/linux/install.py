@@ -11,6 +11,7 @@ pip_path    = sys.argv[3]
 default_install = sys.argv[4]
 make_exec = sys.argv[5]
 home = expanduser("~")
+print(home)
 mdb_home = os.path.join(home, 'mindsdb1')
 
 default_install = False if default_install.lower() == 'n' else True
