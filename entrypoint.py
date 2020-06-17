@@ -1,5 +1,6 @@
-print('loading entrypoint')
-import torch
+print('Running entrypoint')
+
+"""Disable torch.jit, pyinstaller can't work with it."""
 def script_method(fn, _rcb=None):
     return fn
 def script(obj, optimize=True, _frames_up=0, _rcb=None):
@@ -8,18 +9,10 @@ import torch.jit
 torch.jit.script_method = script_method
 torch.jit.script = script
 
-
-import mindsdb
-from mindsdb import libs
-
-print('running main')
 import argparse
-import importlib
 import atexit
-from torch.multiprocessing import Process, get_start_method, set_start_method
+from torch.multiprocessing import Process
 import os
-import traceback
-import time
 import sys
 
 from mindsdb_server.utilities.config import Config
@@ -27,6 +20,7 @@ from mindsdb_server.api.http.start import start as start_http
 from mindsdb_server.api.mysql.start import start as start_mysql
 
 print(f'Entrypoint call under name {__name__}')
+
 
 def close_api_gracefully(p_arr):
     for p in p_arr:
@@ -36,13 +30,13 @@ def close_api_gracefully(p_arr):
         sys.stdout.flush()
         try:
             os.system('fuser -k 3306/tcp')
-        except Exception:
+        except:
             pass
 
         try:
             os.system('fuser -k 47334/tcp')
             sys.stdout.flush()
-        except Exception:
+        except:
             pass
         sys.stdout.flush()
 
@@ -81,19 +75,15 @@ start_functions = {
 }
 
 for api in api_arr:
-    print(api_arr)
-    print(f'\n\n\n{api}\n\n\n')
     print(f'Starting Mindsdb {api} API !')
     try:
         p = Process(target=start_functions[api], args=(config_path,))
         p.start()
         p_arr.append(p)
         print(f'Started Mindsdb {api} API !')
-    except BaseException:
-        close_api_gracefully(p_arr)
+    except BaseException as e:
         print(f'Failed to start {api} API with exception {e}')
-        print(traceback.format_exc())
-        exit()
+        raise
     finally:
         close_api_gracefully(p_arr)
 
