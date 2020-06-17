@@ -86,17 +86,15 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
 
 
 def daemon_creator(python_path,config_path):
-    service_txt = f"""
-    [Unit]
-    Description=Mindsdb
+    service_txt = f"""[Unit]
+Description=Mindsdb
 
-    [Service]
-    WorkingDirectory=/home/ubuntu/mindsdb_server
-    ExecStart={python_path} -m mindsdb_server --config={config_path}
+[Service]
+ExecStart={python_path} -m mindsdb_server --config={config_path}
 
-    [Install]
-    WantedBy=multi-user.target
-    """.strip(' ')
+[Install]
+WantedBy=multi-user.target
+""".strip(' ')
 
     try:
         with open('/etc/systemd/system/mindsdb.service', 'w') as fp:
@@ -111,7 +109,8 @@ def daemon_creator(python_path,config_path):
 
 def make_executable(python_path,config_path,path):
     text = f"""#!/bin/bash
-{python_path} -m mindsdb_server --config={config_path}"""
+{python_path} -m mindsdb_server --config={config_path}
+"""
 
     with open(path, 'w') as fp:
         fp.write(text)
