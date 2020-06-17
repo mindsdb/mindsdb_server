@@ -77,3 +77,5 @@ if make_exec:
         path = '/usr/bin/mindsdb'
 
     make_executable(python_path,config_path,path)
+
+    print(f'You can run Mindsdb by running {path}')
