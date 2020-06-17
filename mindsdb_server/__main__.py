@@ -50,13 +50,13 @@ p_arr = []
 
 try:
     os.system('fuser -k 3306/tcp')
-except Exception:
+except:
     pass
 
 try:
     os.system('fuser -k 47334/tcp')
     sys.stdout.flush()
-except Exception:
+except:
     pass
 
 for api in api_arr:
