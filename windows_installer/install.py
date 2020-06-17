@@ -7,8 +7,25 @@ assert os.name == 'nt'
 
 PY_EMBED_URL = 'https://www.python.org/ftp/python/3.7.4/python-3.7.4-embed-amd64.zip'
 GET_PIP_URL = 'https://bootstrap.pypa.io/get-pip.py'
-PATH_FILENAME = 'python37._pth'
-PYTHON_DIR = os.path.abspath('./python')
+
+if len(sys.argv) < 3:
+    sys.exit('Usage: ./{} install_dir storage_dir'.format(__file__.split('.')[0]))
+
+
+def make_dir(d):
+    if not os.path.isdir(d):
+        os.makedirs(d)
+
+
+INSTALL_DIR = os.path.join(os.path.abspath(sys.argv[1]), 'mindsdb_server')
+STORAGE_DIR = os.path.join(os.path.abspath(sys.argv[2]), 'mindsdb_storage')
+PYTHON_DIR = os.path.join(INSTALL_DIR, 'python')
+
+make_dir(INSTALL_DIR)
+make_dir(STORAGE_DIR)
+make_dir(PYTHON_DIR)
+
+PTH_PATH = os.path.join(PYTHON_DIR, 'python37._pth')
 
 
 def download_file(url, dst='./'):
@@ -30,7 +47,7 @@ with zipfile.ZipFile(python_zip_filename, 'r') as z:
 os.remove(python_zip_filename)
 
 # add "Lib\site-packages" to pythonXX._pth 
-with open(os.path.join(PYTHON_DIR, PATH_FILENAME), 'a') as f:
+with open(PTH_PATH, 'a') as f:
     f.write('\nLib\site-packages')
 
 # download get-pip.py
@@ -46,4 +63,9 @@ except Exception as e:
 # remove get-pip.py
 os.remove(get_pip_filename)
 
-# TODO: other dependencies (pytorch, cuda)
+# create run_server.bat
+with open(os.path.join(INSTALL_DIR, 'run_server.bat'), 'w') as f:
+    cmds = ['set path={0};{0}/Scripts;{0}/Lib/site-packages'.format(PYTHON_DIR),
+            'set MINDSDB_STORAGE_PATH={}'.format(STORAGE_DIR),
+            'python -m mindsdb_server']
+    f.write('\n'.join(cmds))
