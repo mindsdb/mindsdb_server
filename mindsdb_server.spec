@@ -3,7 +3,7 @@ site_packages_path = sysconfig.get_paths()["purelib"]
 
 block_cipher = None
 
-a = Analysis(['entrypoint.py', '.'],
+a = Analysis(['entrypoint.py'],
              pathex=[site_packages_path],
              binaries=[],
              datas=[(f'{site_packages_path}/sacremoses/data/perluniprops',
