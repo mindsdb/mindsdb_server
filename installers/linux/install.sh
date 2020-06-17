@@ -1,4 +1,36 @@
 #!/bin/bash
+
+cmdcol="$(tput sgr0)$(tput bold)"
+normalcol="$(tput sgr0)"
+trap 'echo -n "$normalcol"' DEBUG
+
+echo -e """
+\e[38;5;35m
+          ____________________
+        /░                    ---------________
+      /░                                       --_
+    /░                                            --_
+   /░                                                --_
+  /░                                                    --_
+ /░                                         __--__         --_
+|░                                      __--       ---___      _
+|░                                     -       /|      ---___-
+|░         _________________          |      /░  |
+|░        /              |░           |     /░    |
+|░       /                |░         |     /░      |
+ |░     /       / \        |░        |     \░      |
+ |░    /       /░   \       |░      |       \░     |
+ |░    /        \░   \       |░     |        \░    |
+ |░___/          \░___\       |░___|          \░___|
+
+           █▀▄▀█ ░▀░ █▀▀▄ █▀▀▄ █▀▀ █▀▀▄ █▀▀▄
+           █░▀░█ ▀█▀ █░░█ █░░█ ▀▀█ █░░█ █▀▀▄
+           ▀░░░▀ ▀▀▀ ▀░░▀ ▀▀▀░ ▀▀▀ ▀▀▀░ ▀▀▀░
+$cmdcol
+
+
+"""
+
 echo "Please enter the path to your python (3.6+) interpreter:"
 read python_path
 export MDB_INSTALL_PYTHONPATH="$python_path"
@@ -43,10 +75,15 @@ if [ "$default_install" = "N" ] || [ "$default_install" = "n" ]; then
 fi
 
 
+cmdcol="$(tput sgr0)$(tput bold)"
+normalcol="$(tput sgr0)"
+trap 'echo -n "$normalcol"' DEBUG
 
-echo """
+echo -e """
 This might take a few minutes (dozens of minutes ?, no longer than half an hour, pinky promise).
 Go grab a coffee or something and wait for the inevitable error log 99% of the way through
+
+\e[38;5;35m
 
 _,-||*||-~*)
 (*~_=========\
@@ -68,7 +105,9 @@ _,-||*||-~*)
 
                              ..     /
                                *****
- """
+$cmdcol
+
+"""
 
 INSTALLER_SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
