@@ -1,5 +1,4 @@
 import pandas
-import mindsdb
 
 from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
@@ -22,8 +21,8 @@ class MindsDBDataNode(DataNode):
 
     def getTableColumns(self, table):
         if table == 'predictors':
-            return ['name', 'predict_cols', 'select_data_query', 'training_options']
-        model = mindsdb.Predictor(name=table).get_model_data()
+            return ['name', 'status', 'accuracy', 'predict_cols', 'select_data_query', 'training_options']
+        model = self.mindsdb_native.get_model_data(name=table)
         columns = []
         columns += [x['column_name'] for x in model['data_analysis']['input_columns_metadata']]
         columns += [x['column_name'] for x in model['data_analysis']['target_columns_metadata']]
@@ -33,9 +32,11 @@ class MindsDBDataNode(DataNode):
         models = self.mindsdb_native.get_models()
         return [{
             'name': x['name'],
+            'status': x['status'],
+            'accuracy': x['accuracy'],
             'predict_cols': ', '.join(x['predict']),
             'select_data_query': x['data_source'],
-            'training_options': ''
+            'training_options': ''  # TODEL ?
         } for x in models]
 
     def delete_predictor(self, name):
@@ -52,16 +53,16 @@ class MindsDBDataNode(DataNode):
                 # TODO value should be just string or number
                 raise Exception()
             new_where[key] = value['$eq']
-        p = mindsdb.Predictor(name=table)
 
         if where_data is not None:
             where_data = pandas.DataFrame(where_data)
-        res = p.predict(when=new_where, when_data=where_data, use_gpu=False)
 
-        predicted_columns = p.get_model_data()['predict']
+        res = self.mindsdb_native.predict(name=table, when=new_where, when_data=where_data)
+
+        predicted_columns = self.mindsdb_native.get_model_data(name=table)['predict']
         length = len(res.data[predicted_columns[0]])
+
         data = []
-        # keys = [x for x in list(res.data.keys()) if x in columns and x in predicted_columns]
         keys = [x for x in list(res.data.keys()) if x in columns]
         for i in range(length):
             row = {}

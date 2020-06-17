@@ -15,17 +15,17 @@ class Clickhouse():
 
     def _to_clickhouse_table(self, stats):
         subtype_map = {
-            DATA_SUBTYPES.INT: 'Int64',
-            DATA_SUBTYPES.FLOAT: 'Float64',
-            DATA_SUBTYPES.BINARY: 'UInt8',
-            DATA_SUBTYPES.DATE: 'Date',
-            DATA_SUBTYPES.TIMESTAMP: 'Datetime',
-            DATA_SUBTYPES.SINGLE: 'String',
-            DATA_SUBTYPES.MULTIPLE: 'String',
-            DATA_SUBTYPES.IMAGE: 'String',
-            DATA_SUBTYPES.VIDEO: 'String',
-            DATA_SUBTYPES.AUDIO: 'String',
-            DATA_SUBTYPES.TEXT: 'String',
+            DATA_SUBTYPES.INT: 'Nullable(Int64)',
+            DATA_SUBTYPES.FLOAT: 'Nullable(Float64)',
+            DATA_SUBTYPES.BINARY: 'Nullable(UInt8)',
+            DATA_SUBTYPES.DATE: 'Nullable(Date)',
+            DATA_SUBTYPES.TIMESTAMP: 'Nullable(Datetime)',
+            DATA_SUBTYPES.SINGLE: 'Nullable(String)',
+            DATA_SUBTYPES.MULTIPLE: 'Nullable(String)',
+            DATA_SUBTYPES.IMAGE: 'Nullable(String)',
+            DATA_SUBTYPES.VIDEO: 'Nullable(String)',
+            DATA_SUBTYPES.AUDIO: 'Nullable(String)',
+            DATA_SUBTYPES.TEXT: 'Nullable(String)',
             DATA_SUBTYPES.ARRAY: 'Array(Float64)'
         }
 
@@ -63,13 +63,15 @@ class Clickhouse():
     def setup_clickhouse(self):
         self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
 
-        msqyl_conn =  self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
-        msqyl_user =  self.config['api']['mysql']['user']
-        msqyl_pass =  self.config['api']['mysql']['password']
+        msqyl_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
+        msqyl_user = self.config['api']['mysql']['user']
+        msqyl_pass = self.config['api']['mysql']['password']
 
         q = f"""
                 CREATE TABLE IF NOT EXISTS mindsdb.predictors
                 (name String,
+                status String,
+                accuracy String,
                 predict_cols String,
                 select_data_query String,
                 training_options String
@@ -78,14 +80,12 @@ class Clickhouse():
         print(f'Executing table creation query to create predictors list:\n{q}\n')
         self._query(q)
 
-
-
     def register_predictor(self, name, stats):
         columns_sql = ','.join(self._to_clickhouse_table(stats))
 
-        msqyl_conn =  self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
-        msqyl_user =  self.config['api']['mysql']['user']
-        msqyl_pass =  self.config['api']['mysql']['password']
+        msqyl_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
+        msqyl_user = self.config['api']['mysql']['user']
+        msqyl_pass = self.config['api']['mysql']['password']
 
         q = f"""
                 CREATE TABLE mindsdb.{name}
