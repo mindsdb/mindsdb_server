@@ -9,7 +9,6 @@ class MindsdbNative():
     def __init__(self, config):
         self.config = config
         self.metapredictor = mindsdb.Predictor('metapredictor')
-        self.register_to = []
         self.unregister_from = []
 
         try:
