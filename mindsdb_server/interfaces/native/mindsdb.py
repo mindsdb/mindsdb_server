@@ -1,66 +1,45 @@
 # Mindsdb native interface
-import sys
 import mindsdb
-import lightwood
-import torch.multiprocessing as mp
 from dateutil.parser import parse as parse_datetime
+
+from mindsdb_server.interfaces.native.learn_process import LearnProcess
 
 
 class MindsdbNative():
     def __init__(self, config):
         self.config = config
         self.metapredictor = mindsdb.Predictor('metapredictor')
-        self.register_to = []
         self.unregister_from = []
 
         try:
             assert(config['interface']['clickhouse']['enabled'] == True)
             from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
-            self.register_to.append(Clickhouse(self.config))
             self.unregister_from.append(Clickhouse(self.config))
         except:
             pass
 
-    def _learn(self, name, from_data, to_predict, kwargs):
-        '''
-        running at subprocess due to
-        ValueError: signal only works in main thread
-
-        this is work for celery worker here?
-        '''
-        import importlib
-
-        mdb = mindsdb.Predictor(name=name)
-        if sys.platform not in ['win32','cygwin','windows']:
-            lightwood.config.config.CONFIG.HELPER_MIXERS = True
-
-        data_source = getattr(mindsdb,from_data['class'])(*from_data['args'],**from_data['kwargs'])
-
-        mdb.learn(
-            from_data=data_source,
-            to_predict=to_predict,
-            #Needs to be fixed
-            use_gpu=True,
-            **kwargs
-        )
-
-        stats = mdb.get_model_data()['data_analysis_v2']
-        for entity in self.register_to:
-            register_func = getattr(entity, 'register_predictor')
-            register_func(name, stats)
-
     def learn(self, name, from_data, to_predict, kwargs={}):
-        p = mp.get_context('spawn').Process(target=self._learn, args=(name, from_data, to_predict, kwargs))
-        p.daemon = True
+        p = LearnProcess(name, from_data, to_predict, kwargs, self.config.get_all())
         p.start()
 
     def predict(self, name, when=None, when_data=None, kwargs={}):
         mdb = mindsdb.Predictor(name=name)
 
+        use_gpu = self.config.get('use_gpu', False)
         if when is not None:
-            predictions = mdb.predict(when=when, run_confidence_variation_analysis=True, use_gpu=False, **kwargs)
+            predictions = mdb.predict(
+                when=when,
+                run_confidence_variation_analysis=True,
+                use_gpu=use_gpu,
+                **kwargs
+            )
         else:
-            predictions = mdb.predict(when_data=when_data, run_confidence_variation_analysis=True, use_gpu=False,**kwargs)
+            predictions = mdb.predict(
+                when_data=when_data,
+                run_confidence_variation_analysis=True,
+                use_gpu=use_gpu,
+                **kwargs
+            )
 
         return predictions
 
