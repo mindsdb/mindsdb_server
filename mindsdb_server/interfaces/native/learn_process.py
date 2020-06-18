@@ -31,7 +31,7 @@ class LearnProcess(ctx.Process):
         mdb.learn(
             from_data=data_source,
             to_predict=to_predict,
-            use_gpu=self.config.get('use_gpu', False),
+            use_gpu=config.get('use_gpu', False),
             **kwargs
         )
 
