@@ -11,7 +11,7 @@ matrix:
       sudo: true
       env:
         DEPLOYMENT_ENV="true"
-      
+
     - name: "Python 3.7.2 on OSX"
       os: osx
       language: shell
@@ -29,7 +29,7 @@ matrix:
 notifications:
   # send notifications only on master failure
   email:
-    only: master
+    only: stable
 cache: pip
 # install dependencies
 install:
@@ -54,9 +54,9 @@ deploy:
     password: $PYPI_SYSADMIN_PASSWORD
     distributions: "sdist"
     on:
-      branch: master
+      branch: stable
       condition: $DEPLOYMENT_ENV = "true"
-      
+
 # after pip is deployed, we can deploy to dockerhub
 after_deploy:
   -  if [[ "$DEPLOYMENT_ENV" = "true" && "$TRAVIS_BRANCH" = "master" ]]; then sleep 15; fi
