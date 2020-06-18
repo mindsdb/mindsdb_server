@@ -5,10 +5,10 @@ from mindsdb.libs.constants.mindsdb import DATA_TYPES, DATA_SUBTYPES
 class Clickhouse():
     def __init__(self, config):
         self.config = config
-        self.host = config['interface']['clickhouse']['host']
-        self.port = config['interface']['clickhouse']['port']
-        self.user = config['interface']['clickhouse']['user']
-        self.password = config['interface']['clickhouse']['password']
+        self.host = config['integrations']['clickhouse']['host']
+        self.port = config['integrations']['clickhouse']['port']
+        self.user = config['integrations']['clickhouse']['user']
+        self.password = config['integrations']['clickhouse']['password']
 
         self.setup_clickhouse()
 
@@ -44,17 +44,17 @@ class Clickhouse():
     def _query(self, query):
         params = {'user': 'default'}
         try:
-            params['user'] = self.config['interface']['clickhouse']['user']
+            params['user'] = self.config['integrations']['clickhouse']['user']
         except:
             pass
 
         try:
-            params['password'] = self.config['interface']['clickhouse']['password']
+            params['password'] = self.config['integrations']['clickhouse']['password']
         except:
             pass
 
-        host = self.config['interface']['clickhouse']['host']
-        port = self.config['interface']['clickhouse']['port']
+        host = self.config['integrations']['clickhouse']['host']
+        port = self.config['integrations']['clickhouse']['port']
 
         response = requests.post(f'http://{host}:{port}', data=query, params=params)
 

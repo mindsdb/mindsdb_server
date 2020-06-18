@@ -12,7 +12,7 @@ class MindsdbNative():
         self.unregister_from = []
 
         try:
-            assert(config['interface']['clickhouse']['enabled'] == True)
+            assert(config['integrations']['clickhouse']['enabled'] == True)
             from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
             self.unregister_from.append(Clickhouse(self.config))
         except:

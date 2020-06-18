@@ -817,7 +817,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         datahub = init_datahub(config)
 
         host = config['api']['mysql']['host']
-        port = config['api']['mysql']['port']
+        port = int(config['api']['mysql']['port'])
 
         log.info(f'Starting MindsDB Mysql proxy server on tcp://{host}:{port}')
 

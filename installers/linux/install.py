@@ -2,17 +2,24 @@ import sys
 import os
 from pathlib import Path
 import time
+from os.path import expanduser
+
 
 install_as  = sys.argv[1]
 python_path = sys.argv[2]
 pip_path    = sys.argv[3]
+default_install = sys.argv[4]
+make_exec = sys.argv[5]
+home = expanduser("~")
+mdb_home = os.path.join(home, 'mindsdb1')
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-root_dir = Path(current_dir).parents[1]
+default_install = False if default_install.lower() == 'n' else True
+make_exec = False if make_exec.lower() == 'n' else True
+
 
 if install_as == 'user':
-    config_dir = os.path.join(root_dir,'data', 'config')
-    storage_dir = os.path.join(root_dir,'data', 'storage')
+    config_dir = os.path.join(mdb_home,'data', 'config')
+    storage_dir = os.path.join(mdb_home,'data', 'storage')
 else:
     config_dir = os.path.join('/etc/mindsdb/')
     storage_dir = os.path.join('/var/lib/mindsdb/')
@@ -55,6 +62,25 @@ time.sleep(1)
 print('Done installing dependencies')
 print('\nLast step: Configure Mindsdb\n')
 
-from mindsdb_server.utilities.wizards import cli_config,daemon_creator
-config_path = cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir)
-daemon_creator(python_path,config_path)
+from mindsdb_server.utilities.wizards import cli_config,daemon_creator,make_executable
+config_path = cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_default=default_install)
+
+if install_as == 'user':
+    pass
+else:
+    daemon_creator(python_path,config_path)
+
+if make_exec:
+    if install_as == 'user':
+        path = str(os.path.join(mdb_home,'run'))
+    else:
+        path = '/usr/bin/mindsdb'
+
+    make_executable(python_path,config_path,path)
+
+print('Installation complete !')
+
+if make_exec:
+    print(f'You can use Mindsdb by running {path}. Or by importing it as the `mindsdb` library from within python. <Some message about mindsdb Scout @Richie opinions on how we install this bit ?>')
+else:
+    print(f'You can use Mindsdb by running {python_path} -m mindsdb_server --config={config_path}. Or by importing it as the `mindsdb` library from within python. <Some message about mindsdb Scout @Richie opinions on how we install this bit ?>')
