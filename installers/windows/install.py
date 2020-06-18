@@ -46,9 +46,14 @@ with zipfile.ZipFile(python_zip_filename, 'r') as z:
 # remove python.zip
 os.remove(python_zip_filename)
 
-# add "Lib\site-packages" to pythonXX._pth 
+# the following two file writes fix importing issues
+# specific to "embedded python"
+
 with open(PTH_PATH, 'a') as f:
-    f.write('\nLib\site-packages')
+    f.write('\nimport site')
+
+with open(os.path.join(PYTHON_DIR, 'sitecustomize.py'), 'w') as f:
+    f.write('import sys; sys.path.insert(0, "")')
 
 # download get-pip.py
 get_pip_filename = download_file(GET_PIP_URL)
