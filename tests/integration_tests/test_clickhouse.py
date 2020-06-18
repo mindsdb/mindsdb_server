@@ -12,14 +12,19 @@ test_csv = 'tests/home_rentals.csv'
 test_data_table = 'home_rentals_400'
 test_predictor_name = 'test_predictor_400'
 
-#ch_host = config['integrations']['clickhouse']['host']
-#ch_password = config['integrations']['clickhouse']['password']
 
 def query_ch(query):
     if 'CREATE ' not in query.upper() and 'INSERT ' not in query.upper():
         query += ' FORMAT JSON'
 
-    res = requests.post('http://{}:{}'.format(
+    user = config['interface']['clickhouse']['user']
+    password = config['interface']['clickhouse']['password']
+
+    connect_string = '{}:{}'
+    if user != 'default' or isinstance(password, str) and len(password) > 0:
+        connect_string = f'{user}:{password}@' + connect_string
+
+    res = requests.post(connect_string.format(
         'localhost',
         8123
     ), data=query)

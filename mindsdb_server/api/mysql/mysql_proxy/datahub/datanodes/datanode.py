@@ -1,4 +1,4 @@
-class DataSource:
+class DataNode:
     type = 'meta'
 
     def __init__(self):

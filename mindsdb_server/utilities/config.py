@@ -5,8 +5,13 @@ import json
 class Config(object):
     _config = {}
 
-    def __init__(self, file_path='mindsdb_server/default_config.json'):
-        self.merge(file_path)
+    def __init__(self, config='mindsdb_server/default_config.json'):
+        if isinstance(config, dict):
+            self._update_recursive(self._config, config)
+        elif isinstance(config, str):
+            self.merge(config)
+        else:
+            raise TypeError('argument must be string or dict')
 
     def merge(self, file_path):
         if os.path.isfile(file_path):
@@ -26,3 +31,9 @@ class Config(object):
 
     def __getitem__(self, key):
         return self._config[key]
+
+    def get(self, key, default=None):
+        return self._config.get(key, default)
+
+    def get_all(self):
+        return self._config

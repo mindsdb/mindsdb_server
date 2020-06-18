@@ -15,13 +15,15 @@ import socketserver as SocketServer
 import ssl
 import re
 import traceback
+import json
+import atexit
 
 from moz_sql_parser import parse
 
 from mindsdb_server.api.mysql.mysql_proxy.data_types.mysql_packet import Packet
 from mindsdb_server.api.mysql.mysql_proxy.controllers.session_controller import SessionController
 from mindsdb_server.api.mysql.mysql_proxy.controllers.log import init_logger, log
-from mindsdb_server.api.mysql.mysql_proxy.datasources.datasources import init_datasources
+from mindsdb_server.api.mysql.mysql_proxy.datahub import init_datahub
 from mindsdb_server.api.mysql.mysql_proxy.classes.client_capabilities import ClentCapabilities
 
 from mindsdb_server.api.mysql.mysql_proxy.classes.sql_query import (
@@ -72,7 +74,8 @@ HARDCODED_PASSWORD = None
 CERT_PATH = None
 default_store = None
 mdb = None
-datasources = None
+datahub = None
+
 
 class MysqlProxy(SocketServer.BaseRequestHandler):
     """
@@ -86,6 +89,10 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
     session = None
 
     client_capabilities = None
+
+    @staticmethod
+    def server_close(srv):
+        srv.server_close()
 
     def initSession(self):
         global connection_id, ALPHABET
@@ -265,11 +272,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def insert_predictor_answer(self, sql):
-        global datasources
-
         search = re.search(r'(\(.*\)).*(\(.*\))', sql)
         columns = search.groups()[0].split(',')
-        columns = [x.strip('( )') for x in columns]
+        columns = [x.strip('(` )') for x in columns]
         p = re.compile( '\s*,\s*'.join(["('.*')"]*len(columns)) )
         values = re.search(p, search.groups()[1])
         values = [x.strip("( ')") for x in values.groups()]
@@ -278,26 +283,67 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         datasources = default_store.get_datasources()
         if insert['name'] in [x['name'] for x in datasources]:
-            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg='predictor name should be unique').send()
+            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg=f"datasource with name '{insert['name']}'' already exists").send()
             return
+
+        kwargs = {}
+        if isinstance(insert['training_options'], str) \
+            and len(insert['training_options']) > 0:
+            try:
+                kwargs = json.loads(insert['training_options'])
+            except Exception as e:
+                self.packet(
+                    ErrPacket,
+                    err_code=ERR.ER_WRONG_ARGUMENTS,
+                    msg='training_options should be in valid JSON string'
+                ).send()
+                return
 
         # TODO clickhouse with any type of used escaping sends escaped quotes as \'.
         # Need to check other clients, they behaviour can be differ
         insert['select_data_query'] = insert['select_data_query'].replace(r"\'", "'")
 
         ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
-        mdb.learn(insert['name'], ds, insert['predict_cols'])
+        mdb.learn(insert['name'], ds, insert['predict_cols'], kwargs)
+
+        self.packet(OkPacket).send()
+
+    def delete_predictor_answer(self, sql):
+        global datahub
+
+        fake_sql = sql.strip(' ')
+        fake_sql = 'select name ' + fake_sql[len('delete '):]
+        query = SQLQuery(fake_sql)
+
+        result = query.fetch(datahub)
+
+        if result['success'] is False:
+            self.packet(
+                ErrPacket,
+                err_code=result['error_code'],
+                msg=result['msg']
+            ).send()
+            return
+
+        predictors_names = [x[0] for x in result['result']]
+
+        if len(predictors_names) == 0:
+            raise NotImplementedError('nothing to delete')
+
+        for predictor_name in predictors_names:
+            datahub['mindsdb'].delete_predictor(predictor_name)
 
         self.packet(OkPacket).send()
 
     def queryAnswer(self, sql):
         sql_lower = sql.lower()
+        sql_lower = sql_lower.replace('`', '')
 
         if 'show databases' in sql_lower:
             sql = 'select schema_name as Database from information_schema.SCHEMATA;'
             sql_lower = sql.lower()
         if 'show full tables from' in sql_lower:
-            schema = re.findall(r'show\s+full\s+tables\sfrom\s+(\S*)', sql_lower)[0]
+            schema = re.findall(r'show\s+full\s+tables\s+from\s+(\S*)', sql_lower)[0]
             sql = f"select table_name as Tables_in_{schema} from INFORMATION_SCHEMA.TABLES WHERE table_schema = '{schema.upper()}' and table_type = 'BASE TABLE'"
             sql_lower = sql.lower()
 
@@ -344,6 +390,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             return
         elif 'show collation' in sql_lower:
             self.answerShowCollation()
+            return
+        elif keyword == 'delete' and 'mindsdb.predictors' in sql_lower:
+            self.delete_predictor_answer(sql)
             return
         elif keyword == 'insert' and 'mindsdb.predictors' in sql_lower:
             self.insert_predictor_answer(sql)
@@ -616,25 +665,15 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def selectAnswer(self, query):
-        global datasources
+        global datahub
+        result = query.fetch(datahub)
 
-        try:
-            query.fetch(datasources)
-        except (TableWithoutDatasourceException,
-                UndefinedColumnTableException,
-                DuplicateTableNameException,
-                NotImplementedError,
-                SqlError) as e:
-            log.error(f'ERROR while fetching data for: {query.raw}')
-            log.error(traceback.format_exc())
-            log.error(str(e))
-            self.packet(ErrPacket, err_code=ERR.ER_SYNTAX_ERROR, msg=str(e)).send()
-            return
-        except Exception as e:
-            log.error(f'ERROR while fetching data for: {query.raw}')
-            log.error(traceback.format_exc())
-            log.error(str(e))
-            self.packet(ErrPacket, err_code=ERR.ER_SYNTAX_ERROR, msg=str(e)).send()
+        if result['success'] is False:
+            self.packet(
+                ErrPacket,
+                err_code=result['error_code'],
+                msg=result['msg']
+            ).send()
             return
 
         self.answerTableQuery(query)
@@ -715,8 +754,19 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 log.info(f'COM_QUERY: {sql}')
                 self.current_transaction = self.session.newTransaction(sql_query=sql)
 
-                sql = sql.replace('`', '')  # ClickHouse put it other every statement
-                self.queryAnswer(sql)
+                try:
+                    self.queryAnswer(sql)
+                except Exception as e:
+                    log.error(
+                        f'ERROR while executing query: {sql}\n'
+                        f'{traceback.format_exc()}\n'
+                        f'{e}'
+                    )
+                    self.packet(
+                        ErrPacket,
+                        err_code=ERR.ER_SYNTAX_ERROR,
+                        msg=str(e)
+                    ).send()
 
                 # if self.current_transaction.output_data_array is None:
                 #     self.packet(OkPacket).send()
@@ -753,7 +803,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         global CERT_PATH
         global default_store
         global mdb
-        global datasources
+        global datahub
         """
         Create a server and wait for incoming connections until Ctrl-C
         """
@@ -764,7 +814,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         CERT_PATH = config['api']['mysql']['certificate_path']
         default_store = DataStore(config)
         mdb = MindsdbNative(config)
-        datasources = init_datasources(config)
+        datahub = init_datahub(config)
 
         host = config['api']['mysql']['host']
         port = int(config['api']['mysql']['port'])
@@ -776,16 +826,12 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             SocketServer.TCPServer.allow_reuse_address = True
         server = SocketServer.ThreadingTCPServer((host, port), MysqlProxy)
 
+        atexit.register(MysqlProxy.server_close, srv=server)
+
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
         log.info('Waiting for incoming connections...')
         server.serve_forever()
-
-        def close_ttcps(srv):
-            srv.server_close()
-        import atexit
-
-        atexit.regsiter(close_ttcps, srv=server)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-from . import datasource
+from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 
-class InformationSchema(datasource.DataSource):
+class InformationSchema(DataNode):
     type = 'INFORMATION_SCHEMA'
 
     index = {}
@@ -17,6 +17,9 @@ class InformationSchema(datasource.DataSource):
     def __init__(self, dsObject=None):
         if isinstance(dsObject, dict):
             self.add(dsObject)
+
+    def __getitem__(self, key):
+        return self.get(key)
 
     def add(self, dsObject):
         for key, val in dsObject.items():

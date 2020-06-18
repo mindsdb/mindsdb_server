@@ -1,5 +1,6 @@
 {
     "debug": true,
+    "use_gpu": false,
     "config_version": 1,
     "python_interpreter": "/usr/bin/python3",
     "api": {
