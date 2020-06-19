@@ -272,14 +272,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         self.sendPackageGroup(packages)
 
     def insert_predictor_answer(self, sql):
-        search = re.search(r'(\(.*\)).*(\(.*\))', sql)
-        columns = search.groups()[0].split(',')
-        columns = [x.strip('(` )') for x in columns]
-        p = re.compile( '\s*,\s*'.join(["('.*')"]*len(columns)) )
-        values = re.search(p, search.groups()[1])
-        values = [x.strip("( ')") for x in values.groups()]
-
-        insert = dict(zip(columns, values))
+        insert = SQLQuery.parse_insert(sql)
 
         datasources = default_store.get_datasources()
         if insert['name'] in [x['name'] for x in datasources]:
@@ -334,6 +327,36 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             datahub['mindsdb'].delete_predictor(predictor_name)
 
         self.packet(OkPacket).send()
+
+    def handle_custom_command(self, sql):
+        insert = SQLQuery.parse_insert(sql)
+
+        if 'command' not in insert:
+            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg=f"command should be inserted").send()
+            return
+        if len(insert) > 1:
+            self.packet(ErrPacket, err_code=ERR.ER_WRONG_ARGUMENTS, msg=f"only command should be inserted").send()
+            return
+
+        command = insert['command'].strip(' ;').split()
+
+        if command[0].lower() == 'delete' and command[1].lower() == 'predictor':
+            if len(command) != 3:
+                self.packet(
+                    ErrPacket,
+                    err_code=ERR.ER_SYNTAX_ERROR,
+                    msg="wrong syntax of 'DELETE PREDICTOR {NAME}' command"
+                ).send()
+                return
+            predictor_name = command[2]
+            self.delete_predictor_answer(f"delete from mindsdb.predictors where name = '{predictor_name}'")
+            return
+
+        self.packet(
+            ErrPacket,
+            err_code=ERR.ER_SYNTAX_ERROR,
+            msg="at this moment only 'delete predictor' command supported"
+        ).send()
 
     def queryAnswer(self, sql):
         sql_lower = sql.lower()
@@ -393,6 +416,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             return
         elif keyword == 'delete' and 'mindsdb.predictors' in sql_lower:
             self.delete_predictor_answer(sql)
+            return
+        elif keyword == 'insert' and 'mindsdb.commands' in sql_lower:
+            self.handle_custom_command(sql)
             return
         elif keyword == 'insert' and 'mindsdb.predictors' in sql_lower:
             self.insert_predictor_answer(sql)

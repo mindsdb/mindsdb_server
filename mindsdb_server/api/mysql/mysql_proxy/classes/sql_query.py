@@ -49,6 +49,17 @@ class SQLQuery():
     struct = {}
     result = None
 
+    @staticmethod
+    def parse_insert(sql):
+        search = re.search(r'(\(.*\)).*(\(.*\))', sql)
+        columns = search.groups()[0].split(',')
+        columns = [x.strip('(` )') for x in columns]
+        p = re.compile( '\s*,\s*'.join(["('.*')"]*len(columns)) )
+        values = re.search(p, search.groups()[1])
+        values = [x.strip("( ')") for x in values.groups()]
+
+        return dict(zip(columns, values))
+
     def __init__(self, sql):
         # parse
         # 'offset x, y' - specific just for mysql, parser dont understand it
