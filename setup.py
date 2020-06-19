@@ -29,6 +29,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ),
-    data_files=[('etc/mindsdb/', []),('var/lib/mindsdb/', [])],
+    data_files=[('/mindsdb/etc/', []),('/mindsdb/var', [])],
     python_requires=">=3.6"
 )

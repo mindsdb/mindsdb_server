@@ -10,6 +10,9 @@ def _in(ask, default, use_default):
         user_input = default
     return user_input
 
+def pathfinder():
+    
+
 def auto_config(python_path,pip_path,predictor_dir,datasource_dir):
     config = {
         "debug": False
