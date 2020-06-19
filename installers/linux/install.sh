@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 cmdcol="$(tput sgr0)$(tput bold)"
 normalcol="$(tput sgr0)"
@@ -31,15 +33,26 @@ $cmdcol
 
 """
 
-echo "Please enter the path to your python (3.6+) interpreter:"
-read python_path
+# Attempt to detect python
+python_path="$(which python3)"
+pip_path="$(which pip3)"
+printf "Detected python3: $python_path\ndetected pip3: $pip_path\nDo you want to use these [Y] or manually provide paths [N]? [Y/N]"
+read use_detected_python
+if [ "$use_detected_python" = "N" ] || [ "$use_detected_python" = "n" ]; then
+    echo "Please enter the path to your python (3.6+) interpreter:"
+    read python_path
+
+    echo "Please enter the path to your associate pip installation:"
+    read pip_path
+fi
 export MDB_INSTALL_PYTHONPATH="$python_path"
+export MDB_INSTALL_PIPPATH="$pip_path"
 
-echo "Please enter the path to your associate pip installation:"
-read python_path
-export MDB_INSTALL_PIPPATH="$python_path"
+# Check that it's indeed python 3.6 and that pip works
+${python_path} -c "import sys; print('Sorry, MindsDB requires Python 3.6+') and exit(1) if sys.version_info < (3,6) else exit(0)"
+${pip_path} --version > /dev/null 2>&1
 
-echo "Do you want us to install using the default parameters [Y] or should we go ahead and give you controll to tweak stuff during installation ? [Y/N]"
+echo "Do you want us to install using the default parameters [Y] or should we go ahead and give you control to tweak stuff during installation ? [Y/N]"
 read default_install
 export MDB_DEFAULT_INSTALL="$default_install"
 
