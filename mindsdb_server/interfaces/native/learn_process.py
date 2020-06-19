@@ -38,7 +38,7 @@ class LearnProcess(ctx.Process):
         stats = mdb.get_model_data()['data_analysis_v2']
 
         try:
-            assert(config['interface']['clickhouse']['enabled'] == True)
+            assert(config['integrations']['clickhouse']['enabled'] == True)
             from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
             clickhouse = Clickhouse(config)
             clickhouse.register_predictor(name, stats)

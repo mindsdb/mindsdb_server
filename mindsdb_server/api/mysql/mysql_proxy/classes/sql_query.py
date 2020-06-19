@@ -20,6 +20,7 @@ from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import TYPES
 from mindsdb_server.api.mysql.mysql_proxy.controllers.log import log
 from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import ERR
 
+
 class TableWithoutDatasourceException(Exception):
     def __init__(self, tableName='?'):
         Exception.__init__(self, f'Each table in FROM statement mush have explicit specified datasource. Table {tableName} hasnt.')
@@ -359,7 +360,6 @@ class SQLQuery():
                and isinstance(table['join'], dict) \
                and table['join']['type'] == 'left join' \
                and dn.type == 'mindsdb':
-                # here is we send data to mindsdb
                 data = dn.select(
                     table=table_name,
                     columns=fields,

@@ -82,6 +82,7 @@ class Clickhouse():
 
     def register_predictor(self, name, stats):
         columns_sql = ','.join(self._to_clickhouse_table(stats))
+        columns_sql += ',`$clickhouse_data_query` Nullable(String)'
 
         msqyl_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
         msqyl_user = self.config['api']['mysql']['user']
