@@ -27,7 +27,6 @@ setuptools.setup(
     install_requires=requirements,
     classifiers=(
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: OS Independent",
     ),
     data_files=[('etc/mindsdb/', []),('var/lib/mindsdb/', [])],
