@@ -1,4 +1,6 @@
+import os
 import json
+
 
 def _in(ask, default, use_default):
     if use_default:
@@ -79,7 +81,7 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
 
     config_path = os.path.join(config_dir,'config.json')
     with open(config_path, 'w') as fp:
-        json.dump(config, fp)
+        json.dump(config, fp, indent=4, sort_keys=True)
 
     return config_path
 

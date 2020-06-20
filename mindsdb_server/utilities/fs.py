@@ -12,14 +12,14 @@ def get_paths():
     this_file_path = os.path.abspath(inspect.getfile(inspect.currentframe()))
     mindsdb_path = os.path.abspath(Path(this_file_path).parent.parent.parent)
 
-    return [(f'{mindsdb_path}/var/', f'{mindsdb_path}/lib/predictors',f'{mindsdb_path}/lib/datastore'),('/etc/mindsdb', '/var/lib/mindsdb/predictors','/var/lib/mindsdb/datastore'),('~/.local/etc/mindsdb','~/.local/var/lib/mindsdb/predictors','~/.local/var/lib/mindsdb/datastore')]
+    return [(f'{mindsdb_path}/etc/', f'{mindsdb_path}/var/predictors',f'{mindsdb_path}/var/datastore'),('/etc/mindsdb', '/var/lib/mindsdb/predictors','/var/lib/mindsdb/datastore'),('~/.local/etc/mindsdb','~/.local/var/lib/mindsdb/predictors','~/.local/var/lib/mindsdb/datastore')]
 
 def get_or_create_dir_struct():
     for tup in get_paths():
         try:
             for dir in tup:
-                if os.path.exists(dir):
-                    os.access(dir, os.W_OK)
+                assert(os.path.exists(dir))
+                os.access(dir, os.W_OK)
             return tup[0], tup[1], tup[2]
         except Exception as e:
             pass

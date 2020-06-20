@@ -1,10 +1,11 @@
 import os
+import json
 
-from mindsdb_server.utilities.fs import create_dir_struct
+from mindsdb_server.utilities.fs import get_or_create_dir_struct
 from mindsdb_server.utilities.wizards import cli_config
 
-config_dir, predictor_dir, datasource_dir = create_dir_struct()
-config_path = os.path.jain(config_store,'config.json')
+config_dir, predictor_dir, datasource_dir = get_or_create_dir_struct()
+config_path = os.path.join(config_dir,'config.json')
 if not os.path.exists(config_path):
     _ = cli_config(None,None,predictor_dir,datasource_dir,config_dir,use_default=True)
 

@@ -43,7 +43,7 @@ def start(config):
     api.add_namespace(datasource_ns)
     api.add_namespace(utils_ns)
 
-    app.run(debug=debug, port=port, host=host)
+    app.run(debug=debug, port=config['api']['http']['port'], host=config['api']['http']['host'])
 
 if __name__ == '__main__':
     start()

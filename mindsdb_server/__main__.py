@@ -3,11 +3,12 @@ import atexit
 from torch.multiprocessing import Process
 import traceback
 import sys
+import os
 
 from mindsdb_server.utilities.config import Config
 from mindsdb_server.api.http.start import start as start_http
 from mindsdb_server.api.mysql.start import start as start_mysql
-from mindsdb_server.utilities.fs import create_dir_struct
+from mindsdb_server.utilities.fs import get_or_create_dir_struct
 from mindsdb_server.utilities.wizards import cli_config
 
 
@@ -30,8 +31,8 @@ args = parser.parse_args()
 
 config_path = args.config
 if config_path is None:
-    config_dir, _, _ = create_dir_struct()
-    config = os.path.jain(config_store,'config.json'))
+    config_dir, _, _ = get_or_create_dir_struct()
+    config_path = os.path.join(config_dir,'config.json')
 
 config = Config(config_path)
 
@@ -44,6 +45,7 @@ start_functions = {
     'http': start_http,
     'mysql': start_mysql
 }
+
 p_arr = []
 for api in api_arr:
     print(f'Starting Mindsdb {api} API !')
