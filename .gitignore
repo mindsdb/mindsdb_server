@@ -2,3 +2,5 @@
 var
 etc
 .idea
+mindsdb/logs
+mindsdb_server/logs
