@@ -1,5 +1,4 @@
 import json
-import os
 
 def _in(ask, default, use_default):
     if use_default:
@@ -9,9 +8,6 @@ def _in(ask, default, use_default):
     if user_input is None or user_input == '':
         user_input = default
     return user_input
-
-def pathfinder():
-    
 
 def auto_config(python_path,pip_path,predictor_dir,datasource_dir):
     config = {

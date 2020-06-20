@@ -7,6 +7,9 @@ import sys
 from mindsdb_server.utilities.config import Config
 from mindsdb_server.api.http.start import start as start_http
 from mindsdb_server.api.mysql.start import start as start_mysql
+from mindsdb_server.utilities.fs import create_dir_struct
+from mindsdb_server.utilities.wizards import cli_config
+
 
 print(f'Main call under name {__name__}')
 
@@ -21,11 +24,15 @@ def close_api_gracefully(p_arr):
 
 parser = argparse.ArgumentParser(description='CL argument for mindsdb server')
 parser.add_argument('--api', type=str, default=None)
-parser.add_argument('--config', type=str, default='mindsdb_server/default_config.json')
+parser.add_argument('--config', type=str, default=None)
 
 args = parser.parse_args()
 
 config_path = args.config
+if config_path is None:
+    config_dir, _, _ = create_dir_struct()
+    config = os.path.jain(config_store,'config.json'))
+
 config = Config(config_path)
 
 if args.api is None:
