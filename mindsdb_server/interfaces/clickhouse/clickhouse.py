@@ -68,7 +68,7 @@ class Clickhouse():
         msqyl_pass = self.config['api']['mysql']['password']
 
         q = f"""
-                CREATE TABLE IF NOT EXISTS mindsdb.predictors
+                CREATE TABLE IF NOT EXISTS mindsdb.predictors_clickhouse
                 (name String,
                 status String,
                 accuracy String,
@@ -88,7 +88,7 @@ class Clickhouse():
         msqyl_pass = self.config['api']['mysql']['password']
 
         q = f"""
-                CREATE TABLE mindsdb.{name}
+                CREATE TABLE mindsdb.{name}_clickhouse
                 ({columns_sql}
                 ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', '{name}', '{msqyl_user}', '{msqyl_pass}')
         """
