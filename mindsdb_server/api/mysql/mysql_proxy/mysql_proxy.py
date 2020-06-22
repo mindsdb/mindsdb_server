@@ -753,6 +753,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             log.debug('Got a new packet')
             p = self.packet(CommandPacket)
 
+            print(p)
             try:
                 success = p.get()
             except Exception:

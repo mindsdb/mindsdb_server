@@ -57,14 +57,15 @@ class Mariadb():
     def setup_mariadb(self):
         self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
 
-        user = self.user
-        password = self.password
-        host = self.host
+        user = self.config['api']['mysql']['user']
+        password = self.config['api']['mysql']['password']
+        host = self.config['api']['mysql']['host']
+        port = self.config['api']['mysql']['port']
 
         if password is None or password == '':
-            connect = f'mysql://{user}@{host}/mindsdb/predictors_mariadb'
+            connect = f'mysql://{user}@{host}:{port}/mindsdb/predictors_mariadb'
         else:
-            connect = f'mysql://{user}:{password}@{host}/mindsdb/predictors_mariadb'
+            connect = f'mysql://{user}:{password}@{host}:{port}/mindsdb/predictors_mariadb'
 
         q = f"""
                 CREATE TABLE IF NOT EXISTS mindsdb.predictors
