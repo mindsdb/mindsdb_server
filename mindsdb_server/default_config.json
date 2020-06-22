@@ -5,7 +5,7 @@
     "python_interpreter": "/usr/bin/python3",
     "api": {
         "mysql": {
-            "port": 3306,
+            "port": 47335,
             "host": "127.0.0.1",
             "user": "mindsdb",
             "password": "mindsdb",

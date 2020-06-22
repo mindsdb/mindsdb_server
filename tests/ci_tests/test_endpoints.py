@@ -42,7 +42,7 @@ class PredictorTest(unittest.TestCase):
 
         con = MySQLdb.connect(
             host='127.0.0.1',
-            port=3306,
+            port=47335,
             user='mindsdb',
             passwd='mindsdb',
             db='mindsdb'

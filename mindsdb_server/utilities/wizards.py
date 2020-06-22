@@ -67,7 +67,7 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
             ,"datasources": []
         }
         config['api']['mysql']['host'] = _in('MYSQL interface host','127.0.0.1',use_default)
-        config['api']['mysql']['port'] = _in('MYSQL interface port','3306',use_default)
+        config['api']['mysql']['port'] = _in('MYSQL interface port','47335',use_default)
         config['api']['mysql']['user'] = _in('MYSQL interface user','mindsdb',use_default)
         config['api']['mysql']['password'] = _in('MYSQL interface password','',use_default)
 
