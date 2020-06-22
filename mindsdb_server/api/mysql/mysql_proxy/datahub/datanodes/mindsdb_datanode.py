@@ -30,7 +30,7 @@ class MindsDBDataNode(DataNode):
         columns += [x['column_name'] for x in model['data_analysis']['input_columns_metadata']]
         columns += [x['column_name'] for x in model['data_analysis']['target_columns_metadata']]
         # TODO this should be added just for clickhouse queries
-        columns += ['$clickhouse_data_query']
+        columns += ['$select_data_query']
         return columns
 
     def _select_predictors(self):
@@ -51,9 +51,9 @@ class MindsDBDataNode(DataNode):
         if table == 'predictors':
             return self._select_predictors()
 
-        if '$clickhouse_data_query' in where:
-            clickhouse_query = where['$clickhouse_data_query']['$eq']
-            del where['$clickhouse_data_query']
+        if '$select_data_query' in where:
+            clickhouse_query = where['$select_data_query']['$eq']
+            del where['$select_data_query']
             ch = Clickhouse(self.config)
             res = ch._query(clickhouse_query.strip(' ;') + ' FORMAT JSON')
             data = res.json()['data']
@@ -90,7 +90,7 @@ class MindsDBDataNode(DataNode):
 
         if clickhouse_query is not None:
             for row in data:
-                row['$clickhouse_data_query'] = clickhouse_query
+                row['$select_data_query'] = clickhouse_query
 
         if new_where is not None and len(new_where.keys()) > 0:
             columns = self.getTableColumns(table)
