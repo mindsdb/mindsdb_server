@@ -14,14 +14,18 @@ class MindsdbNative():
         try:
             from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
             self.unregister_from.append(Clickhouse(self.config))
-        except:
+        except Exception as e:
+            print(e)
             pass
 
+        from mindsdb_server.interfaces.mariadb.mariadb import Mariadb
+        Mariadb(self.config)
         try:
             assert(config['integrations']['mariadb']['enabled'] == True)
             from mindsdb_server.interfaces.mariadb.mariadb import Mariadb
             self.unregister_from.append(Mariadb(self.config))
-        except:
+        except Exception as e:
+            print(e)
             pass
 
     def learn(self, name, from_data, to_predict, kwargs={}):

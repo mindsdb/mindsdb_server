@@ -23,6 +23,9 @@ def auto_config(python_path,pip_path,predictor_dir,datasource_dir):
           "clickhouse": {
               "enabled": False
           }
+          ,"mariadb": {
+              "enabled": False
+          }
         }
         ,"interface":{
           "mindsdb_native": {
@@ -71,7 +74,7 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
         config['api']['mysql']['user'] = _in('MYSQL interface user','mindsdb',use_default)
         config['api']['mysql']['password'] = _in('MYSQL interface password','',use_default)
 
-    clickhouse = _in('Connect to clickhouse ? [Y/N]','N',use_default)
+    clickhouse = _in('Connect to clickhouse ? [Y/N]','Y',use_default)
     if clickhouse in ['Y','y']:
         config['integrations']['clickhouse']['enabled'] = True
         config['integrations']['clickhouse']['host'] = _in('Clickhouse host: ','localhost',use_default)
@@ -79,12 +82,12 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
         config['integrations']['clickhouse']['user'] = _in('Clickhouse user: ','default',use_default)
         config['integrations']['clickhouse']['password'] = _in('Clickhouse password: ','',use_default)
 
-    mariadb = _in('Connect to Mariadb ? [Y/N]','N',use_default)
+    mariadb = _in('Connect to Mariadb ? [Y/N]','Y',use_default)
     if clickhouse in ['Y','y']:
         config['integrations']['mariadb']['enabled'] = True
         config['integrations']['mariadb']['host'] = _in('Mariadb host: ','localhost',use_default)
         config['integrations']['mariadb']['port'] = _in('Mariadb port: ','3306',use_default)
-        config['integrations']['mariadb']['user'] = _in('Mariadb user: ','ubuntu',use_default)
+        config['integrations']['mariadb']['user'] = _in('Mariadb user: ','root',use_default)
         config['integrations']['mariadb']['password'] = _in('Mariadb password: ','',use_default)
 
     config_path = os.path.join(config_dir,'config.json')

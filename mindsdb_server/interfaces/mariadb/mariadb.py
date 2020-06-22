@@ -23,13 +23,13 @@ class Mariadb():
             DATA_SUBTYPES.BINARY: 'UInt8',
             DATA_SUBTYPES.DATE: 'Date',
             DATA_SUBTYPES.TIMESTAMP: 'Datetime',
-            DATA_SUBTYPES.SINGLE: 'Text',
-            DATA_SUBTYPES.MULTIPLE: 'Text',
-            DATA_SUBTYPES.IMAGE: 'Text',
-            DATA_SUBTYPES.VIDEO: 'Text',
-            DATA_SUBTYPES.AUDIO: 'Text',
-            DATA_SUBTYPES.TEXT: 'Text',
-            DATA_SUBTYPES.ARRAY: 'Text'
+            DATA_SUBTYPES.SINGLE: 'VARCHAR(500)',
+            DATA_SUBTYPES.MULTIPLE: 'VARCHAR(500)',
+            DATA_SUBTYPES.IMAGE: 'VARCHAR(500)',
+            DATA_SUBTYPES.VIDEO: 'VARCHAR(500)',
+            DATA_SUBTYPES.AUDIO: 'VARCHAR(500)',
+            DATA_SUBTYPES.TEXT: 'VARCHAR(500)',
+            DATA_SUBTYPES.ARRAY: 'VARCHAR(500)'
         }
 
         column_declaration = []
@@ -57,23 +57,23 @@ class Mariadb():
     def setup_mariadb(self):
         self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
 
-        msqyl_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
-        msqyl_user = self.config['api']['mysql']['user']
-        msqyl_pass = self.config['api']['mysql']['password']
+        user = self.user
+        password = self.password
+        host = self.host
 
-        if msqyl_pass is not None and mysql_pass != '':
-            connect = f'mysql://{msqyl_user}@{self.host}/mindsdb/predictors_mariadb'
+        if password is None or password == '':
+            connect = f'mysql://{user}@{host}/mindsdb/predictors_mariadb'
         else:
-            connect = f'mysql://{msqyl_user}:{mysql_pass}@{self.host}/mindsdb/predictors_mariadb'
+            connect = f'mysql://{user}:{password}@{host}/mindsdb/predictors_mariadb'
 
         q = f"""
                 CREATE TABLE IF NOT EXISTS mindsdb.predictors
-                (name Text,
-                status Text,
-                accuracy Text,
-                predict_cols Text,
-                select_data_query Text,
-                training_options Text
+                (name VARCHAR(500),
+                status VARCHAR(500),
+                accuracy VARCHAR(500),
+                predict_cols VARCHAR(500),
+                select_data_query VARCHAR(500),
+                training_options VARCHAR(500)
                 ) ENGINE=CONNECT TABLE_TYPE=MYSQL CONNECTION='{connect}';
         """
         print(f'Executing table creation query to create predictors list:\n{q}\n')
@@ -81,7 +81,7 @@ class Mariadb():
 
         q = f"""
             CREATE TABLE IF NOT EXISTS mindsdb.predictors (
-                command Text
+                command VARCHAR(500)
             ) ENGINE=CONNECT TABLE_TYPE=MYSQL CONNECTION='{connect}';
         """
         print(f'Executing table creation query to create command table:\n{q}\n')
@@ -91,9 +91,9 @@ class Mariadb():
         columns_sql = ','.join(self._to_mariadb_table(stats))
         columns_sql += ',`$select_data_query` Nullable(String)'
 
-        msqyl_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
-        msqyl_user = self.config['api']['mysql']['user']
-        msqyl_pass = self.config['api']['mysql']['password']
+        mariadb_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
+        mariadb_user = self.config['api']['mysql']['user']
+        mariadb_pass = self.config['api']['mysql']['password']
 
         q = f"""
                 CREATE TABLE mindsdb.{name}

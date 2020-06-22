@@ -11,7 +11,7 @@ import mindsdb
 
 from mindsdb_server.interfaces.datastore.sqlite_helpers import *
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
-from mindsdb import FileDS, ClickhouseDS
+from mindsdb import FileDS, ClickhouseDS, MariaDS
 from mindsdb_server.interfaces.datastore.sqlite_helpers import create_sqlite_db
 
 
@@ -89,6 +89,15 @@ class DataStore():
             ds = ClickhouseDS(source, user=user, password=password)
             picklable = {
                 'class': 'ClickhouseDS'
+                ,'args': [source]
+                ,'kwargs': {'user': user,'password': password}
+            }
+        elif source_type == 'mariadb':
+            user = self.config['integrations']['mariadb']['user']
+            password = self.config['integrations']['mariadb']['password']
+            ds = MariaDS(source, user=user, password=password)
+            picklable = {
+                'class': 'MariaDS'
                 ,'args': [source]
                 ,'kwargs': {'user': user,'password': password}
             }
