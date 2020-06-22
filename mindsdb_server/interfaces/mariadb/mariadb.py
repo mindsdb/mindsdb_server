@@ -62,6 +62,7 @@ class Mariadb():
         host = self.config['api']['mysql']['host']
         port = self.config['api']['mysql']['port']
 
+        print(password)
         if password is None or password == '':
             connect = f'mysql://{user}@{host}:{port}/mindsdb/predictors_mariadb'
         else:

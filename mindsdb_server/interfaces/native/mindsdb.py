@@ -18,8 +18,6 @@ class MindsdbNative():
             print(e)
             pass
 
-        from mindsdb_server.interfaces.mariadb.mariadb import Mariadb
-        Mariadb(self.config)
         try:
             assert(config['integrations']['mariadb']['enabled'] == True)
             from mindsdb_server.interfaces.mariadb.mariadb import Mariadb

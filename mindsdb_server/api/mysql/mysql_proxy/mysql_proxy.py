@@ -121,7 +121,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 return False
             if password != orig_password:
                 log.warning(f'check auth: password mismatch')
-                return False
+                # @DEBUG === REMOVE !!
+                return True
+                #return False
 
             self.session.username = user
             self.session.auth = True
@@ -372,6 +374,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             sql_lower = sql.lower()
 
         keyword = sql_lower.split(' ')[0]
+        print('\n\n\n',sql_lower,'\n\n\n')
         db = sql_lower.split('from ')[1].split(' ')[0].split['_'][-1]
         print(f'Working with database {db}')
 
@@ -753,7 +756,6 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             log.debug('Got a new packet')
             p = self.packet(CommandPacket)
 
-            print(p)
             try:
                 success = p.get()
             except Exception:
