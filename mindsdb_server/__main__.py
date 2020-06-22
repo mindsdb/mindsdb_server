@@ -30,13 +30,14 @@ if config_path is None:
     config_dir, _, _ = get_or_create_dir_struct()
     config_path = os.path.join(config_dir,'config.json')
 
+print(f'Using configuration file: {config_path}')
 config = Config(config_path)
 
 if args.api is None:
     api_arr = [api for api in config['api']]
 else:
     api_arr = args.api.split(',')
-    
+
 start_functions = {
     'http': start_http,
     'mysql': start_mysql

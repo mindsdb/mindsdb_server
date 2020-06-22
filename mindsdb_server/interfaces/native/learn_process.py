@@ -44,3 +44,11 @@ class LearnProcess(ctx.Process):
             clickhouse.register_predictor(name, stats)
         except:
             pass
+
+        try:
+            assert(config['integrations']['mariadb']['enabled'] == True)
+            from mindsdb_server.interfaces.mariadb.mariadb import Mariadb
+            clickhouse = Mariadb(config)
+            clickhouse.register_predictor(name, stats)
+        except:
+            pass

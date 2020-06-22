@@ -83,7 +83,7 @@ class Clickhouse():
         q = f"""
             CREATE TABLE IF NOT EXISTS mindsdb.commands (
                 command String
-            ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', 'commands', '{msqyl_user}', '{msqyl_pass}')
+            ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', 'commands_clickhouse', '{msqyl_user}', '{msqyl_pass}')
         """
         print(f'Executing table creation query to create command table:\n{q}\n')
         self._query(q)

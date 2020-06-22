@@ -12,9 +12,15 @@ class MindsdbNative():
         self.unregister_from = []
 
         try:
-            assert(config['integrations']['clickhouse']['enabled'] == True)
             from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
             self.unregister_from.append(Clickhouse(self.config))
+        except:
+            pass
+
+        try:
+            assert(config['integrations']['mariadb']['enabled'] == True)
+            from mindsdb_server.interfaces.mariadb.mariadb import Mariadb
+            self.unregister_from.append(Mariadb(self.config))
         except:
             pass
 

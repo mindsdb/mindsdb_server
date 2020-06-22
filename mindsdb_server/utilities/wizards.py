@@ -79,6 +79,14 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
         config['integrations']['clickhouse']['user'] = _in('Clickhouse user: ','default',use_default)
         config['integrations']['clickhouse']['password'] = _in('Clickhouse password: ','',use_default)
 
+    mariadb = _in('Connect to Mariadb ? [Y/N]','N',use_default)
+    if clickhouse in ['Y','y']:
+        config['integrations']['mariadb']['enabled'] = True
+        config['integrations']['mariadb']['host'] = _in('Mariadb host: ','localhost',use_default)
+        config['integrations']['mariadb']['port'] = _in('Mariadb port: ','3306',use_default)
+        config['integrations']['mariadb']['user'] = _in('Mariadb user: ','ubuntu',use_default)
+        config['integrations']['mariadb']['password'] = _in('Mariadb password: ','',use_default)
+
     config_path = os.path.join(config_dir,'config.json')
     with open(config_path, 'w') as fp:
         json.dump(config, fp, indent=4, sort_keys=True)
