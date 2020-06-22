@@ -36,7 +36,7 @@ class MindsdbNative():
         else:
             predictions = mdb.predict(
                 when_data=when_data,
-                run_confidence_variation_analysis=True,
+                run_confidence_variation_analysis=False,
                 use_gpu=use_gpu,
                 **kwargs
             )

@@ -20,6 +20,7 @@ from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import TYPES
 from mindsdb_server.api.mysql.mysql_proxy.controllers.log import log
 from mindsdb_server.api.mysql.mysql_proxy.libs.constants.mysql import ERR
 
+
 class TableWithoutDatasourceException(Exception):
     def __init__(self, tableName='?'):
         Exception.__init__(self, f'Each table in FROM statement mush have explicit specified datasource. Table {tableName} hasnt.')
@@ -47,6 +48,17 @@ class SQLQuery():
     raw = ''
     struct = {}
     result = None
+
+    @staticmethod
+    def parse_insert(sql):
+        search = re.search(r'(\(.*\)).*(\(.*\))', sql)
+        columns = search.groups()[0].split(',')
+        columns = [x.strip('(` )') for x in columns]
+        p = re.compile( '\s*,\s*'.join(["('.*')"]*len(columns)) )
+        values = re.search(p, search.groups()[1])
+        values = [x.strip("( ')") for x in values.groups()]
+
+        return dict(zip(columns, values))
 
     def __init__(self, sql):
         # parse
@@ -359,7 +371,6 @@ class SQLQuery():
                and isinstance(table['join'], dict) \
                and table['join']['type'] == 'left join' \
                and dn.type == 'mindsdb':
-                # here is we send data to mindsdb
                 data = dn.select(
                     table=table_name,
                     columns=fields,

@@ -3,31 +3,53 @@ import requests
 import os
 import csv
 import time
+import inspect
+import subprocess
+
+import MySQLdb
 
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
-from mindsdb_server.utilities import config
+from mindsdb_server.utilities.config import Config
 
+
+TEST_CONFIG = '/home/maxs/dev/mdb/venv/sources/mindsdb_server/test_config.json'
 
 test_csv = 'tests/home_rentals.csv'
 test_data_table = 'home_rentals_400'
 test_predictor_name = 'test_predictor_400'
 
+config = Config(TEST_CONFIG)
 
 def query_ch(query):
     if 'CREATE ' not in query.upper() and 'INSERT ' not in query.upper():
         query += ' FORMAT JSON'
 
-    user = config['interface']['clickhouse']['user']
-    password = config['interface']['clickhouse']['password']
+    user = config['integrations']['clickhouse']['user']
+    password = config['integrations']['clickhouse']['password']
 
-    connect_string = '{}:{}'
-    if user != 'default' or isinstance(password, str) and len(password) > 0:
-        connect_string = f'{user}:{password}@' + connect_string
-
-    res = requests.post(connect_string.format(
+    connect_string = 'http://{}:{}'.format(
         'localhost',
         8123
-    ), data=query)
+    )
+
+    params = {}
+
+    params = {'user': 'default'}
+    try:
+        params['user'] = config['integrations']['clickhouse']['user']
+    except:
+        pass
+
+    try:
+        params['password'] = config['integrations']['clickhouse']['password']
+    except:
+        pass
+
+    res = requests.post(
+        connect_string,
+        data=query,
+        params=params
+    )
 
     if ' FORMAT JSON' in query:
         res = res.json()['data']
@@ -91,13 +113,17 @@ class ClickhouseTest(unittest.TestCase):
                     i += 1
 
     def test_1_predictor_record_not_exists(self):
-        print('Executing test 1')
+        print(f'Executing {inspect.stack()[0].function}')
+        # try:
+        #     pass
+        # except expression as identifier:
+        #     pass
         result = query_ch(f"select name from mindsdb.predictors where name='{test_predictor_name}'")
         self.assertTrue(len(result) == 0)
         print('Passed')
 
     def test_2_predictor_table_not_exists(self):
-        print('Executing test 2')
+        print(f'Executing {inspect.stack()[0].function}')
         result = query_ch(f"show tables from mindsdb")
         result = [x['name'] for x in result]
         self.assertTrue(test_predictor_name not in result)
@@ -107,16 +133,20 @@ class ClickhouseTest(unittest.TestCase):
         print('Executing test 3')
         q = f"""
             insert into mindsdb.predictors
-                (name, predict_cols, select_data_query)
-            values
-                ('{test_predictor_name}', 'rental_price', 'select * from test.{test_data_table} limit 100')
+                (name, predict_cols, select_data_query, training_options)
+            values (
+                '{test_predictor_name}',
+                'rental_price',
+                'select * from test.{test_data_table} limit 1000',
+                '{{"stop_training_in_x_seconds": 30}}'
+            )
         """
         result = query_ch(q)
 
-        # Here we should pool the status using mindsdb native or the http interface but whatever, for now sleep
-        time.sleep(80)
+        time.sleep(40)
 
         result = query_ch(f"select name from mindsdb.predictors where name='{test_predictor_name}'")
+        # check status!
         self.assertTrue(len(result) == 1)
 
         result = query_ch(f"show tables from mindsdb")
@@ -128,6 +158,34 @@ class ClickhouseTest(unittest.TestCase):
         result = query_ch(f"select rental_price from mindsdb.{test_predictor_name} where sqft=1000 and location='good'")
         self.assertTrue(len(result) == 1 and 'rental_price' in result[0])
 
+def wait_mysql(timeout):
+    config
+
+        
+    con = MySQLdb.connect(
+        config['api']['mysql']['host'],
+        USER,
+        PASSWORD,
+        DATABASE
+    )
+
+    cur = con.cursor()
+
+    cur.execute('DROP TABLE IF EXISTS test_mindsdb')
+    cur.execute('CREATE TABLE test_mindsdb(col_1 Text, col_2 BIGINT, col_3 BOOL)')
+    for i in range(0,200):
+        cur.execute(f'INSERT INTO test_mindsdb VALUES ("This is tring number {i}", {i}, {i % 2 == 0})')
+    con.commit()
+    con.close()
 
 if __name__ == "__main__":
-    unittest.main()
+    sp = subprocess.Popen(['python3', '-m', 'mindsdb_server', '--api', 'mysql', '--config', TEST_CONFIG])
+    try:
+        time.sleep(12)
+        unittest.main()
+        print('Tests passed !')
+    except:
+        print('Tests Failed !')
+    finally:
+        sp.terminate()
+    print('done')

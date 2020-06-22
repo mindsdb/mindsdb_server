@@ -80,8 +80,17 @@ class Clickhouse():
         print(f'Executing table creation query to create predictors list:\n{q}\n')
         self._query(q)
 
+        q = f"""
+            CREATE TABLE IF NOT EXISTS mindsdb.commands (
+                command String
+            ) ENGINE=MySQL('{msqyl_conn}', 'mindsdb', 'commands', '{msqyl_user}', '{msqyl_pass}')
+        """
+        print(f'Executing table creation query to create command table:\n{q}\n')
+        self._query(q)
+
     def register_predictor(self, name, stats):
         columns_sql = ','.join(self._to_clickhouse_table(stats))
+        columns_sql += ',`$clickhouse_data_query` Nullable(String)'
 
         msqyl_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
         msqyl_user = self.config['api']['mysql']['user']

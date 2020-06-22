@@ -2,12 +2,13 @@ import pandas
 
 from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
-
+from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
 
 class MindsDBDataNode(DataNode):
     type = 'mindsdb'
 
     def __init__(self, config):
+        self.config = config
         self.mindsdb_native = MindsdbNative(config)
 
     def getTables(self):
@@ -22,10 +23,14 @@ class MindsDBDataNode(DataNode):
     def getTableColumns(self, table):
         if table == 'predictors':
             return ['name', 'status', 'accuracy', 'predict_cols', 'select_data_query', 'training_options']
+        if table == 'commands':
+            return ['command']
         model = self.mindsdb_native.get_model_data(name=table)
         columns = []
         columns += [x['column_name'] for x in model['data_analysis']['input_columns_metadata']]
         columns += [x['column_name'] for x in model['data_analysis']['target_columns_metadata']]
+        # TODO this should be added just for clickhouse queries
+        columns += ['$clickhouse_data_query']
         return columns
 
     def _select_predictors(self):
@@ -46,6 +51,17 @@ class MindsDBDataNode(DataNode):
         if table == 'predictors':
             return self._select_predictors()
 
+        if '$clickhouse_data_query' in where:
+            clickhouse_query = where['$clickhouse_data_query']['$eq']
+            del where['$clickhouse_data_query']
+            ch = Clickhouse(self.config)
+            res = ch._query(clickhouse_query.strip(' ;') + ' FORMAT JSON')
+            data = res.json()['data']
+            if where_data is None:
+                where_data = data
+            else:
+                where_data += data
+
         # NOTE WHERE statements can be just $eq joined with 'and'
         new_where = {}
         for key, value in where.items():
@@ -53,6 +69,8 @@ class MindsDBDataNode(DataNode):
                 # TODO value should be just string or number
                 raise Exception()
             new_where[key] = value['$eq']
+        if len(new_where) == 0:
+            new_where = None
 
         if where_data is not None:
             where_data = pandas.DataFrame(where_data)
@@ -70,7 +88,11 @@ class MindsDBDataNode(DataNode):
                 row[key] = res.data[key][i]
             data.append(row)
 
-        if len(new_where.keys()) > 0:
+        if clickhouse_query is not None:
+            for row in data:
+                row['$clickhouse_data_query'] = clickhouse_query
+
+        if new_where is not None and len(new_where.keys()) > 0:
             columns = self.getTableColumns(table)
             for row in data:
                 for column in columns:
