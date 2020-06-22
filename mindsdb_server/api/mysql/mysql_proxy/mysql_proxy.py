@@ -271,7 +271,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         packages.append(self.packet(OkPacket, eof=True))
         self.sendPackageGroup(packages)
 
-    def insert_predictor_answer(self, sql):
+    def insert_predictor_answer(self, sql, db):
         insert = SQLQuery.parse_insert(sql)
 
         datasources = default_store.get_datasources()
@@ -296,7 +296,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         # Need to check other clients, they behaviour can be differ
         insert['select_data_query'] = insert['select_data_query'].replace(r"\'", "'")
 
-        ds = default_store.save_datasource(insert['name'], 'clickhouse', insert['select_data_query'])
+        ds_type = db
+        ds = default_store.save_datasource(insert['name'], ds_type, insert['select_data_query'])
         mdb.learn(insert['name'], ds, insert['predict_cols'], kwargs)
 
         self.packet(OkPacket).send()
@@ -371,6 +372,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             sql_lower = sql.lower()
 
         keyword = sql_lower.split(' ')[0]
+        db = sql_lower.split('from ')[1].split(' ')[0].split['_'][-1]
+        print(f'Working with database {db}')
 
         if keyword == 'start':
             # start transaction
@@ -415,13 +418,13 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             self.answerShowCollation()
             return
         elif keyword == 'delete' and 'mindsdb.predictors' in sql_lower:
-            self.delete_predictor_answer(sql)
+            self.delete_predictor_answer(sql, db)
             return
         elif keyword == 'insert' and 'mindsdb.commands' in sql_lower:
             self.handle_custom_command(sql)
             return
         elif keyword == 'insert' and 'mindsdb.predictors' in sql_lower:
-            self.insert_predictor_answer(sql)
+            self.insert_predictor_answer(sql, db)
             return
         elif keyword in ('update', 'insert'):
             raise NotImplementedError('Update and Insert not implemented')
