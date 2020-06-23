@@ -51,6 +51,7 @@ class MindsDBDataNode(DataNode):
         if table == 'predictors':
             return self._select_predictors()
 
+        clickhouse_query = None
         if '$select_data_query' in where:
             clickhouse_query = where['$select_data_query']['$eq']
             del where['$select_data_query']

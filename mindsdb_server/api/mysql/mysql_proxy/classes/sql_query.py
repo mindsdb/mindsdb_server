@@ -60,9 +60,14 @@ class SQLQuery():
 
         return dict(zip(columns, values))
 
-    def __init__(self, sql):
+    def __init__(self, sql, default_dn=None):
         # parse
         # 'offset x, y' - specific just for mysql, parser dont understand it
+
+        self.default_datanode = None
+        if isinstance(default_dn, str) and len(default_dn) > 0:
+            self.default_datanode = default_dn
+
         sql = re.sub(r'\n?limit([\n\d\s]*),([\n\d\s]*)', ' limit \g<1> offset \g<1> ', sql)
         self.raw = sql
         self._parseQuery(sql)
@@ -135,6 +140,7 @@ class SQLQuery():
         if from_statement:
             for statement in from_statement:
                 join = None
+                table = None
 
                 if isinstance(statement, dict) and 'on' in statement:
                     # maybe join
@@ -159,6 +165,13 @@ class SQLQuery():
                 if isinstance(table, dict):
                     table_alias = table.get('name')
                     table = table['value']
+
+                if '.' in statement:
+                    table = table
+                elif '.' not in table and self.default_datanode is not None:
+                    table = f'{self.default_datanode}.{table}'
+                else:
+                    raise SqlError('table without datasource %s ' % table)
 
                 self.tables_select.append(dict(
                     name=table,
@@ -321,7 +334,10 @@ class SQLQuery():
 
             parts = full_table_name.split('.')
             if len(parts) < 2:
-                raise SqlError('table without datasource %s ' % full_table_name)
+                if self.default_datanode is not None:
+                    parts = [self.default_datanode] + parts
+                else:
+                    raise SqlError('table without datasource %s ' % full_table_name)
 
             dn_name = parts[0]
             table_name = '.'.join(parts[1:])
@@ -738,7 +754,14 @@ class SQLQuery():
     def columns(self):
         result = []
         for column in self.select_columns:
-            dn_name, table_name = column['table'].split('.')
+            parts = column['table'].split('.')
+            if len(parts) == 2:
+                dn_name, table_name = parts
+            elif len(parts) == 1 and self.default_datanode is not None:
+                dn_name = self.default_datanode
+                table_name = parts[0]
+            else:
+                raise UndefinedColumnTableException('Unable find table: %s' % column['table'])
             result.append({
                 'database': dn_name,
                 'table_name': table_name,

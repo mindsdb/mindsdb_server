@@ -18,9 +18,9 @@ class Mariadb():
 
     def _to_mariadb_table(self, stats):
         subtype_map = {
-            DATA_SUBTYPES.INT: 'Int64',
-            DATA_SUBTYPES.FLOAT: 'Float64',
-            DATA_SUBTYPES.BINARY: 'UInt8',
+            DATA_SUBTYPES.INT: 'int',
+            DATA_SUBTYPES.FLOAT: 'double',
+            DATA_SUBTYPES.BINARY: 'bool',
             DATA_SUBTYPES.DATE: 'Date',
             DATA_SUBTYPES.TIMESTAMP: 'Datetime',
             DATA_SUBTYPES.SINGLE: 'VARCHAR(500)',
@@ -54,19 +54,23 @@ class Mariadb():
 
         return True
 
-    def setup_mariadb(self):
-        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
-
+    def _get_connect_string(self, table):
         user = self.config['api']['mysql']['user']
         password = self.config['api']['mysql']['password']
         host = self.config['api']['mysql']['host']
         port = self.config['api']['mysql']['port']
 
-        print(password)
         if password is None or password == '':
-            connect = f'mysql://{user}@{host}:{port}/mindsdb/predictors_mariadb'
+            connect = f'mysql://{user}@{host}:{port}/mindsdb/{table}'
         else:
-            connect = f'mysql://{user}:{password}@{host}:{port}/mindsdb/predictors_mariadb'
+            connect = f'mysql://{user}:{password}@{host}:{port}/mindsdb/{table}'
+
+        return connect
+
+    def setup_mariadb(self):
+        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
+
+        connect = self._get_connect_string('predictors_mariadb')
 
         q = f"""
                 CREATE TABLE IF NOT EXISTS mindsdb.predictors
@@ -82,7 +86,7 @@ class Mariadb():
         self._query(q)
 
         q = f"""
-            CREATE TABLE IF NOT EXISTS mindsdb.predictors (
+            CREATE TABLE IF NOT EXISTS mindsdb.commands (
                 command VARCHAR(500)
             ) ENGINE=CONNECT TABLE_TYPE=MYSQL CONNECTION='{connect}';
         """
@@ -91,11 +95,9 @@ class Mariadb():
 
     def register_predictor(self, name, stats):
         columns_sql = ','.join(self._to_mariadb_table(stats))
-        columns_sql += ',`$select_data_query` Nullable(String)'
+        columns_sql += ',`$select_data_query` varchar(500)'
 
-        mariadb_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
-        mariadb_user = self.config['api']['mysql']['user']
-        mariadb_pass = self.config['api']['mysql']['password']
+        connect = self._get_connect_string(name)
 
         q = f"""
                 CREATE TABLE mindsdb.{name}

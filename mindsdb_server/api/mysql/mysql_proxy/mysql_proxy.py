@@ -223,6 +223,11 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         username = handshake_resp.username.value.decode()
 
+        try:
+            self.session.database = handshake_resp.database.value.decode()
+        except Exception:
+            self.session.database = None
+
         if self.isAuthOk(username, orig_username, password, orig_password):
             self.packet(OkPacket).send()
             return True
@@ -273,7 +278,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         packages.append(self.packet(OkPacket, eof=True))
         self.sendPackageGroup(packages)
 
-    def insert_predictor_answer(self, sql, db):
+    def insert_predictor_answer(self, sql):
         insert = SQLQuery.parse_insert(sql)
 
         datasources = default_store.get_datasources()
@@ -282,7 +287,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             return
 
         kwargs = {}
-        if isinstance(insert['training_options'], str) \
+        if isinstance(insert.get('training_options'), str) \
             and len(insert['training_options']) > 0:
             try:
                 kwargs = json.loads(insert['training_options'])
@@ -298,6 +303,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         # Need to check other clients, they behaviour can be differ
         insert['select_data_query'] = insert['select_data_query'].replace(r"\'", "'")
 
+        db = sql.lower()[sql.lower().find('predictors_') + len('predictors_'):]
+        db = db[:db.find(' ')].strip(' `')
         ds_type = db
         ds = default_store.save_datasource(insert['name'], ds_type, insert['select_data_query'])
         mdb.learn(insert['name'], ds, insert['predict_cols'], kwargs)
@@ -374,9 +381,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             sql_lower = sql.lower()
 
         keyword = sql_lower.split(' ')[0]
-        print('\n\n\n',sql_lower,'\n\n\n')
-        db = sql_lower.split('from ')[1].split(' ')[0].split['_'][-1]
-        print(f'Working with database {db}')
+        # print('\n\n\n',sql_lower,'\n\n\n')
+        # db = sql_lower.split('from ')[1].split(' ')[0].split['_'][-1]
+        # print(f'Working with database {db}')
 
         if keyword == 'start':
             # start transaction
@@ -405,7 +412,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 self.packet(OkPacket).send()
                 return
         elif keyword == 'use':
-            # use database_name
+            self.session.database = sql_lower.split()[1].trim(' ;')
             self.packet(OkPacket).send()
             return
         elif 'show warnings' in sql_lower:
@@ -420,17 +427,23 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         elif 'show collation' in sql_lower:
             self.answerShowCollation()
             return
-        elif keyword == 'delete' and 'mindsdb.predictors' in sql_lower:
+        elif keyword == 'delete' and \
+            ('mindsdb.predictors' in sql_lower or self.session.database == 'mindsdb' and 'predictors' in sql_lower):
             self.delete_predictor_answer(sql, db)
             return
-        elif keyword == 'insert' and 'mindsdb.commands' in sql_lower:
+        elif keyword == 'insert' and \
+            ('mindsdb.commands' in sql_lower or self.session.database == 'mindsdb' and 'commands' in sql_lower):
             self.handle_custom_command(sql)
             return
-        elif keyword == 'insert' and 'mindsdb.predictors' in sql_lower:
-            self.insert_predictor_answer(sql, db)
+        elif keyword == 'insert' and \
+            ('mindsdb.predictors' in sql_lower or self.session.database == 'mindsdb' and 'predictors' in sql_lower):
+            self.insert_predictor_answer(sql)
             return
         elif keyword in ('update', 'insert'):
             raise NotImplementedError('Update and Insert not implemented')
+            return
+        elif keyword == 'alter' and ('disable keys' in sql_lower) or ('enable keys' in sql_lower):
+            self.packet(OkPacket).send()
             return
         elif keyword == 'select':
             if '@@' in sql_lower:
@@ -442,7 +455,12 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             if 'database()' in sql_lower:
                 self.answerSelectDatabase()
                 return
-            query = SQLQuery(sql)
+
+            # TODO rewrite it
+            if '`predictors_mariadb`' in sql:
+                sql = sql.replace('`predictors_mariadb`', '`mindsdb`.`predictors`')
+
+            query = SQLQuery(sql, self.session.database)
             return self.selectAnswer(query)
         elif keyword == 'rollback':
             self.packet(OkPacket).send()

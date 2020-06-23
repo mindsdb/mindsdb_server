@@ -86,6 +86,7 @@ class DataStore():
         elif source_type == 'clickhouse':
             user = self.config['integrations']['clickhouse']['user']
             password = self.config['integrations']['clickhouse']['password']
+            # TODO add host port params
             ds = ClickhouseDS(source, user=user, password=password)
             picklable = {
                 'class': 'ClickhouseDS'
@@ -95,11 +96,18 @@ class DataStore():
         elif source_type == 'mariadb':
             user = self.config['integrations']['mariadb']['user']
             password = self.config['integrations']['mariadb']['password']
-            ds = MariaDS(source, user=user, password=password)
+            host = self.config['integrations']['mariadb']['host']
+            port = self.config['integrations']['mariadb']['port']
+            ds = MariaDS(source, user=user, password=password, host=host, port=port)
             picklable = {
                 'class': 'MariaDS'
                 ,'args': [source]
-                ,'kwargs': {'user': user,'password': password}
+                ,'kwargs': {
+                    'user': user,
+                    'password': password,
+                    'host': host,
+                    'port': port
+                }
             }
         else:
             # This probably only happens for urls
