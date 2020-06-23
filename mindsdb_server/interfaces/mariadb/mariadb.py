@@ -82,7 +82,7 @@ class Mariadb():
         self._query(q)
 
         q = f"""
-            CREATE TABLE IF NOT EXISTS mindsdb.predictors (
+            CREATE TABLE IF NOT EXISTS mindsdb.commands (
                 command VARCHAR(500)
             ) ENGINE=CONNECT TABLE_TYPE=MYSQL CONNECTION='{connect}';
         """
