@@ -12,8 +12,10 @@ class MindsdbNative():
         self.unregister_from = []
 
         try:
+            assert(config['integrations']['clickhouse']['enabled'] == True)
             from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
-            self.unregister_from.append(Clickhouse(self.config))
+            clickhouse = Clickhouse(self.config)
+            self.unregister_from.append(clickhouse)
         except Exception as e:
             print(e)
             pass
@@ -21,7 +23,8 @@ class MindsdbNative():
         try:
             assert(config['integrations']['mariadb']['enabled'] == True)
             from mindsdb_server.interfaces.mariadb.mariadb import Mariadb
-            self.unregister_from.append(Mariadb(self.config))
+            mariadb = Mariadb(self.config)
+            self.unregister_from.append(mariadb)
         except Exception as e:
             print(e)
             pass
