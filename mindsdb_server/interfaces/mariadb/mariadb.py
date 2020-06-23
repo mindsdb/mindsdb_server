@@ -54,19 +54,23 @@ class Mariadb():
 
         return True
 
-    def setup_mariadb(self):
-        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
-
+    def _get_connect_string(self):
         user = self.config['api']['mysql']['user']
         password = self.config['api']['mysql']['password']
         host = self.config['api']['mysql']['host']
         port = self.config['api']['mysql']['port']
 
-        print(password)
         if password is None or password == '':
             connect = f'mysql://{user}@{host}:{port}/mindsdb/predictors_mariadb'
         else:
             connect = f'mysql://{user}:{password}@{host}:{port}/mindsdb/predictors_mariadb'
+
+        return connect
+
+    def setup_mariadb(self):
+        self._query('CREATE DATABASE IF NOT EXISTS mindsdb')
+
+        connect = self._get_connect_string()
 
         q = f"""
                 CREATE TABLE IF NOT EXISTS mindsdb.predictors
@@ -91,11 +95,9 @@ class Mariadb():
 
     def register_predictor(self, name, stats):
         columns_sql = ','.join(self._to_mariadb_table(stats))
-        columns_sql += ',`$select_data_query` Nullable(String)'
+        columns_sql += ',`$select_data_query` varchar(500)'
 
-        mariadb_conn = self.config['api']['mysql']['host'] + ':' + str(self.config['api']['mysql']['port'])
-        mariadb_user = self.config['api']['mysql']['user']
-        mariadb_pass = self.config['api']['mysql']['password']
+        connect = self._get_connect_string()
 
         q = f"""
                 CREATE TABLE mindsdb.{name}
