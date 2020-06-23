@@ -455,7 +455,12 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             if 'database()' in sql_lower:
                 self.answerSelectDatabase()
                 return
-            query = SQLQuery(sql)
+
+            # TODO rewrite it
+            if '`predictors_mariadb`' in sql:
+                sql = sql.replace('`predictors_mariadb`', '`mindsdb`.`predictors`')
+
+            query = SQLQuery(sql, self.session.database)
             return self.selectAnswer(query)
         elif keyword == 'rollback':
             self.packet(OkPacket).send()
