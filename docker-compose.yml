@@ -12,6 +12,7 @@ services:
       - 3306:3306
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: "root"
     volumes:
     - ./connectData:/var/lib/mysql
     - ./connect.cnf:/etc/mysql/mariadb.conf.d/connect.cnf
