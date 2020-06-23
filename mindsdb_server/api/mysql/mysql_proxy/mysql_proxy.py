@@ -223,6 +223,11 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
 
         username = handshake_resp.username.value.decode()
 
+        try:
+            self.session.database = handshake_resp.database.value.decode()
+        except Exception:
+            self.session.database = None
+
         if self.isAuthOk(username, orig_username, password, orig_password):
             self.packet(OkPacket).send()
             return True
@@ -273,7 +278,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         packages.append(self.packet(OkPacket, eof=True))
         self.sendPackageGroup(packages)
 
-    def insert_predictor_answer(self, sql, db):
+    def insert_predictor_answer(self, sql):
         insert = SQLQuery.parse_insert(sql)
 
         datasources = default_store.get_datasources()
@@ -298,7 +303,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
         # Need to check other clients, they behaviour can be differ
         insert['select_data_query'] = insert['select_data_query'].replace(r"\'", "'")
 
-        ds_type = db
+        # db = sql.split('')
+        ds_type = 'mariadb'#db
         ds = default_store.save_datasource(insert['name'], ds_type, insert['select_data_query'])
         mdb.learn(insert['name'], ds, insert['predict_cols'], kwargs)
 
@@ -374,9 +380,9 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             sql_lower = sql.lower()
 
         keyword = sql_lower.split(' ')[0]
-        print('\n\n\n',sql_lower,'\n\n\n')
-        db = sql_lower.split('from ')[1].split(' ')[0].split['_'][-1]
-        print(f'Working with database {db}')
+        # print('\n\n\n',sql_lower,'\n\n\n')
+        # db = sql_lower.split('from ')[1].split(' ')[0].split['_'][-1]
+        # print(f'Working with database {db}')
 
         if keyword == 'start':
             # start transaction
@@ -405,7 +411,7 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 self.packet(OkPacket).send()
                 return
         elif keyword == 'use':
-            # use database_name
+            self.session.database = sql_lower.split()[1].trim(' ;')
             self.packet(OkPacket).send()
             return
         elif 'show warnings' in sql_lower:
