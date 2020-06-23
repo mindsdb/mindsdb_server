@@ -102,7 +102,12 @@ class DataStore():
             picklable = {
                 'class': 'MariaDS'
                 ,'args': [source]
-                ,'kwargs': {'user': user,'password': password}
+                ,'kwargs': {
+                    'user': user,
+                    'password': password,
+                    'host': host,
+                    'port': port
+                }
             }
         else:
             # This probably only happens for urls
