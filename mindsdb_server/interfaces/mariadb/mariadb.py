@@ -18,9 +18,9 @@ class Mariadb():
 
     def _to_mariadb_table(self, stats):
         subtype_map = {
-            DATA_SUBTYPES.INT: 'Int64',
-            DATA_SUBTYPES.FLOAT: 'Float64',
-            DATA_SUBTYPES.BINARY: 'UInt8',
+            DATA_SUBTYPES.INT: 'int',
+            DATA_SUBTYPES.FLOAT: 'double',
+            DATA_SUBTYPES.BINARY: 'bool',
             DATA_SUBTYPES.DATE: 'Date',
             DATA_SUBTYPES.TIMESTAMP: 'Datetime',
             DATA_SUBTYPES.SINGLE: 'VARCHAR(500)',
