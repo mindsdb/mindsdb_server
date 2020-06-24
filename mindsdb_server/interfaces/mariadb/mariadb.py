@@ -47,12 +47,15 @@ class Mariadb():
     def _query(self, query):
         con = mysql.connector.connect(host=self.host, port=self.port, user=self.user, password=self.password)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(query)
+        res = True
+        if cur._have_unread_result():
+            res = cur.fetchall()
         con.commit()
         con.close()
 
-        return True
+        return res
 
     def _get_connect_string(self, table):
         user = self.config['api']['mysql']['user']

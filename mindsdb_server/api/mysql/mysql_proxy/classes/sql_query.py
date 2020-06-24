@@ -218,7 +218,8 @@ class SQLQuery():
                 self.tables_select.append(dict(
                     name=table,
                     alias=table_alias,
-                    join=join
+                    join=join,
+                    source=statement.get('source')
                 ))
 
         # create tables index
@@ -427,13 +428,15 @@ class SQLQuery():
                     table=table_name,
                     columns=fields,
                     where=condition,
-                    where_data=self.table_data[prev_table_name]
+                    where_data=self.table_data[prev_table_name],
+                    came_from=table.get('source')
                 )
             else:
                 data = dn.select(
                     table=table_name,
                     columns=fields,
-                    where=condition
+                    where=condition,
+                    came_from=table.get('source')
                 )
 
             self.table_data[full_table_name] = data
