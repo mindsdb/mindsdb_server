@@ -166,9 +166,7 @@ class SQLQuery():
                     table_alias = table.get('name')
                     table = table['value']
 
-                if '.' in statement:
-                    table = table
-                elif '.' not in table and self.default_datanode is not None:
+                if '.' not in table and self.default_datanode is not None:
                     table = f'{self.default_datanode}.{table}'
                 else:
                     raise SqlError('table without datasource %s ' % table)
