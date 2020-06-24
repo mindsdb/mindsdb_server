@@ -62,13 +62,14 @@ class SQLQuery():
 
     def __init__(self, sql, default_dn=None):
         # parse
-        # 'offset x, y' - specific just for mysql, parser dont understand it
 
         self.default_datanode = None
         if isinstance(default_dn, str) and len(default_dn) > 0:
             self.default_datanode = default_dn
 
+        # 'offset x, y' - specific just for mysql, parser dont understand it
         sql = re.sub(r'\n?limit([\n\d\s]*),([\n\d\s]*)', ' limit \g<1> offset \g<1> ', sql)
+
         self.raw = sql
         self._parseQuery(sql)
 
@@ -104,8 +105,59 @@ class SQLQuery():
             'result': self.result
         }
 
+    def _format_from_statement(self, s):
+        """ parser can return FROM statement in different views:
+            `... from xxx.zzz` -> 'xxx.zzz'
+            `... from xxx.zzz a` -> {'value': 'xxx.zzz', 'name': 'a'}
+            `... from xxx.yyy a left join xxx.zzz b on a.id = b.id`
+                    -> [{'value': 'xxx.yyy', 'name': 'a'},
+                        {'left join': {'name': 'b', 'value': 'xxx.zzz'}, 'on': {'eq': ['a.id', 'b.id']}}]
+            This function do:
+                1. replace string view 'xxx.zzz' to {'value': 'xxx.zzz', 'name': 'zzz'}
+                2. if exists default_datanode, then replace 'zzz' to 'default_datanode.zzz'
+                3. if database marks (as _clickhouse or _mariadb) in datasource name, than do:
+                    {'value': 'xxx.zzz_mariadb', 'name': 'a'}
+                    -> {'value': 'xxx.zzz', 'name': 'a', source: 'mariadb'}
+        """
+        if isinstance(s, str):
+            if '.' in s:
+                s = {
+                    'name': s.split('.')[-1],
+                    'value': s
+                }
+            elif self.default_datanode is not None:
+                s = {
+                    'name': s,
+                    'value': f'{self.default_datanode}.{s}'
+                }
+            else:
+                raise SqlError('table without datasource %s ' % s)
+        elif isinstance(s, dict):
+            if 'value' in s and 'name' in s:
+                if '.' not in s['value'] and self.default_datanode is not None:
+                    s['value'] = f"{self.default_datanode}.{s['value']}"
+                elif '.' not in s['value']:
+                    raise SqlError('table without datasource %s ' % s['value'])
+            elif 'left join' in s:
+                s['left join'] = self._format_from_statement(s['left join'])
+            elif 'right join' in s:
+                s['right join'] = self._format_from_statement(s['right join'])
+            elif 'join' in s:
+                s['join'] = self._format_from_statement(s['join'])
+            else:
+                raise SqlError('Something wrong in query parsing process')
+        
+        for x in ['clickhouse', 'mariadb']:
+            _x = '_' + x
+            if s['value'].endswith(_x):
+                s['value'] = s['value'][:s['value'].rfind(_x)]
+                s['source'] = x
+
+        return s
+
     def _parseQuery(self, sql):
         self.struct = parse(sql)
+        
         if 'limit' in self.struct:
             limit = self.struct.get('limit')
             if isinstance(limit, int) is False:
@@ -118,13 +170,10 @@ class SQLQuery():
             self.struct['select'] = [selectStatement]
 
         fromStatements = self.struct.get('from')
-        if isinstance(fromStatements, str):
-            fromStatements = {
-                'name': fromStatements.split('.')[-1],
-                'value': fromStatements
-            }
-        if isinstance(fromStatements, dict):
-            self.struct['from'] = [fromStatements]
+        if isinstance(fromStatements, list) is False:
+            fromStatements = [fromStatements]
+        
+        self.struct['from'] = [self._format_from_statement(x) for x in fromStatements]
 
         orderby = self.struct.get('orderby')
         if isinstance(orderby, dict):
@@ -166,17 +215,11 @@ class SQLQuery():
                     table_alias = table.get('name')
                     table = table['value']
 
-                if '.' in statement:
-                    table = table
-                elif '.' not in table and self.default_datanode is not None:
-                    table = f'{self.default_datanode}.{table}'
-                else:
-                    raise SqlError('table without datasource %s ' % table)
-
                 self.tables_select.append(dict(
                     name=table,
                     alias=table_alias,
-                    join=join
+                    join=join,
+                    source=statement.get('source')
                 ))
 
         # create tables index
@@ -333,12 +376,6 @@ class SQLQuery():
             full_table_name = table['name']
 
             parts = full_table_name.split('.')
-            if len(parts) < 2:
-                if self.default_datanode is not None:
-                    parts = [self.default_datanode] + parts
-                else:
-                    raise SqlError('table without datasource %s ' % full_table_name)
-
             dn_name = parts[0]
             table_name = '.'.join(parts[1:])
 
@@ -391,13 +428,15 @@ class SQLQuery():
                     table=table_name,
                     columns=fields,
                     where=condition,
-                    where_data=self.table_data[prev_table_name]
+                    where_data=self.table_data[prev_table_name],
+                    came_from=table.get('source')
                 )
             else:
                 data = dn.select(
                     table=table_name,
                     columns=fields,
-                    where=condition
+                    where=condition,
+                    came_from=table.get('source')
                 )
 
             self.table_data[full_table_name] = data
@@ -757,9 +796,6 @@ class SQLQuery():
             parts = column['table'].split('.')
             if len(parts) == 2:
                 dn_name, table_name = parts
-            elif len(parts) == 1 and self.default_datanode is not None:
-                dn_name = self.default_datanode
-                table_name = parts[0]
             else:
                 raise UndefinedColumnTableException('Unable find table: %s' % column['table'])
             result.append({

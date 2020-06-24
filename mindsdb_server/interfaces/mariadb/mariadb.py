@@ -47,12 +47,15 @@ class Mariadb():
     def _query(self, query):
         con = mysql.connector.connect(host=self.host, port=self.port, user=self.user, password=self.password)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(query)
+        res = True
+        if cur._have_unread_result():
+            res = cur.fetchall()
         con.commit()
         con.close()
 
-        return True
+        return res
 
     def _get_connect_string(self, table):
         user = self.config['api']['mysql']['user']
@@ -97,7 +100,7 @@ class Mariadb():
         columns_sql = ','.join(self._to_mariadb_table(stats))
         columns_sql += ',`$select_data_query` varchar(500)'
 
-        connect = self._get_connect_string(name)
+        connect = self._get_connect_string(f'{name}_mariadb')
 
         q = f"""
                 CREATE TABLE mindsdb.{name}

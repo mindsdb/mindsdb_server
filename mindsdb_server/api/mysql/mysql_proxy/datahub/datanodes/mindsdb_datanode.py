@@ -3,6 +3,7 @@ import pandas
 from mindsdb_server.api.mysql.mysql_proxy.datahub.datanodes.datanode import DataNode
 from mindsdb_server.interfaces.native.mindsdb import MindsdbNative
 from mindsdb_server.interfaces.clickhouse.clickhouse import Clickhouse
+from mindsdb_server.interfaces.mariadb.mariadb import Mariadb
 
 class MindsDBDataNode(DataNode):
     type = 'mindsdb'
@@ -47,17 +48,23 @@ class MindsDBDataNode(DataNode):
     def delete_predictor(self, name):
         self.mindsdb_native.delete_model(name)
 
-    def select(self, table, columns=None, where=None, where_data=None, order_by=None, group_by=None):
+    def select(self, table, columns=None, where=None, where_data=None, order_by=None, group_by=None, came_from=None):
         if table == 'predictors':
             return self._select_predictors()
 
-        clickhouse_query = None
-        if '$select_data_query' in where:
-            clickhouse_query = where['$select_data_query']['$eq']
+        select_data_query = None
+        if came_from is not None and '$select_data_query' in where:
+            select_data_query = where['$select_data_query']['$eq']
             del where['$select_data_query']
-            ch = Clickhouse(self.config)
-            res = ch._query(clickhouse_query.strip(' ;') + ' FORMAT JSON')
-            data = res.json()['data']
+
+            if came_from == 'clickhouse':
+                ch = Clickhouse(self.config)
+                res = ch._query(select_data_query.strip(' ;') + ' FORMAT JSON')
+                data = res.json()['data']
+            elif came_from == 'mariadb':
+                maria = Mariadb(self.config)
+                data = maria._query(select_data_query)
+
             if where_data is None:
                 where_data = data
             else:
@@ -89,9 +96,9 @@ class MindsDBDataNode(DataNode):
                 row[key] = res.data[key][i]
             data.append(row)
 
-        if clickhouse_query is not None:
+        if select_data_query is not None:
             for row in data:
-                row['$select_data_query'] = clickhouse_query
+                row['$select_data_query'] = select_data_query
 
         if new_where is not None and len(new_where.keys()) > 0:
             columns = self.getTableColumns(table)
