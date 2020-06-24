@@ -381,9 +381,6 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
             sql_lower = sql.lower()
 
         keyword = sql_lower.split(' ')[0]
-        # print('\n\n\n',sql_lower,'\n\n\n')
-        # db = sql_lower.split('from ')[1].split(' ')[0].split['_'][-1]
-        # print(f'Working with database {db}')
 
         if keyword == 'start':
             # start transaction
@@ -457,8 +454,8 @@ class MysqlProxy(SocketServer.BaseRequestHandler):
                 return
 
             # TODO rewrite it
-            if '`predictors_mariadb`' in sql:
-                sql = sql.replace('`predictors_mariadb`', '`mindsdb`.`predictors`')
+            # if '`predictors_mariadb`' in sql:
+            #     sql = sql.replace('`predictors_mariadb`', '`mindsdb`.`predictors`')
 
             query = SQLQuery(sql, self.session.database)
             return self.selectAnswer(query)

@@ -97,7 +97,7 @@ class Mariadb():
         columns_sql = ','.join(self._to_mariadb_table(stats))
         columns_sql += ',`$select_data_query` varchar(500)'
 
-        connect = self._get_connect_string(name)
+        connect = self._get_connect_string(f'{name}_mariadb')
 
         q = f"""
                 CREATE TABLE mindsdb.{name}
