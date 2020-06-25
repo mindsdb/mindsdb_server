@@ -97,19 +97,20 @@ def cli_config(python_path,pip_path,predictor_dir,datasource_dir,config_dir,use_
     return config_path
 
 
-def daemon_creator(python_path,config_path):
+def daemon_creator(python_path, config_path=None):
+    daemon_path = '/etc/systemd/system/mindsdb.service'
     service_txt = f"""[Unit]
 Description=Mindsdb
 
 [Service]
-ExecStart={python_path} -m mindsdb_server --config={config_path}
+ExecStart={python_path} -m mindsdb_server { "--config="+config_path  if config_path else ""}
 
 [Install]
 WantedBy=multi-user.target
 """.strip(' ')
 
     try:
-        with open('/etc/systemd/system/mindsdb.service', 'w') as fp:
+        with open(daemon_path, 'w') as fp:
             fp.write(service_txt)
     except Exception as e:
         print(f'Failed to create daemon, error: {e}')
@@ -118,13 +119,15 @@ WantedBy=multi-user.target
         os.system('systemctl daemon-reload')
     except Exception as e:
         print(f'Failed to load daemon, error: {e}')
+    return daemon_path
 
-def make_executable(python_path,config_path,path):
+
+def make_executable(python_path, exec_path, config_path=None):
     text = f"""#!/bin/bash
-{python_path} -m mindsdb_server --config={config_path}
+{python_path} -m mindsdb_server { "--config="+config_path  if config_path else ""}
 """
 
-    with open(path, 'w') as fp:
+    with open(exec_path, 'w') as fp:
         fp.write(text)
 
-    os.system(f'chmod +x {path}')
+    os.system(f'chmod +x {exec_path}')
