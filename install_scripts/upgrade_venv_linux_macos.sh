@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "${SERVER_PATH}"
 
-source env/bin/activate
+. env/bin/activate
 env/bin/pip3 install --upgrade pip || env/bin/pip install --upgrade pip
 env/bin/pip3 install mindsdb --upgrade  || env/bin/pip install mindsdb --upgrade
 echo "
