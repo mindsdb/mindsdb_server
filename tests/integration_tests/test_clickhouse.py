@@ -158,26 +158,6 @@ class ClickhouseTest(unittest.TestCase):
         result = query_ch(f"select rental_price from mindsdb.{test_predictor_name} where sqft=1000 and location='good'")
         self.assertTrue(len(result) == 1 and 'rental_price' in result[0])
 
-def wait_mysql(timeout):
-    config
-
-        
-    con = MySQLdb.connect(
-        config['api']['mysql']['host'],
-        USER,
-        PASSWORD,
-        DATABASE
-    )
-
-    cur = con.cursor()
-
-    cur.execute('DROP TABLE IF EXISTS test_mindsdb')
-    cur.execute('CREATE TABLE test_mindsdb(col_1 Text, col_2 BIGINT, col_3 BOOL)')
-    for i in range(0,200):
-        cur.execute(f'INSERT INTO test_mindsdb VALUES ("This is tring number {i}", {i}, {i % 2 == 0})')
-    con.commit()
-    con.close()
-
 if __name__ == "__main__":
     sp = subprocess.Popen(['python3', '-m', 'mindsdb_server', '--api', 'mysql', '--config', TEST_CONFIG])
     try:
